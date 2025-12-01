@@ -5,7 +5,7 @@ import { UserContext } from '../App';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
-import { Clock, Trophy, TrendingUp, Zap, Star, Gift, Target, Award, Flame, BookOpen, Users, Info, X } from 'lucide-react';
+import { Clock, Trophy, TrendingUp, Zap, Star, Gift, Target, Award, Flame, BookOpen, Users, Info, X, Shield } from 'lucide-react';
 
 import BurgerMenu from '../components/BurgerMenu';
 
@@ -330,6 +330,47 @@ export default function Home() {
                 </Card>
             </div>
 
+            {/* Invite Friends Banner */}
+            <Card className="animate-slide-up" style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden'
+            }} onClick={() => navigate('/invite')}>
+                <div className="flex-between" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="flex-center" style={{ gap: '1rem' }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '12px',
+                            background: 'rgba(255,255,255,0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backdropFilter: 'blur(4px)'
+                        }}>
+                            <Gift size={24} color="white" />
+                        </div>
+                        <div>
+                            <h3 className="h3" style={{ color: 'white', marginBottom: '0.25rem' }}>Get Free Coins!</h3>
+                            <p style={{ fontSize: '0.875rem', opacity: 0.9 }}>Invite friends & earn 500 coins each 🚀</p>
+                        </div>
+                    </div>
+                    <div style={{
+                        background: 'white',
+                        color: '#6366f1',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '999px',
+                        fontWeight: 700,
+                        fontSize: '0.875rem'
+                    }}>
+                        Invite
+                    </div>
+                </div>
+            </Card>
+
             {/* Quick Actions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>        <Card className="flex-col flex-center animate-slide-up" style={{
                 gap: '0.75rem',
@@ -356,6 +397,31 @@ export default function Home() {
                 </div>
                 <span style={{ fontWeight: 700, color: '#6b21a8' }}>Leaderboard</span>
             </Card>
+                <Card className="flex-col flex-center animate-slide-up" style={{
+                    gap: '0.75rem',
+                    cursor: 'pointer',
+                    padding: '1.5rem',
+                    background: 'linear-gradient(135deg, #fecaca 0%, #fca5a5 100%)',
+                    position: 'relative'
+                }} onClick={() => navigate('/clans')}>
+                    <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+                        <TooltipIcon
+                            id="clans"
+                            title="Clans"
+                            icon="🛡️"
+                            content="Join or create a clan with friends! Compete in weekly wars for massive prize pools and climb the clan leaderboard together!"
+                        />
+                    </div>
+                    <div style={{
+                        padding: '1rem',
+                        background: 'white',
+                        borderRadius: '50%',
+                        boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)'
+                    }}>
+                        <Shield size={28} color="#dc2626" />
+                    </div>
+                    <span style={{ fontWeight: 700, color: '#991b1b' }}>Clans</span>
+                </Card>
                 <Card className="flex-col flex-center animate-slide-up" style={{
                     gap: '0.75rem',
                     cursor: 'pointer',

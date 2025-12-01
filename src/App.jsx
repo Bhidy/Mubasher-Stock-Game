@@ -11,6 +11,8 @@ import Leaderboard from './screens/Leaderboard';
 import Rewards from './screens/Rewards';
 import Academy from './screens/Academy';
 import Community from './screens/Community';
+import Invite from './screens/Invite';
+import Clans from './screens/Clans';
 import CompanyProfile from './screens/CompanyProfile';
 
 import profileImg from './assets/profile.jpg';
@@ -46,6 +48,8 @@ export default function App() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/academy" element={<Academy />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/invite" element={<Invite />} />
+            <Route path="/clans" element={<Clans />} />
             <Route path="/company/:symbol" element={<CompanyProfile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

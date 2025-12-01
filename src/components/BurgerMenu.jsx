@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import ReactDOM from 'react-dom';
-import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot } from 'lucide-react';
+import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../App';
 
@@ -19,6 +19,8 @@ export default function BurgerMenu() {
         { icon: Bot, label: 'Mubasher AI', action: () => setShowChat(true) },
         { icon: BookOpen, label: 'Academy', path: '/academy' },
         { icon: Users, label: 'Community', path: '/community' },
+        { icon: Shield, label: 'Clans', path: '/clans' },
+        { icon: Gift, label: 'Invite Friends', path: '/invite' },
     ];
 
     const handleNavigate = (path) => {
