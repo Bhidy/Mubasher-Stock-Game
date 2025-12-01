@@ -59,12 +59,12 @@ export default function Onboarding() {
 
     return (
         <div className="flex-col" style={{
-            height: '100dvh', /* Force full viewport height */
-            padding: '1rem',
-            paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
+            height: '100dvh',
+            padding: '0.75rem', /* Reduced padding */
+            paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))',
             justifyContent: 'space-between',
             position: 'relative',
-            overflow: 'hidden', /* No scrolling allowed */
+            overflow: 'hidden',
             background: 'white',
             transition: 'all 0.5s ease'
         }}>
@@ -91,38 +91,38 @@ export default function Onboarding() {
                 />
             ))}
 
-            {/* Header with Logo - Ultra Compact */}
+            {/* Header with Logo - Restored Size, Minimal Spacing */}
             <div className="flex-center flex-col animate-fade-in" style={{
                 marginTop: '0.5rem',
                 position: 'relative',
                 zIndex: 10
             }}>
                 <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '14px',
+                    width: '80px', /* Restored Size */
+                    height: '80px', /* Restored Size */
+                    borderRadius: '24px',
                     background: currentSlide.gradient,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: `0 8px 20px ${currentSlide.accentColor}40`,
-                    marginBottom: '0.25rem',
+                    boxShadow: `0 15px 40px ${currentSlide.accentColor}40`,
+                    marginBottom: '0.5rem', /* Reduced Margin */
                     position: 'relative',
                     transition: 'all 0.5s ease',
-                    border: '2px solid white'
+                    border: '3px solid white'
                 }} className="animate-pulse-scale">
                     {/* Inner glow */}
                     <div style={{
                         position: 'absolute',
-                        inset: '3px',
-                        borderRadius: '10px',
+                        inset: '6px',
+                        borderRadius: '18px',
                         background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%)',
                         pointerEvents: 'none'
                     }} />
-                    <Zap size={24} color="white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+                    <Zap size={36} color="white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }} />
                 </div>
                 <h1 style={{
-                    fontSize: '1.25rem',
+                    fontSize: '1.75rem', /* Restored Size */
                     fontWeight: 900,
                     textAlign: 'center',
                     marginBottom: '0',
@@ -131,49 +131,58 @@ export default function Onboarding() {
                     lineHeight: 1.1,
                     transition: 'color 0.5s ease'
                 }}>
-                    Mubasher Stock Game
+                    Mubasher<br />Stock Game
                 </h1>
+                <p style={{
+                    color: currentSlide.accentColor,
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    letterSpacing: '0.05em',
+                    marginTop: '0.25rem'
+                }}>
+                    Trade Smart. Win Big.
+                </p>
             </div>
 
-            {/* Carousel Content - Ultra Compact */}
-            <div className="flex-col flex-center" style={{ flex: 1, textAlign: 'center', maxWidth: '360px', margin: '0 auto', position: 'relative', zIndex: 10, justifyContent: 'center', gap: '0.5rem' }}>
+            {/* Carousel Content - Restored Size, Minimal Spacing */}
+            <div className="flex-col flex-center" style={{ flex: 1, textAlign: 'center', maxWidth: '360px', margin: '0 auto', position: 'relative', zIndex: 10, justifyContent: 'center', gap: '0.25rem' }}>
                 {/* Icon Circle */}
                 <div style={{
-                    width: '80px',
-                    height: '80px',
+                    width: '120px', /* Restored Size */
+                    height: '120px', /* Restored Size */
                     borderRadius: '50%',
                     background: currentSlide.lightBg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '0.5rem',
-                    boxShadow: `0 15px 40px ${currentSlide.accentColor}20`,
-                    border: `4px solid ${currentSlide.accentColor}20`,
+                    marginBottom: '0.5rem', /* Reduced Margin */
+                    boxShadow: `0 30px 80px ${currentSlide.accentColor}20`,
+                    border: `6px solid ${currentSlide.accentColor}20`,
                     position: 'relative',
                     transition: 'all 0.5s ease'
                 }} className="animate-pulse-scale">
                     {/* Rotating ring */}
                     <div style={{
                         position: 'absolute',
-                        inset: '-8px',
+                        inset: '-12px',
                         borderRadius: '50%',
-                        border: `2px dashed ${currentSlide.accentColor}30`,
+                        border: `3px dashed ${currentSlide.accentColor}30`,
                         animation: 'spin 20s linear infinite'
                     }} />
 
                     {/* Icon with gradient background */}
                     <div style={{
-                        width: '56px',
-                        height: '56px',
+                        width: '80px',
+                        height: '80px',
                         borderRadius: '50%',
                         background: currentSlide.gradient,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: `0 6px 16px ${currentSlide.accentColor}40`
+                        boxShadow: `0 8px 24px ${currentSlide.accentColor}40`
                     }}>
                         {React.createElement(currentSlide.icon, {
-                            size: 28,
+                            size: 40,
                             color: 'white',
                             strokeWidth: 2.5,
                             style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }
@@ -185,7 +194,7 @@ export default function Onboarding() {
                 <div>
                     <h2 className="h2" style={{
                         marginBottom: '0.25rem',
-                        fontSize: '1.5rem',
+                        fontSize: '1.75rem', /* Restored Size */
                         color: currentSlide.accentColor,
                         fontWeight: 900,
                         letterSpacing: '-0.02em',
@@ -196,8 +205,8 @@ export default function Onboarding() {
                     <p className="body-lg" style={{
                         color: 'var(--text-secondary)',
                         lineHeight: 1.4,
-                        fontSize: '0.9rem',
-                        maxWidth: '280px',
+                        fontSize: '1rem', /* Restored Size */
+                        maxWidth: '300px',
                         margin: '0 auto'
                     }}>
                         {currentSlide.desc}
@@ -205,15 +214,15 @@ export default function Onboarding() {
                 </div>
 
                 {/* Progress Dots */}
-                <div className="flex-center" style={{ gap: '0.4rem', marginTop: '0.75rem' }}>
+                <div className="flex-center" style={{ gap: '0.5rem', marginTop: '0.75rem' }}>
                     {slides.map((_, i) => (
                         <button
                             key={i}
                             onClick={() => setStep(i)}
                             style={{
-                                width: i === step ? '32px' : '8px',
-                                height: '8px',
-                                borderRadius: '4px',
+                                width: i === step ? '48px' : '12px',
+                                height: '12px',
+                                borderRadius: '6px',
                                 background: i === step ? currentSlide.gradient : '#cbd5e1',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 cursor: 'pointer',
@@ -236,15 +245,15 @@ export default function Onboarding() {
                             style={{
                                 background: currentSlide.gradient,
                                 boxShadow: `0 8px 24px ${currentSlide.accentColor}40`,
-                                fontSize: '0.95rem',
-                                padding: '0.875rem 2rem',
+                                fontSize: '1rem',
+                                padding: '1rem 2rem',
                                 borderRadius: '9999px',
                                 fontWeight: 700,
                                 border: 'none',
                                 color: 'white'
                             }}
                         >
-                            Continue <ArrowRight size={18} strokeWidth={2.5} />
+                            Continue <ArrowRight size={20} strokeWidth={2.5} />
                         </Button>
                         <Button
                             onClick={() => navigate('/home')}
@@ -253,8 +262,8 @@ export default function Onboarding() {
                                 color: currentSlide.accentColor,
                                 borderColor: currentSlide.accentColor,
                                 background: 'white',
-                                fontSize: '0.95rem',
-                                padding: '0.875rem 2rem',
+                                fontSize: '1rem',
+                                padding: '1rem 2rem',
                                 borderRadius: '9999px',
                                 fontWeight: 700,
                                 border: `2px solid ${currentSlide.accentColor}`
@@ -271,18 +280,18 @@ export default function Onboarding() {
                             style={{
                                 background: currentSlide.gradient,
                                 boxShadow: `0 8px 24px ${currentSlide.accentColor}40`,
-                                fontSize: '0.95rem',
-                                padding: '0.875rem 2rem',
+                                fontSize: '1rem',
+                                padding: '1rem 2rem',
                                 borderRadius: '9999px',
                                 fontWeight: 700,
                                 color: 'white'
                             }}
                         >
-                            Start Playing <Zap size={18} strokeWidth={2.5} />
+                            Start Playing <Zap size={20} strokeWidth={2.5} />
                         </Button>
                         <div style={{
                             textAlign: 'center',
-                            fontSize: '0.7rem',
+                            fontSize: '0.75rem',
                             color: 'var(--text-muted)',
                             marginTop: '0.25rem',
                             fontWeight: 600
