@@ -60,14 +60,13 @@ export default function Onboarding() {
     return (
         <div className="flex-col" style={{
             minHeight: '100vh',
+            minHeight: '100dvh', /* Better for mobile browsers */
             height: '100%',
-            padding: '1.5rem',
-            paddingBottom: '1.5rem',
+            padding: '1rem',
+            paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))', /* Handle iPhone home indicator */
             justifyContent: 'space-between',
             position: 'relative',
-            overflow: 'auto',
-            overflowX: 'hidden',
-            WebkitOverflowScrolling: 'touch',
+            overflow: 'hidden', /* Prevent scrolling if possible */
             background: 'white',
             transition: 'all 0.5s ease'
         }}>
@@ -94,23 +93,22 @@ export default function Onboarding() {
                 />
             ))}
 
-            {/* Header with Logo - Always Visible */}
+            {/* Header with Logo - Compact */}
             <div className="flex-center flex-col animate-fade-in" style={{
-                marginTop: '0.5rem',
-                marginBottom: '0.5rem',
+                marginTop: '1rem',
                 position: 'relative',
                 zIndex: 10
             }}>
                 <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '24px',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '20px',
                     background: currentSlide.gradient,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: `0 15px 40px ${currentSlide.accentColor}40`,
-                    marginBottom: '0.75rem',
+                    boxShadow: `0 10px 30px ${currentSlide.accentColor}40`,
+                    marginBottom: '0.5rem',
                     position: 'relative',
                     transition: 'all 0.5s ease',
                     border: '3px solid white'
@@ -118,15 +116,15 @@ export default function Onboarding() {
                     {/* Inner glow */}
                     <div style={{
                         position: 'absolute',
-                        inset: '6px',
-                        borderRadius: '18px',
+                        inset: '4px',
+                        borderRadius: '16px',
                         background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%)',
                         pointerEvents: 'none'
                     }} />
-                    <Zap size={36} color="white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }} />
+                    <Zap size={32} color="white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }} />
                 </div>
                 <h1 style={{
-                    fontSize: '1.75rem',
+                    fontSize: '1.5rem',
                     fontWeight: 900,
                     textAlign: 'center',
                     marginBottom: '0.25rem',
@@ -147,19 +145,19 @@ export default function Onboarding() {
                 </p>
             </div>
 
-            {/* Carousel Content */}
+            {/* Carousel Content - Compact */}
             <div className="flex-col flex-center" style={{ flex: 1, textAlign: 'center', maxWidth: '360px', margin: '0 auto', position: 'relative', zIndex: 10, justifyContent: 'center' }}>
                 {/* Icon Circle */}
                 <div style={{
-                    width: '120px',
-                    height: '120px',
+                    width: '100px',
+                    height: '100px',
                     borderRadius: '50%',
                     background: currentSlide.lightBg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '1.5rem',
-                    boxShadow: `0 30px 80px ${currentSlide.accentColor}20`,
+                    marginBottom: '1rem',
+                    boxShadow: `0 20px 60px ${currentSlide.accentColor}20`,
                     border: `6px solid ${currentSlide.accentColor}20`,
                     position: 'relative',
                     transition: 'all 0.5s ease'
@@ -167,7 +165,7 @@ export default function Onboarding() {
                     {/* Rotating ring */}
                     <div style={{
                         position: 'absolute',
-                        inset: '-12px',
+                        inset: '-10px',
                         borderRadius: '50%',
                         border: `3px dashed ${currentSlide.accentColor}30`,
                         animation: 'spin 20s linear infinite'
@@ -175,8 +173,8 @@ export default function Onboarding() {
 
                     {/* Icon with gradient background */}
                     <div style={{
-                        width: '80px',
-                        height: '80px',
+                        width: '70px',
+                        height: '70px',
                         borderRadius: '50%',
                         background: currentSlide.gradient,
                         display: 'flex',
@@ -185,7 +183,7 @@ export default function Onboarding() {
                         boxShadow: `0 8px 24px ${currentSlide.accentColor}40`
                     }}>
                         {React.createElement(currentSlide.icon, {
-                            size: 40,
+                            size: 32,
                             color: 'white',
                             strokeWidth: 2.5,
                             style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }
@@ -195,8 +193,8 @@ export default function Onboarding() {
 
                 {/* Text Content */}
                 <h2 className="h2" style={{
-                    marginBottom: '0.75rem',
-                    fontSize: '1.75rem',
+                    marginBottom: '0.5rem',
+                    fontSize: '1.5rem',
                     color: currentSlide.accentColor,
                     fontWeight: 900,
                     letterSpacing: '-0.02em',
@@ -206,23 +204,23 @@ export default function Onboarding() {
                 </h2>
                 <p className="body-lg" style={{
                     color: 'var(--text-secondary)',
-                    lineHeight: 1.6,
-                    fontSize: '1rem',
+                    lineHeight: 1.5,
+                    fontSize: '0.95rem',
                     maxWidth: '300px'
                 }}>
                     {currentSlide.desc}
                 </p>
 
                 {/* Progress Dots */}
-                <div className="flex-center" style={{ gap: '0.75rem', marginTop: '1.5rem' }}>
+                <div className="flex-center" style={{ gap: '0.5rem', marginTop: '1.25rem' }}>
                     {slides.map((_, i) => (
                         <button
                             key={i}
                             onClick={() => setStep(i)}
                             style={{
-                                width: i === step ? '48px' : '12px',
-                                height: '12px',
-                                borderRadius: '6px',
+                                width: i === step ? '40px' : '10px',
+                                height: '10px',
+                                borderRadius: '5px',
                                 background: i === step ? currentSlide.gradient : '#cbd5e1',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 cursor: 'pointer',
