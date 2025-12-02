@@ -208,14 +208,8 @@ export default function Invite() {
                 <Button
                     variant="primary"
                     onClick={handleShare}
-                    style={{
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)',
-                        height: '3.5rem',
-                        fontSize: '1.125rem'
-                    }}
                 >
-                    <Share2 size={22} style={{ marginRight: '0.75rem' }} /> Share Link
+                    <Share2 size={20} /> Share Link
                 </Button>
             </div>
 
