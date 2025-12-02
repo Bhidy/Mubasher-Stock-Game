@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Trophy, Star, Zap, Gift, Shield, ArrowRight, X } from 'lucide-react';
+import { Trophy, Star, Zap, Gift, Shield, ArrowRight, X, ChevronLeft } from 'lucide-react';
 import Button from '../components/Button';
-import Card from '../components/Card';
 import { useNavigate } from 'react-router-dom';
 
 export default function DailySpin() {
@@ -11,12 +10,12 @@ export default function DailySpin() {
     const [prize, setPrize] = useState(null);
 
     const prizes = [
-        { label: '50 Coins', value: 50, color: '#fbbf24', icon: <Star size={24} color="white" /> },
-        { label: '100 Coins', value: 100, color: '#f59e0b', icon: <Star size={24} color="white" /> },
-        { label: 'XP Boost', value: '2x', color: '#8b5cf6', icon: <Zap size={24} color="white" /> },
+        { label: '50 Coins', value: 50, color: '#fbbf24', icon: <Star size={24} color="white" fill="white" /> },
+        { label: '100 Coins', value: 100, color: '#f59e0b', icon: <Star size={24} color="white" fill="white" /> },
+        { label: 'XP Boost', value: '2x', color: '#8b5cf6', icon: <Zap size={24} color="white" fill="white" /> },
         { label: 'Mystery', value: '???', color: '#ec4899', icon: <Gift size={24} color="white" /> },
-        { label: 'Freeze', value: '1 Day', color: '#3b82f6', icon: <Shield size={24} color="white" /> },
-        { label: '25 Coins', value: 25, color: '#9ca3af', icon: <Star size={24} color="white" /> },
+        { label: 'Freeze', value: '1 Day', color: '#3b82f6', icon: <Shield size={24} color="white" fill="white" /> },
+        { label: '25 Coins', value: 25, color: '#9ca3af', icon: <Star size={24} color="white" fill="white" /> },
     ];
 
     const handleSpin = () => {
@@ -32,22 +31,30 @@ export default function DailySpin() {
 
         setTimeout(() => {
             setIsSpinning(false);
-            // Calculate prize based on rotation
-            // This is a simple mock logic for visual effect
             const winningIndex = Math.floor(Math.random() * prizes.length);
             setPrize(prizes[winningIndex]);
-        }, 3000); // 3 seconds spin time matches CSS transition
+        }, 3000);
     };
 
     return (
         <div className="flex-col flex-center" style={{
             minHeight: '100dvh',
-            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+            background: 'radial-gradient(circle at 50% 30%, #4338ca 0%, #1e1b4b 100%)',
             padding: '2rem',
             position: 'relative',
             overflow: 'hidden',
             color: 'white'
         }}>
+
+            {/* Background Particles */}
+            <div style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: 'radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)',
+                backgroundSize: '30px 30px',
+                opacity: 0.3,
+                pointerEvents: 'none'
+            }} />
 
             {/* Close Button */}
             <button
@@ -55,63 +62,75 @@ export default function DailySpin() {
                 style={{
                     position: 'absolute',
                     top: '1.5rem',
-                    right: '1.5rem',
+                    left: '1.5rem',
                     background: 'rgba(255,255,255,0.1)',
-                    border: 'none',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: '50%',
-                    width: '40px',
-                    height: '40px',
+                    width: '44px',
+                    height: '44px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    zIndex: 20
+                    zIndex: 20,
+                    backdropFilter: 'blur(8px)'
                 }}
             >
-                <X size={24} color="white" />
+                <ChevronLeft size={24} color="white" />
             </button>
 
             {/* Header */}
-            <div className="flex-col flex-center animate-fade-in" style={{ marginBottom: '2rem', textAlign: 'center', zIndex: 10 }}>
-                <h1 style={{
-                    fontSize: '2.5rem',
-                    fontWeight: 900,
-                    textShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                    marginBottom: '0.5rem',
-                    background: 'linear-gradient(to right, #fbbf24, #f59e0b)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
+            <div className="flex-col flex-center animate-fade-in" style={{ marginBottom: '3rem', textAlign: 'center', zIndex: 10 }}>
+                <div style={{
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '999px',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    color: '#78350f',
+                    marginBottom: '1rem',
+                    boxShadow: '0 0 20px rgba(251, 191, 36, 0.4)'
                 }}>
-                    DAILY SPIN
+                    ✨ DAILY BONUS
+                </div>
+                <h1 style={{
+                    fontSize: '3rem',
+                    fontWeight: 900,
+                    textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                    marginBottom: '0.5rem',
+                    background: 'linear-gradient(to bottom, #ffffff, #94a3b8)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    letterSpacing: '-0.02em'
+                }}>
+                    SPIN & WIN
                 </h1>
-                <p style={{ opacity: 0.8 }}>Spin everyday for free rewards!</p>
+                <p style={{ opacity: 0.8, fontSize: '1.1rem' }}>Your daily chance for free rewards!</p>
             </div>
 
             {/* Wheel Container */}
             <div style={{
                 position: 'relative',
-                width: '300px',
-                height: '300px',
-                marginBottom: '3rem',
+                width: '320px',
+                height: '320px',
+                marginBottom: '4rem',
                 zIndex: 10
             }}>
                 {/* Pointer */}
                 <div style={{
                     position: 'absolute',
-                    top: '-20px',
+                    top: '-24px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    width: '40px',
-                    height: '40px',
                     zIndex: 20,
-                    filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.3))'
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))'
                 }}>
                     <div style={{
                         width: 0,
                         height: 0,
-                        borderLeft: '20px solid transparent',
-                        borderRight: '20px solid transparent',
-                        borderTop: '40px solid white',
+                        borderLeft: '24px solid transparent',
+                        borderRight: '24px solid transparent',
+                        borderTop: '48px solid #fbbf24',
                     }} />
                 </div>
 
@@ -120,13 +139,13 @@ export default function DailySpin() {
                     width: '100%',
                     height: '100%',
                     borderRadius: '50%',
-                    border: '8px solid white',
-                    boxShadow: '0 0 50px rgba(251, 191, 36, 0.3)',
+                    border: '12px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 0 80px rgba(67, 56, 202, 0.6), inset 0 0 40px rgba(0,0,0,0.5)',
                     position: 'relative',
                     overflow: 'hidden',
                     transform: `rotate(${rotation}deg)`,
-                    transition: 'transform 3s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                    background: '#1f2937'
+                    transition: 'transform 3s cubic-bezier(0.15, 0.85, 0.35, 1)',
+                    background: '#0f172a'
                 }}>
                     {prizes.map((item, index) => {
                         const angle = 360 / prizes.length;
@@ -146,23 +165,26 @@ export default function DailySpin() {
                                 <div style={{
                                     position: 'absolute',
                                     left: '0',
-                                    top: '-150px',
-                                    width: '150px',
-                                    height: '300px',
-                                    background: item.color,
+                                    top: '-160px',
+                                    width: '160px',
+                                    height: '320px',
+                                    background: `conic-gradient(from 0deg, ${item.color} 0deg, ${item.color} 60deg)`,
                                     transformOrigin: 'bottom right',
-                                    clipPath: 'polygon(0 0, 100% 0, 100% 100%)', // Simplified wedge shape
-                                    transform: `rotate(${angle / 2}deg) skewY(-30deg)`, // Rough approximation for visual
-                                    opacity: 0.9
+                                    clipPath: 'polygon(0 0, 100% 0, 100% 100%)',
+                                    transform: `rotate(${angle / 2}deg) skewY(-30deg)`,
+                                    opacity: 0.9,
+                                    borderRight: '2px solid rgba(255,255,255,0.2)'
                                 }} />
                                 <div style={{
-                                    transform: `translateX(60px) rotate(0deg)`,
+                                    transform: `translateX(70px) rotate(90deg)`,
                                     zIndex: 5,
                                     display: 'flex',
+                                    flexDirection: 'column',
                                     alignItems: 'center',
-                                    gap: '0.5rem',
-                                    fontWeight: 700,
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                                    gap: '0.25rem',
+                                    fontWeight: 800,
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                                    color: 'white'
                                 }}>
                                     {item.icon}
                                 </div>
@@ -177,16 +199,17 @@ export default function DailySpin() {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '60px',
-                    height: '60px',
-                    background: 'white',
+                    width: '70px',
+                    height: '70px',
+                    background: 'radial-gradient(circle at 30% 30%, #ffffff 0%, #e2e8f0 100%)',
                     borderRadius: '50%',
                     zIndex: 15,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.4), inset 0 -4px 8px rgba(0,0,0,0.1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.5rem'
+                    fontSize: '2rem',
+                    border: '4px solid #cbd5e1'
                 }}>
                     🎰
                 </div>
@@ -197,20 +220,21 @@ export default function DailySpin() {
                 onClick={handleSpin}
                 disabled={isSpinning}
                 style={{
-                    background: isSpinning ? '#4b5563' : 'linear-gradient(to right, #fbbf24, #f59e0b)',
-                    color: isSpinning ? '#9ca3af' : '#78350f',
+                    background: isSpinning ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                    color: isSpinning ? 'rgba(255,255,255,0.5)' : 'white',
                     fontSize: '1.25rem',
-                    padding: '1rem 3rem',
+                    padding: '1.25rem 4rem',
                     borderRadius: '999px',
                     fontWeight: 800,
-                    boxShadow: isSpinning ? 'none' : '0 0 30px rgba(245, 158, 11, 0.5)',
-                    transform: isSpinning ? 'scale(0.95)' : 'scale(1)',
+                    boxShadow: isSpinning ? 'none' : '0 0 40px rgba(245, 158, 11, 0.4), 0 4px 0 #b45309',
+                    transform: isSpinning ? 'scale(0.95)' : 'translateY(0)',
                     transition: 'all 0.2s',
                     border: 'none',
-                    zIndex: 10
+                    zIndex: 10,
+                    textShadow: isSpinning ? 'none' : '0 2px 4px rgba(0,0,0,0.2)'
                 }}
             >
-                {isSpinning ? 'Spinning...' : 'SPIN NOW!'}
+                {isSpinning ? 'SPINNING...' : 'SPIN NOW'}
             </Button>
 
             {/* Prize Modal */}
@@ -218,52 +242,74 @@ export default function DailySpin() {
                 <div className="animate-fade-in" style={{
                     position: 'fixed',
                     inset: 0,
-                    background: 'rgba(0,0,0,0.8)',
+                    background: 'rgba(0,0,0,0.85)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 100,
-                    backdropFilter: 'blur(8px)'
+                    backdropFilter: 'blur(12px)'
                 }}>
                     <div className="animate-pulse-scale" style={{
-                        background: 'white',
-                        padding: '2rem',
-                        borderRadius: '2rem',
+                        background: 'rgba(255,255,255,0.1)',
+                        padding: '2.5rem',
+                        borderRadius: '2.5rem',
                         textAlign: 'center',
-                        maxWidth: '300px',
+                        maxWidth: '340px',
                         width: '90%',
-                        position: 'relative'
+                        position: 'relative',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
                     }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-                        <h2 style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>YOU WON!</h2>
                         <div style={{
+                            position: 'absolute',
+                            top: '-40px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            fontSize: '5rem',
+                            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+                        }}>
+                            🎉
+                        </div>
+
+                        <h2 style={{
+                            color: 'white',
                             fontSize: '2rem',
                             fontWeight: 900,
+                            marginBottom: '0.5rem',
+                            marginTop: '2rem',
+                            textShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                        }}>
+                            YOU WON!
+                        </h2>
+
+                        <div style={{
+                            fontSize: '2.5rem',
+                            fontWeight: 900,
                             color: prize.color,
-                            marginBottom: '1.5rem'
+                            marginBottom: '2rem',
+                            textShadow: `0 0 30px ${prize.color}80`
                         }}>
                             {prize.label}
                         </div>
+
                         <Button
                             onClick={() => navigate('/home')}
-                            style={{ width: '100%', background: '#111827', color: 'white' }}
+                            style={{
+                                width: '100%',
+                                background: 'white',
+                                color: '#1e1b4b',
+                                fontWeight: 800,
+                                fontSize: '1.1rem',
+                                padding: '1rem',
+                                borderRadius: '1rem',
+                                boxShadow: '0 8px 20px rgba(255,255,255,0.2)'
+                            }}
                         >
                             Claim Reward
                         </Button>
                     </div>
                 </div>
             )}
-
-            {/* Background Effects */}
-            <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px)',
-                backgroundSize: '20px 20px',
-                opacity: 0.3,
-                pointerEvents: 'none'
-            }} />
-
         </div>
     );
 }
