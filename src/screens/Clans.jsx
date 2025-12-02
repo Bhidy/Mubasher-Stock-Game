@@ -131,10 +131,21 @@ export default function Clans() {
 
             {/* Action Buttons */}
             <div className="flex-center animate-slide-up" style={{ gap: '1rem', animationDelay: '0.1s' }}>
-                <Button variant="primary" style={{ flex: 1 }}>
+                <Button variant="primary" style={{
+                    flex: 1,
+                    height: '3.5rem',
+                    background: 'var(--text-primary)',
+                    color: 'white',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
+                }}>
                     <Plus size={20} style={{ marginRight: '0.5rem' }} /> Create Clan
                 </Button>
-                <Button variant="outline" style={{ flex: 1 }}>
+                <Button variant="outline" style={{
+                    flex: 1,
+                    height: '3.5rem',
+                    background: 'white',
+                    border: '1px solid var(--border-color)'
+                }}>
                     <Search size={20} style={{ marginRight: '0.5rem' }} /> Find Clan
                 </Button>
             </div>
@@ -233,7 +244,15 @@ export default function Clans() {
                     <ChatMessage user="Mike" text="We need 5k more points!" time="Now" color="#10b981" />
                 </div>
 
-                <Button variant="secondary" style={{ marginTop: '1.25rem', width: '100%' }}>
+                <Button variant="outline" style={{
+                    marginTop: '1.25rem',
+                    background: 'white',
+                    border: 'none',
+                    color: '#2563eb',
+                    width: '100%',
+                    fontWeight: 700,
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.1)'
+                }}>
                     Join a Clan to Chat
                 </Button>
             </div>

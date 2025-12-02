@@ -217,10 +217,22 @@ export default function DailySpin() {
 
             {/* Action Button */}
             <Button
-                variant="primary"
                 onClick={handleSpin}
                 disabled={isSpinning}
-                style={{ fontSize: '1.25rem', padding: '1.25rem 4rem' }}
+                style={{
+                    background: isSpinning ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                    color: isSpinning ? 'rgba(255,255,255,0.5)' : 'white',
+                    fontSize: '1.25rem',
+                    padding: '1.25rem 4rem',
+                    borderRadius: '999px',
+                    fontWeight: 800,
+                    boxShadow: isSpinning ? 'none' : '0 0 40px rgba(245, 158, 11, 0.4), 0 4px 0 #b45309',
+                    transform: isSpinning ? 'scale(0.95)' : 'translateY(0)',
+                    transition: 'all 0.2s',
+                    border: 'none',
+                    zIndex: 10,
+                    textShadow: isSpinning ? 'none' : '0 2px 4px rgba(0,0,0,0.2)'
+                }}
             >
                 {isSpinning ? 'SPINNING...' : 'SPIN NOW'}
             </Button>
@@ -281,9 +293,17 @@ export default function DailySpin() {
                         </div>
 
                         <Button
-                            variant="secondary"
                             onClick={() => navigate('/home')}
-                            style={{ width: '100%', fontWeight: 800 }}
+                            style={{
+                                width: '100%',
+                                background: 'white',
+                                color: '#1e1b4b',
+                                fontWeight: 800,
+                                fontSize: '1.1rem',
+                                padding: '1rem',
+                                borderRadius: '1rem',
+                                boxShadow: '0 8px 20px rgba(255,255,255,0.2)'
+                            }}
                         >
                             Claim Reward
                         </Button>
