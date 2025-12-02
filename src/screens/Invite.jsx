@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Share2, Copy, Gift, Users, Check, Star, Trophy, Zap, ArrowRight, ChevronLeft } from 'lucide-react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Badge from '../components/Badge';
 import { useNavigate } from 'react-router-dom';
+import BurgerMenu from '../components/BurgerMenu';
 
 export default function Invite() {
     const navigate = useNavigate();
@@ -44,23 +46,26 @@ export default function Invite() {
 
             {/* Header */}
             <div className="flex-col animate-fade-in" style={{ gap: '1rem' }}>
-                <button
-                    onClick={() => navigate(-1)}
-                    style={{
-                        background: 'white',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '40px',
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: 'var(--shadow-sm)',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <ChevronLeft size={24} color="var(--text-primary)" />
-                </button>
+                <div className="flex-between">
+                    <button
+                        onClick={() => navigate(-1)}
+                        style={{
+                            background: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: 'var(--shadow-sm)',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <ChevronLeft size={24} color="var(--text-primary)" />
+                    </button>
+                    <BurgerMenu />
+                </div>
 
                 <div className="flex-col flex-center" style={{ textAlign: 'center', marginTop: '1rem' }}>
                     <div className="animate-float" style={{
@@ -275,10 +280,10 @@ function MilestoneCard({ count, reward, icon, status, progress, color }) {
             padding: '1.25rem',
             background: 'white',
             borderRadius: '1.25rem',
-            border: isLocked ? '1px solid var(--border-color)' : `2px solid ${color}30`,
+            border: isLocked ? '1px solid var(--border-color)' : `2px solid ${color} 30`,
             opacity: isLocked ? 0.6 : 1,
             position: 'relative',
-            boxShadow: isLocked ? 'none' : `0 8px 20px ${color}15`,
+            boxShadow: isLocked ? 'none' : `0 8px 20px ${color} 15`,
             transition: 'all 0.3s ease'
         }}>
             <div className="flex-center" style={{ gap: '1rem' }}>
@@ -286,12 +291,12 @@ function MilestoneCard({ count, reward, icon, status, progress, color }) {
                     width: '50px',
                     height: '50px',
                     borderRadius: '16px',
-                    background: isLocked ? '#f1f5f9' : `${color}15`,
+                    background: isLocked ? '#f1f5f9' : `${color} 15`,
                     color: isLocked ? '#94a3b8' : color,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: isLocked ? 'none' : `0 4px 10px ${color}20`
+                    boxShadow: isLocked ? 'none' : `0 4px 10px ${color} 20`
                 }}>
                     {icon}
                 </div>

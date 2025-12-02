@@ -8,12 +8,14 @@ import Button from '../components/Button';
 import { Clock, Trophy, TrendingUp, Zap, Star, Gift, Target, Award, Flame, BookOpen, Users, Info, X, Shield } from 'lucide-react';
 
 import BurgerMenu from '../components/BurgerMenu';
+import DailySpinModal from '../components/DailySpinModal';
 
 export default function Home() {
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
     const [showStreakInfo, setShowStreakInfo] = useState(false);
     const [activeTooltip, setActiveTooltip] = useState(null);
+    const [showDailySpin, setShowDailySpin] = useState(true); // Show on login
 
     // Tooltip component - matches streak info style
     const TooltipIcon = ({ id, content, title, icon, color = '#6b7280' }) => {
@@ -125,15 +127,29 @@ export default function Home() {
                     </div>
                 </div>
                 <div className="flex-center" style={{ gap: '0.75rem' }}>
-                    <div className="coin-shine" style={{
-                        background: 'var(--gradient-gold)',
-                        padding: '0.5rem 1rem',
-                        borderRadius: 'var(--radius-full)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                    }}>
+                    <div
+                        className="coin-shine"
+                        onClick={() => navigate('/rewards')}
+                        style={{
+                            background: 'var(--gradient-gold)',
+                            padding: '0.5rem 1rem',
+                            borderRadius: 'var(--radius-full)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s, box-shadow 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                        }}
+                    >
                         <span style={{ fontSize: '1.25rem' }}>🪙</span>
                         <span style={{ fontWeight: 800, fontSize: '1rem', color: 'white' }}>{user.coins}</span>
                         <TooltipIcon
@@ -254,11 +270,11 @@ export default function Home() {
                 </div>
 
                 {user.isLocked ? (
-                    <Button variant="outline" onClick={() => navigate('/live')}>
+                    <Button variant="outline" onClick={() => navigate('/live')} style={{ marginTop: '1rem' }}>
                         View Live Status 📊
                     </Button>
                 ) : (
-                    <Button onClick={() => navigate('/pick')}>
+                    <Button onClick={() => navigate('/pick')} style={{ marginTop: '1rem' }}>
                         Pick Your 3 Stocks 🎯
                     </Button>
                 )}
@@ -422,106 +438,8 @@ export default function Home() {
                     </div>
                     <span style={{ fontWeight: 700, color: '#991b1b' }}>Clans</span>
                 </Card>
-                <Card className="flex-col flex-center animate-slide-up" style={{
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-                    position: 'relative'
-                }} onClick={() => navigate('/rewards')}>
-                    <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
-                        <TooltipIcon
-                            id="rewards"
-                            title="Rewards Shop"
-                            icon="🎁"
-                            content="Redeem your coins for exclusive rewards, premium features, and real prizes!"
-                        />
-                    </div>
-                    <div style={{
-                        padding: '1rem',
-                        background: 'white',
-                        borderRadius: '50%',
-                        boxShadow: '0 4px 12px rgba(6, 182, 212, 0.2)'
-                    }}>
-                        <Star size={28} color="#06b6d4" />
-                    </div>
-                    <span style={{ fontWeight: 700, color: '#075985' }}>Rewards</span>
-                </Card>
-                <Card className="flex-col flex-center animate-slide-up" style={{
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #ffe4e6 0%, #fda4af 100%)',
-                    position: 'relative'
-                }} onClick={() => navigate('/academy')}>
-                    <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
-                        <TooltipIcon
-                            id="academy"
-                            title="Academy"
-                            icon="📚"
-                            content="Learn stock market basics, trading strategies, and analysis techniques through interactive lessons!"
-                        />
-                    </div>
-                    <div style={{
-                        padding: '1rem',
-                        background: 'white',
-                        borderRadius: '50%',
-                        boxShadow: '0 4px 12px rgba(225, 29, 72, 0.2)'
-                    }}>
-                        <BookOpen size={28} color="#e11d48" />
-                    </div>
-                    <span style={{ fontWeight: 700, color: '#9f1239' }}>Academy</span>
-                </Card>
-                <Card className="flex-col flex-center animate-slide-up" style={{
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-                    position: 'relative'
-                }} onClick={() => navigate('/community')}>
-                    <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
-                        <TooltipIcon
-                            id="community"
-                            title="Community"
-                            icon="💬"
-                            content="Connect with other players, share strategies, and discuss market trends in the community!"
-                        />
-                    </div>
-                    <div style={{
-                        padding: '1rem',
-                        background: 'white',
-                        borderRadius: '50%',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-                    }}>
-                        <Users size={28} color="#10b981" />
-                    </div>
-                    <span style={{ fontWeight: 700, color: '#065f46' }}>Community</span>
-                </Card>
-                <Card className="flex-col flex-center animate-slide-up" style={{
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
-                    position: 'relative'
-                }} onClick={() => navigate('/spin')}>
-                    <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
-                        <TooltipIcon
-                            id="spin"
-                            title="Daily Spin"
-                            icon="🎰"
-                            content="Spin the wheel every day for a chance to win free coins, XP boosts, and mystery rewards!"
-                        />
-                    </div>
-                    <div style={{
-                        padding: '1rem',
-                        background: 'white',
-                        borderRadius: '50%',
-                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
-                    }}>
-                        <Zap size={28} color="#d97706" />
-                    </div>
-                    <span style={{ fontWeight: 700, color: '#92400e' }}>Daily Spin</span>
-                </Card>
+
+
             </div>
 
             {/* Streak Info Modal */}
@@ -590,6 +508,9 @@ export default function Home() {
                     </div>
                 </div>
             )}
+
+            {/* Daily Spin Modal */}
+            <DailySpinModal isOpen={showDailySpin} onClose={() => setShowDailySpin(false)} />
         </div>
     );
 }

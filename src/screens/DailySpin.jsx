@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { Trophy, Star, Zap, Gift, Shield, ArrowRight, X, ChevronLeft } from 'lucide-react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
+import BurgerMenu from '../components/BurgerMenu';
 
 export default function DailySpin() {
     const navigate = useNavigate();
@@ -78,6 +80,11 @@ export default function DailySpin() {
             >
                 <ChevronLeft size={24} color="white" />
             </button>
+
+            {/* Burger Menu */}
+            <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20 }}>
+                <BurgerMenu />
+            </div>
 
             {/* Header */}
             <div className="flex-col flex-center animate-fade-in" style={{ marginBottom: '3rem', textAlign: 'center', zIndex: 10 }}>

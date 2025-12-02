@@ -3,6 +3,7 @@ import { UserContext } from '../App';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { Trophy, Target, Zap, Lock, ShoppingBag, Star, Award, TrendingUp, Info, X } from 'lucide-react';
+import mubasherInfoPlusLogo from '../assets/mubasher-info-plus-logo.png';
 
 export default function Rewards() {
     const { user } = useContext(UserContext);
@@ -20,8 +21,8 @@ export default function Rewards() {
     ];
 
     const rewards = [
-        { id: 1, name: '$10 Amazon Gift Card', cost: 5000, image: 'https://logo.clearbit.com/amazon.com', type: 'gift' },
-        { id: 2, name: 'Pro Analysis Tools', cost: 2000, image: 'https://logo.clearbit.com/tradingview.com', type: 'feature' },
+        { id: 1, name: 'Mubasher Info Plus Subscription', cost: 5000, image: mubasherInfoPlusLogo, type: 'subscription' },
+        { id: 2, name: 'TradingView Analysis Subscription', cost: 2000, image: 'https://logo.clearbit.com/tradingview.com', type: 'feature' },
         { id: 3, name: 'No Ads (1 Month)', cost: 1500, icon: Zap, type: 'feature', color: '#f59e0b' },
         { id: 4, name: 'Exclusive Avatar Frame', cost: 1000, icon: Star, type: 'cosmetic', color: '#06b6d4' }
     ];
@@ -200,23 +201,7 @@ export default function Rewards() {
                                 padding: '1.5rem 1rem',
                                 animationDelay: `${index * 0.1}s`
                             }}>
-                                {badge.unlocked && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '0.5rem',
-                                        right: '0.5rem',
-                                        background: badge.color + '20',
-                                        color: badge.color,
-                                        padding: '0.125rem 0.5rem',
-                                        borderRadius: 'var(--radius-full)',
-                                        fontSize: '0.625rem',
-                                        fontWeight: 700,
-                                        textTransform: 'uppercase',
-                                        border: `1px solid ${badge.color}`
-                                    }}>
-                                        {badge.rarity}
-                                    </div>
-                                )}
+
 
                                 <div style={{
                                     padding: '1.25rem',

@@ -5,6 +5,8 @@ import Button from '../components/Button';
 import Badge from '../components/Badge';
 import { useNavigate } from 'react-router-dom';
 
+import BurgerMenu from '../components/BurgerMenu';
+
 export default function Clans() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('explore');
@@ -51,17 +53,20 @@ export default function Clans() {
                         <p className="body-sm" style={{ color: 'var(--text-secondary)' }}>Join forces. Win together.</p>
                     </div>
                 </div>
-                <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 8px 16px rgba(220, 38, 38, 0.25)'
-                }}>
-                    <Shield size={24} color="white" />
+                <div className="flex-center" style={{ gap: '0.75rem' }}>
+                    <div style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '16px',
+                        background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 8px 16px rgba(220, 38, 38, 0.25)'
+                    }}>
+                        <Shield size={24} color="white" />
+                    </div>
+                    <BurgerMenu />
                 </div>
             </div>
 
@@ -244,16 +249,20 @@ export default function Clans() {
                     <ChatMessage user="Mike" text="We need 5k more points!" time="Now" color="#10b981" />
                 </div>
 
-                <Button variant="outline" style={{
-                    marginTop: '1.25rem',
-                    background: 'white',
-                    border: 'none',
-                    color: '#2563eb',
-                    width: '100%',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.1)'
-                }}>
-                    Join a Clan to Chat
+                <Button
+                    variant="primary"
+                    style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)',
+                        height: '3.5rem',
+                        fontSize: '1.125rem',
+                        marginTop: '1.25rem',
+                        width: '100%',
+                        borderRadius: '999px',
+                        color: 'white'
+                    }}
+                >
+                    <MessageCircle size={22} style={{ marginRight: '0.75rem' }} /> Join a Clan to Chat
                 </Button>
             </div>
 

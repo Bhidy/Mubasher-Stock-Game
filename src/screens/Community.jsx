@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
+import { useNavigate } from 'react-router-dom';
 import { Users, MessageCircle, ThumbsUp, TrendingUp, Share2, Award, Flame, Target } from 'lucide-react';
 
 export default function Community() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('Feed');
     const [likedPosts, setLikedPosts] = useState([]);
 
@@ -288,9 +290,10 @@ export default function Community() {
                     <h3 className="h3" style={{ marginBottom: '1rem' }}>Most Popular Picks Today</h3>
                     <div className="flex-col" style={{ gap: '0.75rem' }}>
                         {topPicks.map((stock, index) => (
-                            <Card key={stock.ticker} style={{
+                            <Card key={stock.ticker} onClick={() => navigate(`/company/${stock.ticker}`)} style={{
                                 padding: '1rem 1.25rem',
-                                animationDelay: `${index * 0.05}s`
+                                animationDelay: `${index * 0.05}s`,
+                                cursor: 'pointer'
                             }} className="animate-slide-up">
                                 <div className="flex-between">
                                     <div className="flex-center" style={{ gap: '1rem' }}>

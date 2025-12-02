@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Button({ children, variant = 'primary', onClick, className = '', disabled = false, ...props }) {
+export default function Button({ children, variant = 'primary', onClick, className = '', disabled = false, style, ...props }) {
     const [isPressed, setIsPressed] = useState(false);
 
     const baseStyle = {
@@ -70,7 +70,7 @@ export default function Button({ children, variant = 'primary', onClick, classNa
                 ...baseStyle,
                 ...variants[variant],
                 transform: isPressed ? 'scale(0.96)' : 'scale(1)',
-                ...props.style
+                ...style
             }}
             onClick={handleClick}
             onMouseDown={handleMouseDown}

@@ -20,7 +20,6 @@ export default function BurgerMenu() {
         { icon: BookOpen, label: 'Academy', path: '/academy' },
         { icon: Users, label: 'Community', path: '/community' },
         { icon: Shield, label: 'Clans', path: '/clans' },
-        { icon: Zap, label: 'Daily Spin', path: '/spin' },
         { icon: Gift, label: 'Invite Friends', path: '/invite' },
     ];
 
