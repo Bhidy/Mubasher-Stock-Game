@@ -497,6 +497,31 @@ export default function Home() {
                     </div>
                     <span style={{ fontWeight: 700, color: '#065f46' }}>Community</span>
                 </Card>
+                <Card className="flex-col flex-center animate-slide-up" style={{
+                    gap: '0.75rem',
+                    cursor: 'pointer',
+                    padding: '1.5rem',
+                    background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
+                    position: 'relative'
+                }} onClick={() => navigate('/spin')}>
+                    <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+                        <TooltipIcon
+                            id="spin"
+                            title="Daily Spin"
+                            icon="🎰"
+                            content="Spin the wheel every day for a chance to win free coins, XP boosts, and mystery rewards!"
+                        />
+                    </div>
+                    <div style={{
+                        padding: '1rem',
+                        background: 'white',
+                        borderRadius: '50%',
+                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                    }}>
+                        <Zap size={28} color="#d97706" />
+                    </div>
+                    <span style={{ fontWeight: 700, color: '#92400e' }}>Daily Spin</span>
+                </Card>
             </div>
 
             {/* Streak Info Modal */}
