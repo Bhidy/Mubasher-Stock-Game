@@ -1,5 +1,4 @@
 import yahooFinance from 'yahoo-finance2';
-import { FALLBACK_STOCKS } from './fallbackData.js';
 
 // Fully expanded lists matching backend/jobs/updateStockPrices.js
 const SAUDI_STOCKS = [
@@ -14,7 +13,7 @@ const EGYPT_STOCKS = [
     'COMI.CA', 'EAST.CA', 'HRHO.CA', 'TMGH.CA', 'SWDY.CA', 'ETEL.CA',
     'AMOC.CA', 'EKHO.CA', 'HELI.CA', 'ORAS.CA', 'ESRS.CA', 'ABUK.CA',
     'MFPC.CA', 'ISPH.CA', 'PHDC.CA', 'AUTO.CA', 'CIEB.CA', 'FWRY.CA',
-    'ADIB.CA', '^EGX30.CA', 'CASE30.CA'
+    'ADIB.CA', '^EGX30.CA'
 ];
 
 const GLOBAL_TICKERS = [
@@ -43,6 +42,16 @@ const GLOBAL_META = {
     'NFLX': { name: 'Netflix', country: '🇺🇸' },
     'AMD': { name: 'AMD', country: '🇺🇸' },
     'INTC': { name: 'Intel', country: '🇺🇸' },
+    'JPM': { name: 'JPMorgan', country: '🇺🇸' },
+    'V': { name: 'Visa', country: '🇺🇸' },
+    'MA': { name: 'Mastercard', country: '🇺🇸' },
+    'WMT': { name: 'Walmart', country: '🇺🇸' },
+    'HD': { name: 'Home Depot', country: '🇺🇸' },
+    'PG': { name: 'P&G', country: '🇺🇸' },
+    'KO': { name: 'Coca-Cola', country: '🇺🇸' },
+    'PEP': { name: 'PepsiCo', country: '🇺🇸' },
+    'DIS': { name: 'Disney', country: '🇺🇸' },
+    'NKE': { name: 'Nike', country: '🇺🇸' },
     'COMI.CA': { name: 'CIB Bank', country: '🇪🇬', sector: 'Financial' },
     'EAST.CA': { name: 'Eastern Co', country: '🇪🇬', sector: 'Consumer' },
     'HRHO.CA': { name: 'EFG Hermes', country: '🇪🇬', sector: 'Financial' },
@@ -63,38 +72,48 @@ const GLOBAL_META = {
     'FWRY.CA': { name: 'Fawry', country: '🇪🇬', sector: 'Tech' },
     'ADIB.CA': { name: 'ADIB Egypt', country: '🇪🇬', sector: 'Financial' },
     '^EGX30.CA': { name: 'EGX 30', country: '🇪🇬', sector: 'Index' },
-    '2222.SR': { name: 'Saudi Aramco', country: '🇸🇦' },
-    '1120.SR': { name: 'Al Rajhi Bank', country: '🇸🇦' },
-    '2010.SR': { name: 'SABIC', country: '🇸🇦' },
-    '7010.SR': { name: 'STC', country: '🇸🇦' },
-    '1180.SR': { name: 'SNB', country: '🇸🇦' },
-    '^TASI.SR': { name: 'TASI', country: '🇸🇦' }
-};
-
-// Helper: Fetch with Timeout
-const fetchQuoteWithTimeout = async (symbol) => {
-    try {
-        const result = await Promise.race([
-            yahooFinance.quote(symbol),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-        ]);
-        return result;
-    } catch (e) {
-        return null;
-    }
+    '2222.SR': { name: 'Saudi Aramco', country: '🇸🇦', sector: 'Energy' },
+    '1120.SR': { name: 'Al Rajhi Bank', country: '🇸🇦', sector: 'Financial' },
+    '2010.SR': { name: 'SABIC', country: '🇸🇦', sector: 'Materials' },
+    '7010.SR': { name: 'STC', country: '🇸🇦', sector: 'Telecom' },
+    '2082.SR': { name: 'ACWA Power', country: '🇸🇦', sector: 'Utilities' },
+    '1180.SR': { name: 'SNB', country: '🇸🇦', sector: 'Financial' },
+    '2380.SR': { name: 'Petrochemical', country: '🇸🇦', sector: 'Materials' },
+    '4030.SR': { name: 'Al Babtain', country: '🇸🇦', sector: 'Industrial' },
+    '2350.SR': { name: 'Kwanif', country: '🇸🇦', sector: 'Materials' },
+    '4200.SR': { name: 'Aldrees', country: '🇸🇦', sector: 'Consumer' },
+    '1211.SR': { name: "Ma'aden", country: '🇸🇦', sector: 'Materials' },
+    '4001.SR': { name: 'Rawabi', country: '🇸🇦', sector: 'Industrial' },
+    '2310.SR': { name: 'SIG', country: '🇸🇦', sector: 'Industrial' },
+    '4003.SR': { name: 'Extra', country: '🇸🇦', sector: 'Consumer' },
+    '2050.SR': { name: 'Savola', country: '🇸🇦', sector: 'Consumer' },
+    '1150.SR': { name: 'Alinma', country: '🇸🇦', sector: 'Financial' },
+    '4190.SR': { name: 'Jarir', country: '🇸🇦', sector: 'Consumer' },
+    '2290.SR': { name: 'Yanbu Cement', country: '🇸🇦', sector: 'Materials' },
+    '4002.SR': { name: 'Mouwasat', country: '🇸🇦', sector: 'Healthcare' },
+    '1010.SR': { name: 'Riyad Bank', country: '🇸🇦', sector: 'Financial' },
+    '2020.SR': { name: 'SABIC Agri', country: '🇸🇦', sector: 'Materials' },
+    '2280.SR': { name: 'Almarai', country: '🇸🇦', sector: 'Consumer' },
+    '5110.SR': { name: 'Saudi Elec', country: '🇸🇦', sector: 'Utilities' },
+    '1140.SR': { name: 'Albilad', country: '🇸🇦', sector: 'Financial' },
+    '1060.SR': { name: 'SAB', country: '🇸🇦', sector: 'Financial' },
+    '7200.SR': { name: 'Rabigh', country: '🇸🇦', sector: 'Materials' },
+    '4220.SR': { name: 'Emaar', country: '🇸🇦', sector: 'Real Estate' },
+    '4090.SR': { name: 'Tasnee', country: '🇸🇦', sector: 'Materials' },
+    '4040.SR': { name: 'SPCC', country: '🇸🇦', sector: 'Materials' },
+    '^TASI.SR': { name: 'TASI', country: '🇸🇦', sector: 'Index' }
 };
 
 const mapStockData = (quote) => {
     if (!quote || !quote.symbol) return null;
 
-    const symbol = quote.symbol === 'CASE30.CA' ? '^CASE30' : quote.symbol;
-    const isEg = EGYPT_STOCKS.includes(quote.symbol) || quote.symbol.includes('.CA');
-    const isSa = SAUDI_STOCKS.includes(quote.symbol) || quote.symbol.includes('.SR');
+    const symbol = quote.symbol;
+    const isEg = EGYPT_STOCKS.includes(symbol) || symbol.includes('.CA');
+    const isSa = SAUDI_STOCKS.includes(symbol) || symbol.includes('.SR');
 
-    // Use Metadata if available, otherwise fallback to API data
-    const meta = GLOBAL_META[quote.symbol] || GLOBAL_META[symbol] || {};
+    // Use Metadata - All stocks now have proper names
+    const meta = GLOBAL_META[symbol] || {};
 
-    // Price normalization
     const price = quote.regularMarketPrice || quote.regularMarketOpen || quote.previousClose || 0;
     const prevClose = quote.regularMarketPreviousClose || quote.previousClose || price;
 
@@ -108,10 +127,10 @@ const mapStockData = (quote) => {
 
     return {
         symbol: symbol,
-        name: meta.name || quote.shortName || quote.longName || quote.symbol,
+        name: meta.name || quote.shortName || quote.longName || symbol,
         category: isEg ? 'EG' : (isSa ? 'SA' : 'Global'),
         country: meta.country || (isEg ? '🇪🇬' : (isSa ? '🇸🇦' : '🇺🇸')),
-        sector: meta.sector || quote.sector || 'General',
+        sector: meta.sector || quote.sector || null,
         price: price,
         regularMarketPrice: price,
         change: change || 0,
@@ -150,46 +169,53 @@ export default async function handler(req, res) {
         else if (market === 'Global') allTickers = GLOBAL_TICKERS;
         else allTickers = [...new Set([...SAUDI_STOCKS, ...EGYPT_STOCKS, ...GLOBAL_TICKERS])];
 
-        // Process in chunks to respect URL length limits & Vercel timeouts
-        const chunkSize = 10; // Batch size
+        // Process in smaller chunks with RETRY logic
+        const chunkSize = 5; // Smaller chunks for reliability
         const results = [];
 
         for (let i = 0; i < allTickers.length; i += chunkSize) {
             const chunk = allTickers.slice(i, i + chunkSize);
-            try {
-                // Batch Request: massively reduces HTTP overhead
-                const chunkResult = await Promise.race([
-                    yahooFinance.quote(chunk),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 9000))
-                ]);
 
-                // Result can be a single object (if chunk=1) or array
-                if (Array.isArray(chunkResult)) {
-                    results.push(...chunkResult);
-                } else if (chunkResult) {
-                    results.push(chunkResult);
+            // Retry each chunk up to 2 times
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    const chunkResult = await Promise.race([
+                        yahooFinance.quote(chunk),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+                    ]);
+
+                    if (Array.isArray(chunkResult)) {
+                        results.push(...chunkResult);
+                    } else if (chunkResult) {
+                        results.push(chunkResult);
+                    }
+                    break; // Success, exit retry loop
+                } catch (err) {
+                    console.error(`Batch ${i} attempt ${attempt} failed:`, err.message);
+                    if (attempt < 2) {
+                        await new Promise(r => setTimeout(r, 300));
+                    }
                 }
-            } catch (err) {
-                console.error(`Batch fetch failed for chunk ${i}:`, err.message);
-                // Continue to next chunk even if this one fails
             }
-            // Small delay to be nice to API
-            if (i + chunkSize < allTickers.length) await new Promise(r => setTimeout(r, 100));
+
+            // Delay between chunks
+            if (i + chunkSize < allTickers.length) {
+                await new Promise(r => setTimeout(r, 100));
+            }
         }
 
         const data = results.map(mapStockData).filter(item => item !== null);
 
         if (data.length === 0) {
-            // Do NOT use static fallback. Return empty to indicate "No Data" rather than "Wrong Data".
-            // This forces the user to see N/A and report connection issues rather than be misled.
-            console.error('No stock data fetched.');
+            console.error('No stock data fetched - all requests failed');
+            return res.status(200).json([]);
         }
 
-        // Cache for 15 seconds (Real-time priority)
+        // Cache for 15 seconds
         res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=10');
         res.status(200).json(data);
     } catch (e) {
-        console.error("API Error:", e);
+        console.error("Stocks API Error:", e);
         res.status(500).json({ error: "Failed to fetch stock data" });
     }
 }
