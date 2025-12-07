@@ -41,8 +41,13 @@ async function fetchYahooNews(queries, count = 5) {
 
     for (const query of queries) {
         try {
-            const result = await yahooFinance.search(query, { newsCount: count });
-            if (result.news && result.news.length > 0) {
+            // Add timeout to prevent hanging
+            const result = await Promise.race([
+                yahooFinance.search(query, { newsCount: count }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+            ]);
+
+            if (result && result.news && result.news.length > 0) {
                 for (const n of result.news) {
                     allNews.push({
                         title: n.title,
@@ -55,6 +60,7 @@ async function fetchYahooNews(queries, count = 5) {
             }
         } catch (e) {
             console.error(`Yahoo Fetch Error (${query}):`, e.message);
+            // Continue to next query even if this one fails
         }
     }
 
