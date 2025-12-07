@@ -15,8 +15,10 @@ const XLogo = ({ size = 24, color = 'currentColor' }) => (
     </svg>
 );
 
-// Profile Avatar Component with gradient background
-const ProfileAvatar = ({ username, displayName, size = 48 }) => {
+// Profile Avatar Component with real image or gradient fallback
+const ProfileAvatar = ({ username, displayName, profileImage, size = 48 }) => {
+    const [imgError, setImgError] = useState(false);
+
     const colors = [
         ['#10b981', '#06b6d4'],
         ['#f59e0b', '#ef4444'],
@@ -30,6 +32,27 @@ const ProfileAvatar = ({ username, displayName, size = 48 }) => {
     const [color1, color2] = colors[colorIndex];
     const initial = displayName?.charAt(0) || username?.charAt(0) || 'U';
 
+    // If we have a profile image and it hasn't errored, show it
+    if (profileImage && !imgError) {
+        return (
+            <img
+                src={profileImage}
+                alt={displayName || username}
+                onError={() => setImgError(true)}
+                style={{
+                    width: size,
+                    height: size,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '3px solid white',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    flexShrink: 0
+                }}
+            />
+        );
+    }
+
+    // Fallback to gradient initial
     return (
         <div style={{
             width: size,
@@ -172,16 +195,55 @@ const TweetImageGallery = ({ images }) => {
     );
 };
 
-// Tweet Card Component
+// Tweet Card Component with Translation & RTL Support
 const TweetCard = ({ tweet, index, onLike }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [showFullContent, setShowFullContent] = useState(false);
+    const [translatedContent, setTranslatedContent] = useState(null);
+    const [isTranslating, setIsTranslating] = useState(false);
 
+    // Detect if text contains Arabic characters
+    const isArabic = (text) => {
+        const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+        return arabicPattern.test(text);
+    };
+
+    const originalIsArabic = isArabic(tweet.content);
+
+    // Auto-translate Arabic content on mount
+    useEffect(() => {
+        const translateContent = async () => {
+            if (originalIsArabic && !translatedContent) {
+                setIsTranslating(true);
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: tweet.content,
+                            targetLang: 'en'
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.translatedText) {
+                        setTranslatedContent(data.translatedText);
+                    }
+                } catch (err) {
+                    console.error('Translation failed:', err);
+                }
+                setIsTranslating(false);
+            }
+        };
+        translateContent();
+    }, [tweet.content, originalIsArabic, translatedContent]);
+
+    // Use translated content if available
+    const contentToDisplay = translatedContent || tweet.content;
     const maxLength = 280;
-    const isLongContent = tweet.content.length > maxLength;
+    const isLongContent = contentToDisplay.length > maxLength;
     const displayContent = isLongContent && !showFullContent
-        ? tweet.content.slice(0, maxLength) + '...'
-        : tweet.content;
+        ? contentToDisplay.slice(0, maxLength) + '...'
+        : contentToDisplay;
 
     const handleLike = () => {
         setIsLiked(!isLiked);
@@ -193,12 +255,11 @@ const TweetCard = ({ tweet, index, onLike }) => {
             if (navigator.share) {
                 await navigator.share({
                     title: `Tweet by @${tweet.username}`,
-                    text: tweet.content.slice(0, 100),
+                    text: contentToDisplay.slice(0, 100),
                     url: tweet.url
                 });
             } else {
                 await navigator.clipboard.writeText(tweet.url);
-                // Could add toast notification here
             }
         } catch (e) { }
     };
@@ -226,6 +287,7 @@ const TweetCard = ({ tweet, index, onLike }) => {
                 <ProfileAvatar
                     username={tweet.username}
                     displayName={tweet.displayName}
+                    profileImage={tweet.profileImage}
                     size={48}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -251,17 +313,37 @@ const TweetCard = ({ tweet, index, onLike }) => {
                             {tweet.relativeTime}
                         </span>
                     </div>
-                    <Badge
-                        color="info"
-                        style={{
-                            fontSize: '0.625rem',
-                            padding: '0.125rem 0.5rem',
-                            marginTop: '4px',
-                            display: 'inline-flex'
-                        }}
-                    >
-                        {tweet.category}
-                    </Badge>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                        <Badge
+                            color="info"
+                            style={{
+                                fontSize: '0.625rem',
+                                padding: '0.125rem 0.5rem',
+                                display: 'inline-flex'
+                            }}
+                        >
+                            {tweet.category}
+                        </Badge>
+                        {/* Arabic Language Indicator */}
+                        {originalIsArabic && (
+                            <span
+                                title="Translated from Arabic"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    background: '#fef3c7',
+                                    color: '#92400e',
+                                    fontSize: '0.6rem',
+                                    padding: '2px 6px',
+                                    borderRadius: '6px',
+                                    fontWeight: 600
+                                }}
+                            >
+                                🇸🇦 AR
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <button
                     onClick={openTweet}
@@ -293,16 +375,33 @@ const TweetCard = ({ tweet, index, onLike }) => {
 
             {/* Content */}
             <div style={{ padding: '0 1rem' }}>
-                <p style={{
-                    fontSize: '0.95rem',
-                    lineHeight: 1.6,
-                    color: '#1e293b',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word'
-                }}>
-                    {displayContent}
-                </p>
-                {isLongContent && (
+                {isTranslating ? (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: '#64748b',
+                        fontSize: '0.875rem',
+                        padding: '8px 0'
+                    }}>
+                        <RefreshCw size={14} className="spin" />
+                        Translating...
+                    </div>
+                ) : (
+                    <p style={{
+                        fontSize: '0.95rem',
+                        lineHeight: 1.6,
+                        color: '#1e293b',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        // Text always LTR for translated/English content
+                        direction: 'ltr',
+                        textAlign: 'left'
+                    }}>
+                        {displayContent}
+                    </p>
+                )}
+                {isLongContent && !isTranslating && (
                     <button
                         onClick={() => setShowFullContent(!showFullContent)}
                         style={{
