@@ -172,8 +172,8 @@ export default async function handler(req, res) {
 
         const data = validResults.map(mapStockData).filter(item => item !== null);
 
-        // Cache for 60 seconds
-        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
+        // Cache for 15 seconds (Real-time priority)
+        res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=10');
         res.status(200).json(data);
     } catch (e) {
         console.error("API Error:", e);

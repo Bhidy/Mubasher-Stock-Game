@@ -42,7 +42,7 @@ export function PriceProvider({ children }) {
     useEffect(() => {
         fetchPrices(); // Initial fetch
 
-        const interval = setInterval(fetchPrices, 30000); // Poll every 30 seconds (matches Vercel cache)
+        const interval = setInterval(fetchPrices, 15000); // Poll every 15 seconds (matches Vercel cache)
         return () => clearInterval(interval);
     }, []);
 
