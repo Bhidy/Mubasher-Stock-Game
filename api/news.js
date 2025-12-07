@@ -182,6 +182,10 @@ async function fetchBingNews(query, count = 5) {
                 else if (hostname.includes('cnbc')) publisher = 'CNBC';
                 else if (hostname.includes('investing.com')) publisher = 'Investing.com';
                 else if (hostname.includes('yahoo')) publisher = 'Yahoo Finance';
+                else if (hostname.includes('arabnews')) publisher = 'Arab News';
+                else if (hostname.includes('egypttoday')) publisher = 'Egypt Today';
+                else if (hostname.includes('dailynewsegypt')) publisher = 'Daily News Egypt';
+                else if (hostname.includes('arabfinance')) publisher = 'Arab Finance';
                 else publisher = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
             } catch (e) { }
 
@@ -239,7 +243,7 @@ export default async function handler(req, res) {
 
             for (const query of sourceQueries) {
                 try {
-                    const news = await fetchBingNews(query, 3);
+                    const news = await fetchBingNews(query, 5);
                     allNews.push(...news);
                 } catch (e) {
                     console.log(`Bing query failed: ${query}`);
@@ -267,7 +271,7 @@ export default async function handler(req, res) {
 
             for (const query of sourceQueries) {
                 try {
-                    const news = await fetchBingNews(query, 3);
+                    const news = await fetchBingNews(query, 5);
                     allNews.push(...news);
                 } catch (e) {
                     console.log(`Bing query failed: ${query}`);
@@ -321,7 +325,7 @@ export default async function handler(req, res) {
         }
 
         res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
-        res.status(200).json(finalNews.slice(0, 20));
+        res.status(200).json(finalNews.slice(0, 40));
 
     } catch (e) {
         console.error("News API Error:", e);
