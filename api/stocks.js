@@ -150,27 +150,40 @@ export default async function handler(req, res) {
         else if (market === 'Global') allTickers = GLOBAL_TICKERS;
         else allTickers = [...new Set([...SAUDI_STOCKS, ...EGYPT_STOCKS, ...GLOBAL_TICKERS])];
 
-        // Process in smaller chunks to avoid Vercel Function Timeouts
-        const chunkSize = 5;
+        // Process in chunks to respect URL length limits & Vercel timeouts
+        const chunkSize = 10; // Batch size
         const results = [];
 
         for (let i = 0; i < allTickers.length; i += chunkSize) {
             const chunk = allTickers.slice(i, i + chunkSize);
-            const promises = chunk.map(s => fetchQuoteWithTimeout(s));
-            const chunkRes = await Promise.all(promises);
-            results.push(...chunkRes);
-            if (i + chunkSize < allTickers.length) await new Promise(r => setTimeout(r, 50));
+            try {
+                // Batch Request: massively reduces HTTP overhead
+                const chunkResult = await Promise.race([
+                    yahooFinance.quote(chunk),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 9000))
+                ]);
+
+                // Result can be a single object (if chunk=1) or array
+                if (Array.isArray(chunkResult)) {
+                    results.push(...chunkResult);
+                } else if (chunkResult) {
+                    results.push(chunkResult);
+                }
+            } catch (err) {
+                console.error(`Batch fetch failed for chunk ${i}:`, err.message);
+                // Continue to next chunk even if this one fails
+            }
+            // Small delay to be nice to API
+            if (i + chunkSize < allTickers.length) await new Promise(r => setTimeout(r, 100));
         }
 
-        let validResults = results.filter(q => q);
+        const data = results.map(mapStockData).filter(item => item !== null);
 
-        // Fallback Logic
-        if (validResults.length === 0) {
-            console.log('Using Fallback Data');
-            validResults = FALLBACK_STOCKS.filter(s => allTickers.includes(s.symbol));
+        if (data.length === 0) {
+            // Do NOT use static fallback. Return empty to indicate "No Data" rather than "Wrong Data".
+            // This forces the user to see N/A and report connection issues rather than be misled.
+            console.error('No stock data fetched.');
         }
-
-        const data = validResults.map(mapStockData).filter(item => item !== null);
 
         // Cache for 15 seconds (Real-time priority)
         res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=10');
