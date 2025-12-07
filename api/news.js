@@ -126,13 +126,13 @@ export default async function handler(req, res) {
 
         if (market === 'SA') {
             yahooQueries = ['Tadawul', 'Saudi Arabia stocks', 'Saudi Aramco'];
-            bingQueries = ['Saudi Stock Market', 'سوق الأسهم السعودية'];
+            bingQueries = ['Saudi Stock Market Tadawul', 'site:argaam.com', 'Saudi Aramco stock'];
         } else if (market === 'EG') {
             yahooQueries = ['EGX Egypt', 'Egypt stock market', 'Egyptian Exchange'];
-            bingQueries = ['Egyptian Stock Exchange', 'البورصة المصرية'];
+            bingQueries = ['Egyptian Stock Exchange EGX', 'Egypt economy stocks', 'site:zawya.com Egypt', 'Cairo Stock Exchange'];
         } else if (market === 'US') {
             yahooQueries = ['S&P 500', 'Stock Market', 'NASDAQ'];
-            bingQueries = ['NASDAQ Tech Stocks', 'WSJ Markets'];
+            bingQueries = ['NASDAQ Tech Stocks', 'WSJ Markets', 'CNBC Markets'];
         } else {
             yahooQueries = ['Global Stock Markets'];
             bingQueries = ['World Markets'];
@@ -141,8 +141,8 @@ export default async function handler(req, res) {
         // Fetch from Yahoo (Primary - Same as localhost)
         const yahooNews = await fetchYahooNews(yahooQueries, 5);
 
-        // Fetch from Bing (Supplementary)
-        const bingPromises = bingQueries.map(q => fetchBingNews(q, 3));
+        // Fetch from Bing (Increased to 5 per query for better coverage)
+        const bingPromises = bingQueries.map(q => fetchBingNews(q, 5));
         const bingResults = await Promise.all(bingPromises);
         const bingNews = bingResults.flat();
 

@@ -365,19 +365,17 @@ async function fetchNewsForMarket(market) {
 
             if (market === 'SA') {
                 feedUrls = [
-                    // 'http://feeds.mubasher.info/en/TDWL/news', // Broken/Old
-                    // 'https://news.google.com/rss/search?q=Saudi+stock+market+OR+Tadawul+OR+TASI&hl=en&gl=SA&ceid=SA:en', // Removed
-                    // 'https://news.google.com/rss/search?q=site:zawya.com+Saudi&hl=en&gl=SA&ceid=SA:en', // Removed
-                    // 'http://feeds.reuters.com/reuters/businessNews', // Often redirects
-                    // 'http://feeds.reuters.com/reuters/companyNews'
+                    // Bing News RSS - Most reliable for fresh news
+                    'https://www.bing.com/news/search?q=Saudi+stock+market+Tadawul&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:argaam.com&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=Saudi+Aramco+stocks&format=rss&mkt=en-us'
                 ];
             } else {
-                // Egypt sources - expanded
-                // Egypt sources - Direct RSS/Sources only (No Google News)
+                // Egypt sources - Bing RSS for fresh news
                 feedUrls = [
-                    // Google News removed as per request
-                    // 'https://news.google.com/rss/search?q=Egypt+stock+market+OR+EGX+OR+Egyptian+Exchange&hl=en&gl=EG&ceid=EG:en',
-                    // ... other Google feeds removed
+                    'https://www.bing.com/news/search?q=Egyptian+Stock+Exchange+EGX&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=Egypt+economy+stocks&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:zawya.com+Egypt&format=rss&mkt=en-us'
                 ];
             }
 
