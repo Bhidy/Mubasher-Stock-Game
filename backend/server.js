@@ -364,18 +364,26 @@ async function fetchNewsForMarket(market) {
             let feedUrls = [];
 
             if (market === 'SA') {
+                // Saudi: Mubasher, Argaam, Bloomberg, Reuters, Investing.com, Arab News
                 feedUrls = [
-                    // Bing News RSS - Most reliable for fresh news
                     'https://www.bing.com/news/search?q=Saudi+stock+market+Tadawul&format=rss&mkt=en-us',
                     'https://www.bing.com/news/search?q=site:argaam.com&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:reuters.com+Saudi&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:bloomberg.com+Saudi+Arabia&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:investing.com+Saudi&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:arabnews.com+stock+market&format=rss&mkt=en-us',
                     'https://www.bing.com/news/search?q=Saudi+Aramco+stocks&format=rss&mkt=en-us'
                 ];
             } else {
-                // Egypt sources - Bing RSS for fresh news
+                // Egypt: Mubasher, Zawya, Egypt Today, Daily News Egypt, Arab Finance, Investing.com
                 feedUrls = [
+                    'https://www.bing.com/news/search?q=site:zawya.com+Egypt&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:egypttoday.com+economy&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:dailynewsegypt.com&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:arabfinance.com&format=rss&mkt=en-us',
+                    'https://www.bing.com/news/search?q=site:investing.com+Egypt&format=rss&mkt=en-us',
                     'https://www.bing.com/news/search?q=Egyptian+Stock+Exchange+EGX&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=Egypt+economy+stocks&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:zawya.com+Egypt&format=rss&mkt=en-us'
+                    'https://www.bing.com/news/search?q=Egypt+economy+stocks&format=rss&mkt=en-us'
                 ];
             }
 

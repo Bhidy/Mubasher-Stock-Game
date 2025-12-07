@@ -214,44 +214,73 @@ export default async function handler(req, res) {
     let allNews = [];
 
     try {
-        // **UNIFIED NEWS STRATEGY - SAME AS LOCALHOST**
-        // 1. PRIMARY: Mubasher scraper (SA/EG only)
-        // 2. SECONDARY: Yahoo Finance
-        // 3. TERTIARY: Bing RSS
+        // **UNIFIED NEWS STRATEGY - ALL REQUIRED SOURCES**
+        // Egypt: Mubasher, Zawya, Egypt Today, Daily News Egypt, Arab Finance, Investing.com
+        // Saudi: Mubasher, Argaam, Bloomberg, Reuters, Investing.com, Arab News
 
         if (market === 'SA') {
-            // Mubasher first (PRIMARY)
+            // 1. Mubasher scraper (PRIMARY)
             const mubasherNews = await scrapeMubasher('SA');
             allNews.push(...mubasherNews);
 
-            // Yahoo Finance (SECONDARY)
-            const yahooNews = await fetchYahooNews(['Tadawul', 'Saudi Aramco'], 3);
+            // 2. Yahoo Finance
+            const yahooNews = await fetchYahooNews(['Tadawul', 'Saudi Aramco', 'Saudi stock'], 5);
             allNews.push(...yahooNews);
 
-            // Bing RSS (TERTIARY)
-            const bingNews = await fetchBingNews('Saudi stock market', 5);
-            allNews.push(...bingNews);
+            // 3. Site-specific Bing RSS for required sources
+            const sourceQueries = [
+                'site:argaam.com',                    // Argaam
+                'site:reuters.com Saudi',             // Reuters
+                'site:bloomberg.com Saudi Arabia',    // Bloomberg
+                'site:investing.com Saudi',           // Investing.com
+                'site:arabnews.com stock market',     // Arab News
+                'Saudi stock market Tadawul'          // General
+            ];
+
+            for (const query of sourceQueries) {
+                try {
+                    const news = await fetchBingNews(query, 3);
+                    allNews.push(...news);
+                } catch (e) {
+                    console.log(`Bing query failed: ${query}`);
+                }
+            }
 
         } else if (market === 'EG') {
-            // Mubasher first (PRIMARY)
+            // 1. Mubasher scraper (PRIMARY)
             const mubasherNews = await scrapeMubasher('EG');
             allNews.push(...mubasherNews);
 
-            // Yahoo Finance (SECONDARY)
-            const yahooNews = await fetchYahooNews(['Egypt stock market', 'Egyptian Exchange'], 3);
+            // 2. Yahoo Finance
+            const yahooNews = await fetchYahooNews(['Egypt stock market', 'Egyptian Exchange', 'EGX'], 5);
             allNews.push(...yahooNews);
 
-            // Bing RSS (TERTIARY)
-            const bingNews = await fetchBingNews('Egypt stock market', 5);
-            allNews.push(...bingNews);
+            // 3. Site-specific Bing RSS for required sources
+            const sourceQueries = [
+                'site:zawya.com Egypt',               // Zawya
+                'site:egypttoday.com economy',        // Egypt Today
+                'site:dailynewsegypt.com',            // Daily News Egypt
+                'site:arabfinance.com',               // Arab Finance
+                'site:investing.com Egypt',           // Investing.com
+                'Egypt stock market EGX'              // General
+            ];
+
+            for (const query of sourceQueries) {
+                try {
+                    const news = await fetchBingNews(query, 3);
+                    allNews.push(...news);
+                } catch (e) {
+                    console.log(`Bing query failed: ${query}`);
+                }
+            }
 
         } else if (market === 'US') {
             // Yahoo Finance (PRIMARY for US)
-            const yahooNews = await fetchYahooNews(['S&P 500', 'Stock Market', 'NASDAQ'], 8);
+            const yahooNews = await fetchYahooNews(['S&P 500', 'Stock Market', 'NASDAQ', 'Wall Street'], 10);
             allNews.push(...yahooNews);
 
             // Bing RSS (SECONDARY)
-            const bingNews = await fetchBingNews('Wall Street stocks', 5);
+            const bingNews = await fetchBingNews('Wall Street stocks NASDAQ', 5);
             allNews.push(...bingNews);
 
         } else {
