@@ -19,7 +19,7 @@ const EGYPT_STOCKS = [
     'COMI.CA', 'EAST.CA', 'HRHO.CA', 'TMGH.CA', 'SWDY.CA', 'ETEL.CA',
     'AMOC.CA', 'EKHO.CA', 'HELI.CA', 'ORAS.CA', 'ESRS.CA', 'ABUK.CA',
     'MFPC.CA', 'ISPH.CA', 'PHDC.CA', 'AUTO.CA', 'CIEB.CA', 'FWRY.CA',
-    'ADIB.CA', '^EGX30.CA'
+    'ADIB.CA', '^CASE30'  // Use ^CASE30 instead of ^EGX30.CA - has correct volume/change data
 ];
 
 const GLOBAL_TICKERS = [
@@ -78,6 +78,7 @@ const GLOBAL_META = {
     'FWRY.CA': { name: 'Fawry', country: '🇪🇬', sector: 'Tech' },
     'ADIB.CA': { name: 'ADIB Egypt', country: '🇪🇬', sector: 'Financial' },
     '^EGX30.CA': { name: 'EGX 30', country: '🇪🇬', sector: 'Index' },
+    '^CASE30': { name: 'EGX 30', country: '🇪🇬', sector: 'Index' },
     '2222.SR': { name: 'Saudi Aramco', country: '🇸🇦', sector: 'Energy' },
     '1120.SR': { name: 'Al Rajhi Bank', country: '🇸🇦', sector: 'Financial' },
     '2010.SR': { name: 'SABIC', country: '🇸🇦', sector: 'Materials' },
