@@ -310,98 +310,106 @@ export default async function handler(req, res) {
                 allNews.push(...news);
             }
 
-            allNews.push(...news);
+            // 3. Bing News (Strict - Approved Sources Only)
+            // Fallback: Query explicitly allowed domains to avoid pollution
+            const strictBingQuery = '(site:english.mubasher.info OR site:argaam.com OR site:bloomberg.com OR site:reuters.com OR site:investing.com OR site:arabnews.com) Saudi stock';
+            try {
+                const news = await fetchBingNews(strictBingQuery, 5);
+                allNews.push(...news);
+            } catch (e) { }
+
+        } else if (market === 'EG') {
+            // 1. Mubasher scraper (Direct)
+            const mubasherNews = await scrapeMubasher('EG');
+            allNews.push(...mubasherNews);
+
+            // 2. Google News (High Volume)
+            const googleQueries = [
+                'site:english.mubasher.info Egypt',
+                'site:zawya.com Egypt',
+                'site:egypttoday.com',
+                'site:dailynewsegypt.com',
+                'site:arabfinance.com',
+                'site:investing.com Egypt'
+            ];
+            for (const query of googleQueries) {
+                const news = await fetchGoogleNews(query, 5);
+                allNews.push(...news);
+            }
+
+            // 3. Bing News (Strict - Approved Sources Only)
+            const strictBingQuery = '(site:english.mubasher.info OR site:zawya.com OR site:egypttoday.com OR site:dailynewsegypt.com OR site:arabfinance.com OR site:investing.com) Egypt';
+            try {
+                const news = await fetchBingNews(strictBingQuery, 5);
+                allNews.push(...news);
+            } catch (e) { }
+
+        } else if (market === 'US') {
+            // Yahoo Finance (PRIMARY for US)
+            const yahooNews = await fetchYahooNews(['S&P 500', 'Stock Market', 'NASDAQ', 'Wall Street'], 10);
+            allNews.push(...yahooNews);
+
+            // Bing RSS (SECONDARY)
+            const bingNews = await fetchBingNews('Wall Street stocks NASDAQ', 5);
+            allNews.push(...bingNews);
+
+        } else {
+            // Default: Global markets
+            const yahooNews = await fetchYahooNews(['Global Stock Markets'], 5);
+            allNews.push(...yahooNews);
         }
 
-        // Bing News Removed for Strict Source Adherence
+        // Deduplicate and Filter
+        const seen = new Set();
+        const uniqueNews = allNews.filter(item => {
+            if (!item || !item.title) return false;
 
-    } else if (market === 'EG') {
-        // 1. Mubasher scraper (Direct)
-        const mubasherNews = await scrapeMubasher('EG');
-        allNews.push(...mubasherNews);
+            // Strict Filter for EG/SA (Case Insensitive)
+            if ((market === 'SA' || market === 'EG')) {
+                const pub = (item.publisher || '').toLowerCase();
+                const blacklistLower = BLACKLIST.map(b => b.toLowerCase());
+                if (blacklistLower.some(b => pub.includes(b))) return false;
+            }
 
-        // 2. Google News (High Volume)
-        const googleQueries = [
-            'site:english.mubasher.info Egypt',
-            'site:zawya.com Egypt',
-            'site:egypttoday.com',
-            'site:dailynewsegypt.com',
-            'site:arabfinance.com',
-            'site:investing.com Egypt'
-        ];
-        for (const query of googleQueries) {
-            const news = await fetchGoogleNews(query, 5);
-            allNews.push(...news);
+            const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
+            if (seen.has(cleanTitle)) return false;
+            seen.add(cleanTitle);
+            return true;
+        });
+
+        // Add placeholder images where missing
+        const finalNews = uniqueNews.map(item => ({
+            ...item,
+            thumbnail: item.thumbnail || 'https://placehold.co/600x400/f1f5f9/475569?text=News'
+        }));
+
+        // Sort by time (newest first)
+        finalNews.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+        // Return fallback if empty
+        if (finalNews.length === 0) {
+            return res.status(200).json([{
+                id: 'fallback',
+                title: 'Market News Currently Unavailable',
+                publisher: 'System',
+                link: '#',
+                time: new Date().toISOString(),
+                thumbnail: 'https://placehold.co/600x400/f1f5f9/475569?text=No+News'
+            }]);
         }
 
-        // Bing News Removed for Strict Source Adherence
+        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
+        res.status(200).json(finalNews.slice(0, 40));
 
-    } else if (market === 'US') {
-        // Yahoo Finance (PRIMARY for US)
-        const yahooNews = await fetchYahooNews(['S&P 500', 'Stock Market', 'NASDAQ', 'Wall Street'], 10);
-        allNews.push(...yahooNews);
-
-        // Bing RSS (SECONDARY)
-        const bingNews = await fetchBingNews('Wall Street stocks NASDAQ', 5);
-        allNews.push(...bingNews);
-
-    } else {
-        // Default: Global markets
-        const yahooNews = await fetchYahooNews(['Global Stock Markets'], 5);
-        allNews.push(...yahooNews);
-    }
-
-    // Deduplicate and Filter
-    const seen = new Set();
-    const uniqueNews = allNews.filter(item => {
-        if (!item || !item.title) return false;
-
-        // Strict Filter for EG/SA (Case Insensitive)
-        if ((market === 'SA' || market === 'EG')) {
-            const pub = (item.publisher || '').toLowerCase();
-            const blacklistLower = BLACKLIST.map(b => b.toLowerCase());
-            if (blacklistLower.some(b => pub.includes(b))) return false;
-        }
-
-        const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
-        if (seen.has(cleanTitle)) return false;
-        seen.add(cleanTitle);
-        return true;
-    });
-
-    // Add placeholder images where missing
-    const finalNews = uniqueNews.map(item => ({
-        ...item,
-        thumbnail: item.thumbnail || 'https://placehold.co/600x400/f1f5f9/475569?text=News'
-    }));
-
-    // Sort by time (newest first)
-    finalNews.sort((a, b) => new Date(b.time) - new Date(a.time));
-
-    // Return fallback if empty
-    if (finalNews.length === 0) {
-        return res.status(200).json([{
-            id: 'fallback',
-            title: 'Market News Currently Unavailable',
+    } catch (e) {
+        console.error("News API Error:", e);
+        res.status(200).json([{
+            id: 'error',
+            title: 'Failed to load news',
             publisher: 'System',
             link: '#',
             time: new Date().toISOString(),
-            thumbnail: 'https://placehold.co/600x400/f1f5f9/475569?text=No+News'
+            thumbnail: 'https://placehold.co/600x400/f1f5f9/475569?text=Error'
         }]);
     }
-
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
-    res.status(200).json(finalNews.slice(0, 40));
-
-} catch (e) {
-    console.error("News API Error:", e);
-    res.status(200).json([{
-        id: 'error',
-        title: 'Failed to load news',
-        publisher: 'System',
-        link: '#',
-        time: new Date().toISOString(),
-        thumbnail: 'https://placehold.co/600x400/f1f5f9/475569?text=Error'
-    }]);
-}
 }
