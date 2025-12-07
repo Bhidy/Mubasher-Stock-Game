@@ -1,6 +1,9 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
+// Version: 1.0.0 - X Community API with Twitter Syndication
+// Deployed: 2025-12-08
+
 // ============ CONFIGURATION ============
 const TARGET_ACCOUNTS = [
     { username: 'THEWOLFOFTASI', displayName: 'The Wolf of TASI', category: 'Trading' },
