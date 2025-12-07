@@ -1,6 +1,6 @@
 import YahooFinance from 'yahoo-finance2';
 
-// Version: 2.1.0 - Fixed yahoo-finance2 v3 initialization
+// Version: 3.0.0 - Added stock logos
 // Deployed: 2025-12-07
 
 // Initialize Yahoo Finance (v3 requirement)
@@ -27,6 +27,34 @@ const GLOBAL_TICKERS = [
     'AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC',
     'JPM', 'V', 'MA', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'DIS', 'NKE'
 ];
+
+// Company domains for logo generation (Google Favicon API)
+const COMPANY_DOMAINS = {
+    '2222.SR': 'aramco.com', '1120.SR': 'alrajhibank.com.sa', '2010.SR': 'sabic.com',
+    '7010.SR': 'stc.com.sa', '2082.SR': 'acwapower.com', '1180.SR': 'alahli.com',
+    '2050.SR': 'savola.com', '1150.SR': 'alinma.com', '1010.SR': 'riyadbank.com',
+    '1211.SR': 'maaden.com.sa', '4200.SR': 'aldrees.com', '4002.SR': 'mouwasat.com',
+    '^TASI.SR': 'saudiexchange.sa', '^CASE30': 'egx.com.eg', '^EGX30.CA': 'egx.com.eg',
+    'COMI.CA': 'cibeg.com', 'EAST.CA': 'easterncompany.com', 'HRHO.CA': 'efghermes.com',
+    'TMGH.CA': 'talaatmoustafa.com', 'SWDY.CA': 'elsewedyelectric.com', 'ETEL.CA': 'te.eg',
+    'ORAS.CA': 'orascom.com', 'FWRY.CA': 'fawry.com', 'PHDC.CA': 'palmhillsdevelopments.com',
+    'AAPL': 'apple.com', 'MSFT': 'microsoft.com', 'GOOG': 'google.com', 'AMZN': 'amazon.com',
+    'TSLA': 'tesla.com', 'NVDA': 'nvidia.com', 'META': 'meta.com', 'NFLX': 'netflix.com',
+    'AMD': 'amd.com', 'INTC': 'intel.com', 'JPM': 'jpmorganchase.com', 'V': 'visa.com',
+    'MA': 'mastercard.com', 'WMT': 'walmart.com', 'HD': 'homedepot.com', 'PG': 'pg.com',
+    'KO': 'coca-colacompany.com', 'PEP': 'pepsico.com', 'DIS': 'disney.com', 'NKE': 'nike.com',
+    '^GSPC': 'spglobal.com', '^DJI': 'dowjones.com', '^IXIC': 'nasdaq.com',
+    '^FTSE': 'lseg.com', '^GDAXI': 'deutsche-boerse.com', '^N225': 'jpx.co.jp',
+    'BZ=F': 'ice.com', 'GC=F': 'cmegroup.com'
+};
+
+const getLogoUrl = (symbol) => {
+    const domain = COMPANY_DOMAINS[symbol];
+    if (domain) {
+        return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
+    }
+    return null;
+};
 
 // Metadata Mapping for cleaner display names
 const GLOBAL_META = {
@@ -138,6 +166,7 @@ const mapStockData = (quote) => {
         category: isEg ? 'EG' : (isSa ? 'SA' : 'Global'),
         country: meta.country || (isEg ? '🇪🇬' : (isSa ? '🇸🇦' : '🇺🇸')),
         sector: meta.sector || quote.sector || null,
+        logo: getLogoUrl(symbol),
         price: price,
         regularMarketPrice: price,
         change: change || 0,
