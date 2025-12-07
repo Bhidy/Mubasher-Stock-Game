@@ -279,13 +279,22 @@ async function updateStockPrices() {
             // Removed re-mapping to ensure ^CASE30 stays as ^CASE30 for frontend consistency
             if (symbol === 'CASE30.CA') symbol = '^CASE30';
 
-            const meta = GLOBAL_META[quote.symbol] || GLOBAL_META['^EGX30.CA'];
+            // Get metadata - DO NOT fallback to EGX30 for all unknown symbols!
+            const meta = GLOBAL_META[quote.symbol] || null;
+
+            // Determine name: Use meta first, then API shortName, then symbol
+            let displayName = quote.shortName || quote.longName || quote.symbol;
+            if (meta && meta.name) displayName = meta.name;
+
+            // Determine country
+            let displayCountry = isEgypt ? '🇪🇬' : (isSaudi ? '🇸🇦' : '🇺🇸');
+            if (meta && meta.country) displayCountry = meta.country;
 
             const stockData = {
                 symbol: symbol,
-                name: meta ? meta.name : (quote.shortName || quote.longName || quote.symbol),
+                name: displayName,
                 category: isGlobal ? 'Global' : (isEgypt ? 'EG' : 'SA'),
-                country: meta ? meta.country : (isEgypt ? '🇪🇬' : '🇸🇦'),
+                country: displayCountry,
                 sector: meta?.sector || quote.sector || null, // Include sector from meta
                 regularMarketPrice: price,
                 price: price, // Unified field
