@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Target, Building2, Globe, ChevronRight } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Target, Building2, Globe, ChevronRight, Bot } from 'lucide-react';
 import { usePrices } from '../context/PriceContext';
+import StockMovementCard from '../components/StockMovementCard';
 
 export default function StockAnalysis() {
     const { symbol } = useParams();
@@ -241,6 +242,9 @@ export default function StockAnalysis() {
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                        {/* AI Insights Card */}
+                        <StockMovementCard symbol={stockKey} />
 
                         {/* Trading Info Card */}
                         <Card title="Trading Information" icon={<BarChart3 size={20} />}>

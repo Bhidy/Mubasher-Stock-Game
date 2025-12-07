@@ -41,6 +41,10 @@
             "destination": "/api/translate.js"
         },
         {
+            "source": "/api/ai-insight",
+            "destination": "/api/ai-insight.js"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
