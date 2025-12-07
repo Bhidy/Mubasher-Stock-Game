@@ -1,4 +1,4 @@
-```javascript
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Clock, Filter, Newspaper, Search, ChevronDown, Calendar } from 'lucide-react';
@@ -15,14 +15,14 @@ const timeAgo = (dateString) => {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${ days }d ago`;
-    if (hours > 0) return `${ hours }h ago`;
-    if (minutes > 0) return `${ minutes }m ago`;
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
 };
 
-const NEWS_API_URL = import.meta.env.PROD 
-    ? '/api/news' 
+const NEWS_API_URL = import.meta.env.PROD
+    ? '/api/news'
     : 'http://localhost:5001/api/news';
 
 export default function NewsFeed() {
@@ -44,12 +44,12 @@ export default function NewsFeed() {
     const isWithinDateRange = (itemDateStr, filter) => {
         if (!itemDateStr) return false;
         if (filter === 'All') return true;
-        
+
         const date = new Date(itemDateStr);
         const now = new Date();
         const diffTime = now - date; // millis
         const diffHours = diffTime / (1000 * 60 * 60);
-        
+
         if (filter === '1D') return diffHours <= 24;
         if (filter === '7D') return diffHours <= (24 * 7);
         if (filter === '30D') return diffHours <= (24 * 30);
@@ -60,7 +60,7 @@ export default function NewsFeed() {
     const fetchNews = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${ NEWS_API_URL }?market = ${ market } `);
+            const res = await fetch(`${NEWS_API_URL}?market = ${market} `);
             const data = await res.json();
             if (Array.isArray(data)) {
                 setNewsItems(data);
@@ -103,11 +103,11 @@ export default function NewsFeed() {
         if (selectedSource !== 'All') {
             filtered = filtered.filter(item => item.publisher === selectedSource);
         } else {
-             // For 'All' source, we just show date filtered
+            // For 'All' source, we just show date filtered
         }
-        
+
         setFilteredNews(filtered);
-        
+
         // Update available sources list based on date-filtered items
         // We only show sources that have at least 1 article in the selected date range
         const uniqueSources = ['All', ...new Set(filtered.map(item => item.publisher).filter(Boolean))];
@@ -129,10 +129,10 @@ export default function NewsFeed() {
                         Market News
                     </h1>
                 </div>
-                
+
                 {/* Date Filter Icon */}
                 <div style={{ position: 'relative' }}>
-                    <button 
+                    <button
                         onClick={() => setShowDateMenu(!showDateMenu)}
                         style={{
                             padding: '0.6rem',
@@ -152,7 +152,7 @@ export default function NewsFeed() {
                         <span>{dateFilter === 'All' ? 'Hist' : dateFilter}</span>
                         <ChevronDown size={14} />
                     </button>
-                    
+
                     {/* Date Dropdown */}
                     {showDateMenu && (
                         <div style={{
@@ -187,7 +187,7 @@ export default function NewsFeed() {
                                         fontWeight: dateFilter === d ? 700 : 500
                                     }}
                                 >
-                                    {d === 'All' ? 'All History' : `${ d } days`}
+                                    {d === 'All' ? 'All History' : d}
                                 </button>
                             ))}
                         </div>
@@ -208,7 +208,7 @@ export default function NewsFeed() {
                             setMarket(m.id);
                             setSelectedSource('All'); // Reset filter on market switch
                         }}
-                        className={`flex - center animate - scale`}
+                        className="flex-center animate-scale"
                         style={{
                             flex: 1,
                             padding: '0.6rem',
@@ -249,7 +249,7 @@ export default function NewsFeed() {
                             }}
                         >
                             {/* Display Count next to Source Name */}
-                            {source} {sourceCounts[source] ? `(${ sourceCounts[source]})` : ''}
+                            {source}{sourceCounts[source] ? ` (${sourceCounts[source]})` : ''}
                         </button>
                     ))}
                 </div>
@@ -278,7 +278,7 @@ export default function NewsFeed() {
                                 {news.thumbnail && (
                                     <div style={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative' }}>
                                         <img
-                                            src={news.thumbnail.startsWith('http') ? `/ api / proxy - image ? url = ${ encodeURIComponent(news.thumbnail) } ` : news.thumbnail}
+                                            src={news.thumbnail.startsWith('http') ? `/ api / proxy - image ? url = ${encodeURIComponent(news.thumbnail)} ` : news.thumbnail}
                                             referrerPolicy="no-referrer"
                                             onError={(e) => {
                                                 e.target.onerror = null;
