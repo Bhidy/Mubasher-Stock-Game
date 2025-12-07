@@ -4,9 +4,9 @@ description: Full QA and Deployment Verification Process - Run before confirming
 
 # Professional QA & Deployment Workflow
 
-**Philosophy**: Act like a full software team (Development, QA, DevOps, Support). Never confirm a feature works until it's verified. Apply best practices from Apple, Google, and Microsoft.
+**Philosophy**: Act like a full software team (Development, QA, DevOps, Support). Never confirm a feature works until it's FULLY verified. Apply best practices from Apple, Google, and Microsoft.
 
-## Pre-Deployment Checklist
+## MANDATORY: Run This BEFORE Confirming ANY Change
 
 // turbo-all
 
@@ -15,127 +15,148 @@ description: Full QA and Deployment Verification Process - Run before confirming
 npm run build
 ```
 - [ ] Build completes without errors
-- [ ] No critical warnings (acceptable: chunk size warnings)
+- [ ] No critical warnings
 
-### 2. API Endpoint Testing (Localhost)
+### 2. Restart Backend (If server.js modified)
+```bash
+# Kill old server and restart
+lsof -ti:5001 | xargs kill -9
+cd backend && npm start
+```
+
+### 3. API Endpoint Testing (ALL Markets)
 
 **Stocks API:**
 ```bash
-curl -s "http://localhost:5001/api/stocks?market=SA" | head -c 500
-curl -s "http://localhost:5001/api/stocks?market=EG" | head -c 500
-curl -s "http://localhost:5001/api/stocks?market=Global" | head -c 500
+curl -s "http://localhost:5001/api/stocks?market=SA" | head -c 300
+curl -s "http://localhost:5001/api/stocks?market=EG" | head -c 300
+curl -s "http://localhost:5001/api/stocks?market=Global" | head -c 300
 ```
-✅ Verify: Each returns ONLY stocks for that specific market
+✅ Verify:
+- [ ] SA returns only `.SR` stocks with correct names (NOT "EGX 30")
+- [ ] EG returns only `.CA` stocks with correct names
+- [ ] Global returns US/World stocks
 
 **News API:**
 ```bash
-curl -s "http://localhost:5001/api/news?market=US" | head -c 1000
-curl -s "http://localhost:5001/api/news?market=SA" | head -c 1000
-curl -s "http://localhost:5001/api/news?market=EG" | head -c 1000
+curl -s "http://localhost:5001/api/news?market=US" | head -c 500
+curl -s "http://localhost:5001/api/news?market=SA" | head -c 500
+curl -s "http://localhost:5001/api/news?market=EG" | head -c 500
 ```
-✅ Verify: Returns fresh news with valid titles, links, and timestamps
+✅ Verify:
+- [ ] Returns fresh news (check timestamps)
+- [ ] Has valid titles and links
+- [ ] Thumbnails are present
 
 **Chart API:**
 ```bash
-curl -s "http://localhost:5001/api/chart?symbol=AAPL&range=1D" | head -c 500
-curl -s "http://localhost:5001/api/chart?symbol=2222.SR&range=1D" | head -c 500
+curl -s "http://localhost:5001/api/chart?symbol=AAPL&range=1D" | head -c 300
+curl -s "http://localhost:5001/api/chart?symbol=2222.SR&range=1D" | head -c 300
+curl -s "http://localhost:5001/api/chart?symbol=COMI.CA&range=1D" | head -c 300
 ```
-✅ Verify: Returns quotes array with date and price
+✅ Verify:
+- [ ] Returns quotes array with date and price
+- [ ] No empty arrays or errors
 
 **Content Extraction API:**
 ```bash
-curl -s "http://localhost:5001/api/news/content?url=https://finance.yahoo.com/news/..." | head -c 1000
+curl -s "http://localhost:5001/api/news/content?url=https://finance.yahoo.com/news/test" | head -c 300
 ```
-✅ Verify: Returns `content` field with HTML paragraphs or fallback link
+✅ Verify:
+- [ ] Returns `content` field (not error)
 
 **Translation API:**
 ```bash
-curl -X POST "http://localhost:5001/api/translate" -H "Content-Type: application/json" -d '{"text":"Hello World","targetLang":"ar"}'
+curl -X POST "http://localhost:5001/api/translate" -H "Content-Type: application/json" -d '{"text":"Hello","targetLang":"ar"}'
 ```
-✅ Verify: Returns `translatedText` in Arabic
+✅ Verify:
+- [ ] Returns Arabic text
 
-### 3. Visual QA (Browser Testing)
+### 4. Cross-Page Consistency (CRITICAL)
 
-Open: `http://localhost:5173`
+**NEWS MUST BE IDENTICAL:**
+- [ ] Open Market Summary -> Select SA -> Note first 3 news titles
+- [ ] Open News Feed -> Select SA -> MUST show SAME titles
+- [ ] Repeat for EG market
+- [ ] Repeat for US market
+- [ ] **If different = BUG - DO NOT DEPLOY**
 
-| Page | Test | Expected |
-|------|------|----------|
-| Home/Market Summary | Load time | < 3 seconds |
-| Market Summary | SA Tab | Saudi stocks with TASI |
-| Market Summary | EG Tab | Egypt stocks with EGX 30 |
-| Market Summary | US Tab | US indices and stocks |
-| Market Summary | Chart | Displays chart for selected index |
-| News Feed | Load | Shows fresh news cards with images |
-| News Article | Click article | Full content or "Read on source" link |
-| News Article | Translate button | Translates to Arabic |
-| Stock Analysis | Open any stock | All tabs show data (not N/A) |
+**STOCK DATA MUST BE IDENTICAL:**
+- [ ] Stock price on Market Summary = Stock price on Stock Analysis page
+- [ ] Top Movers % = Actual change % in stock data
 
-### 4. Vercel Parity Check
+**CHARTS MUST WORK:**
+- [ ] Chart on Market Summary loads
+- [ ] Chart on Stock Analysis page loads
+- [ ] Both show same direction (up/down)
 
-After `git push`, wait 2 minutes then:
+### 5. Vercel Parity Check (After git push)
+
+Wait 2 minutes for Vercel deployment, then:
 
 ```bash
-curl -s "https://bhidy.vercel.app/api/stocks?market=SA" | head -c 500
-curl -s "https://bhidy.vercel.app/api/news?market=US" | head -c 500
-curl -s "https://bhidy.vercel.app/api/chart?symbol=AAPL&range=1D" | head -c 500
+# Compare Localhost vs Vercel
+echo "=== LOCALHOST ===" && curl -s "http://localhost:5001/api/news?market=US" | head -c 200
+echo "=== VERCEL ===" && curl -s "https://bhidy.vercel.app/api/news?market=US" | head -c 200
 ```
+✅ Verify:
+- [ ] Same news source types (Yahoo Finance)
+- [ ] Similar freshness
+- [ ] No errors on Vercel
 
-✅ Verify: Same structure and fresh data as localhost
+### 6. Mobile Device Testing
 
-### 5. Mobile Device Testing
+On iPhone/Android (Safari Private Mode):
+- [ ] Open `https://bhidy.vercel.app/market`
+- [ ] Page loads without blank screen
+- [ ] Charts display (not "No chart available" or "Timeout")
+- [ ] News loads with images
+- [ ] Prices update automatically
+- [ ] Can navigate to News Feed
+- [ ] Can open a news article
+- [ ] Article content displays (not just stub)
 
-On iPhone/Android:
-- Open `https://bhidy.vercel.app/market`
-- ✅ Page loads without blank screen
-- ✅ Charts display (not "No chart available")
-- ✅ News loads with images
-- ✅ Prices update (pull to refresh or wait 15s)
+### 7. Full Feature Walkthrough
 
-### 6. Cross-Page Consistency (CRITICAL)
+**Every page must be checked:**
+- [ ] Home/Onboarding
+- [ ] Market Summary (SA, EG, US tabs)
+- [ ] Stock Analysis (open any stock)
+- [ ] News Feed (all markets)
+- [ ] News Article (open any article, check content loads)
+- [ ] Translation (click Arabic button)
+- [ ] Community page
+- [ ] Academy page
 
-**NEWS CONSISTENCY:**
-```bash
-# Compare news on Market Summary vs News Feed for same market
-# They MUST show the same articles
-```
-- [ ] Open Market Summary -> Saudi tab -> Note first 3 news titles
-- [ ] Open News Feed -> Saudi -> Verify SAME titles appear
-- [ ] Repeat for Egypt and US markets
-- [ ] If different: BUG - The data sources are not unified
+### 8. Data Accuracy Verification
 
-**STOCK DATA CONSISTENCY:**
-- [ ] Stock prices on Market Summary match Stock Analysis page
-- [ ] Top Movers percentages match actual stock data
-
-### 7. Vercel vs Localhost Parity
-
-**After every deploy, compare:**
-```bash
-# Localhost
-curl -s "http://localhost:5001/api/news?market=US" | jq '.[0].title'
-
-# Vercel
-curl -s "https://bhidy.vercel.app/api/news?market=US" | jq '.[0].title'
-```
-✅ Both should return similar news (same sources, same freshness)
-
-**If different:**
-- Check if `api/news.js` (Vercel) matches `backend/server.js` (localhost) logic
-- Ensure same Yahoo Finance queries are used in both
+**Compare with real market:**
+- [ ] Check a stock price (e.g., AAPL, 2222.SR) against Google/Yahoo
+- [ ] Price should match within 1% (accounting for delay)
+- [ ] If significantly different = BUG - Using stale/fallback data
 
 ## Post-Deployment Monitoring
 
-1. **Check Vercel Logs**: Look for any 500 errors or timeouts
-2. **User Feedback**: If user reports issue, reproduce first before fixing
+1. **Check Vercel Logs**: Look for 500 errors or timeouts
+2. **User Feedback**: If user reports issue, reproduce first
 3. **Data Freshness**: Prices should match real market within 1 minute
 
 ## Critical Rules
 
 1. **NEVER use hardcoded `localhost:5001` in frontend code**
-2. **ALWAYS test both localhost AND Vercel before confirming**
-3. **If an API fails, check BOTH `backend/server.js` AND `api/*.js`**
-4. **Run `npm run build` before every deploy**
-5. **Restart backend server after modifying `backend/server.js`**
+2. **ALWAYS restart backend after modifying server.js**
+3. **ALWAYS test BOTH localhost AND Vercel**
+4. **ALWAYS compare pages that should show same data**
+5. **ALWAYS run `npm run build` before deploy**
+6. **NEVER confirm until ALL checks pass**
+
+## Failure Protocol
+
+If ANY check fails:
+1. STOP - Do not confirm to user
+2. FIX the issue
+3. RE-RUN all checks
+4. Only then confirm
 
 ---
-**Status**: Active Protocol. Use this for ALL changes.
+**Status**: MANDATORY for all changes. No exceptions.
