@@ -154,10 +154,11 @@ export default async function handler(req, res) {
 
         if (market === 'SA') {
             yahooQueries = ['Tadawul', 'Saudi Arabia stocks', 'Saudi Aramco'];
-            bingQueries = ['Saudi Stock Market Tadawul', 'site:argaam.com', 'Saudi Aramco stock'];
+            bingQueries = ['Saudi Stock Market Tadawul', 'Saudi Aramco stock', 'Riyadh stock exchange'];
         } else if (market === 'EG') {
-            yahooQueries = ['EGX Egypt', 'Egypt stock market', 'Egyptian Exchange'];
-            bingQueries = ['Egyptian Stock Exchange EGX', 'Egypt economy stocks', 'site:zawya.com Egypt', 'Cairo Stock Exchange'];
+            // Simpler queries for Egypt - avoid special characters
+            yahooQueries = ['Egypt stock market', 'Egyptian Exchange', 'Cairo stocks'];
+            bingQueries = ['Egypt stock market', 'Egyptian Exchange news', 'EGX Egypt', 'Egypt economy'];
         } else if (market === 'US') {
             yahooQueries = ['S&P 500', 'Stock Market', 'NASDAQ'];
             bingQueries = ['NASDAQ Tech Stocks', 'WSJ Markets', 'CNBC Markets'];
