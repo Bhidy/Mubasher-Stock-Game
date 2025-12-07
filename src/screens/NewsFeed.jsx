@@ -278,14 +278,29 @@ export default function NewsFeed() {
                                 {news.thumbnail && (
                                     <div style={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative' }}>
                                         <img
-                                            src={news.thumbnail.startsWith('http') ? `/ api / proxy - image ? url = ${encodeURIComponent(news.thumbnail)} ` : news.thumbnail}
+                                            src={news.thumbnail}
                                             referrerPolicy="no-referrer"
+                                            alt={news.title}
+                                            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                                             onError={(e) => {
+                                                // Fallback to Publisher Logo if main image fails
                                                 e.target.onerror = null;
-                                                e.target.style.display = 'none';
+                                                const domainMap = {
+                                                    'Mubasher': 'english.mubasher.info',
+                                                    'Argaam': 'argaam.com',
+                                                    'Zawya': 'zawya.com',
+                                                    'Bloomberg': 'bloomberg.com',
+                                                    'Reuters': 'reuters.com',
+                                                    'Investing.com': 'investing.com',
+                                                    'Egypt Today': 'egypttoday.com'
+                                                };
+                                                const domain = domainMap[news.publisher] || 'google.com'; // Default
+                                                e.target.src = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
+                                                e.target.style.objectFit = 'contain';
+                                                e.target.style.padding = '2rem';
+                                                e.target.style.backgroundColor = '#f8fafc';
                                             }}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            alt=""
                                         />
                                         <div style={{
                                             position: 'absolute',

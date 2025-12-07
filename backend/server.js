@@ -414,6 +414,7 @@ async function scrapeMubasher(market = 'SA') {
 async function fetchNewsForMarket(market) {
     console.log('Background fetching news for: ' + market);
     let allNews = [];
+    const BLACKLIST = ['Benzinga', 'The Telegraph', 'GlobeNewswire', 'PR Newswire', 'Business Wire', 'Zacks', 'Motley Fool'];
 
     try {
         if (market === 'SA') {
@@ -432,10 +433,8 @@ async function fetchNewsForMarket(market) {
             ];
             for (const q of googleQueries) allNews.push(...await fetchGoogleNews(q));
 
-            // 3. Bing (via RSS Parser inline or helper - using simple RSS Parser here for brevity/consistency)
-            const bingUrls = ['https://www.bing.com/news/search?q=Saudi+stock+market+Tadawul&format=rss&mkt=en-us'];
-            // ... simplify to reuse google/fetch logic or existing loop ...
-            // Let's rely on Google News mainly as it covers most, effectively parity with Vercel's robust logic
+            // 3. Bing (via RSS Parser)
+            // ...
 
         } else if (market === 'EG') {
             // 1. Mubasher
@@ -452,13 +451,11 @@ async function fetchNewsForMarket(market) {
                 'site:investing.com Egypt'
             ];
             for (const q of googleQueries) allNews.push(...await fetchGoogleNews(q));
-        }
 
-        // Yahoo Finance fallback (existing logic for supplements)
-        try {
-            const query = market === 'SA' ? 'Tadawul' : (market === 'EG' ? 'EGX30' : 'Stock Market');
+        } else {
+            // Default: Global/US
             const yahooFinance = require('yahoo-finance2').default;
-            const results = await yahooFinance.search(query, { newsCount: 5 });
+            const results = await yahooFinance.search('Stock Market', { newsCount: 10 });
             if (results.news) {
                 const yItems = results.news.map(n => ({
                     id: n.uuid,
@@ -470,120 +467,39 @@ async function fetchNewsForMarket(market) {
                 }));
                 allNews.push(...yItems);
             }
-        } catch (e) { }
+        }
 
     } catch (e) {
         console.error('Fetch Market News Error:', e);
     }
 
-    return allNews;
-}
+    // Deduplicate and Filter Blacklist
+    const seen = new Set();
+    const filteredNews = allNews.filter(item => {
+        if (!item || !item.title) return false;
 
-// Supplement with Yahoo (with timeout)
-try {
-    const yahoo = require('yahoo-finance2').default;
-    let yQueries = market === 'SA' ? ['Saudi Stock Market', 'Tadawul'] : ['Egyptian Exchange', 'EGX'];
-
-    const yahooSearchWithTimeout = (query) => Promise.race([
-        yahoo.search(query, { newsCount: 3 }),
-        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
-    ]);
-
-    const yResults = await Promise.all(yQueries.map(q => yahooSearchWithTimeout(q).catch(() => ({ news: [] }))));
-
-    yResults.forEach(res => {
-        if (res.news) {
-            allNews = [...allNews, ...res.news.map(item => ({
-                id: item.uuid || item.link,
-                title: item.title,
-                publisher: item.publisher || 'Yahoo',
-                link: item.link,
-                time: new Date(item.providerPublishTime).toISOString(),
-                thumbnail: item.thumbnail?.resolutions?.[0]?.url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
-                relatedTickers: [],
-                summary: null
-            }))];
+        // Strict Filter for EG/SA
+        if ((market === 'SA' || market === 'EG') && BLACKLIST.some(b => item.publisher && item.publisher.includes(b))) {
+            return false;
         }
+
+        const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
+        if (seen.has(cleanTitle)) return false;
+        seen.add(cleanTitle);
+        return true;
     });
-} catch (e) { /* ignore */ }
 
-        } catch (error) {
-    console.error('Fetch failed for ' + market + ': ', error.message);
-}
-    }
-    // 2. US / Global via Yahoo
-    else {
-    try {
-        const yahoo = require('yahoo-finance2').default;
-        let queries = market === 'US' ? ['Stock Market', 'S&P 500', 'Nasdaq'] : ['Global Markets'];
-        const promises = queries.map(q => yahoo.search(q, { newsCount: 5 }));
-        const results = await Promise.allSettled(promises);
+    // Sort by time
+    filteredNews.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-        results.forEach(result => {
-            if (result.status === 'fulfilled' && result.value.news) {
-                allNews = [...allNews, ...result.value.news.map(item => ({
-                    id: item.uuid || Math.random().toString(36),
-                    title: item.title,
-                    publisher: item.publisher || "Yahoo Finance",
-                    link: item.link,
-                    time: new Date(item.providerPublishTime).toISOString(),
-                    thumbnail: item.thumbnail?.resolutions?.[0]?.url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
-                    relatedTickers: [],
-                    summary: null
-                }))];
-            }
-        });
-    } catch (error) {
-        console.error('Yahoo fetch failed:', error);
-    }
+    // Update Cache
+    newsCache[market] = { data: filteredNews, time: Date.now() };
+    console.log(`✅ Cached ${filteredNews.length} articles for ${market}`);
+
+    return filteredNews;
 }
 
-// 3. Merge with ROBUST News Scraper Cache
-const scrapedNews = getCachedNews(market);
-if (scrapedNews && scrapedNews.length > 0) {
-    // Map to format
-    const formattedScraped = scrapedNews.map(item => ({
-        id: item.url,
-        title: item.title,
-        publisher: item.source || 'Market News',
-        link: item.url,
-        time: item.published_at,
-        thumbnail: item.image_url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
-        relatedTickers: item.tickers || [],
-        summary: item.content ? item.content.substring(0, 300) + '...' : null
-    }));
-    allNews = [...allNews, ...formattedScraped];
-}
 
-// Final Dedupe & Sort
-const seen = new Set();
-let uniqueNews = allNews.filter(item => {
-    const cleanTitle = item.title.trim().toLowerCase();
-    if (seen.has(cleanTitle)) return false;
-    seen.add(cleanTitle);
-    return true;
-});
-
-const currentYear = new Date().getFullYear();
-const cutOffDate = new Date();
-cutOffDate.setDate(cutOffDate.getDate() - 180);
-
-uniqueNews = uniqueNews.filter(item => {
-    const itemTime = new Date(item.time);
-    return itemTime.getFullYear() <= currentYear + 1 && itemTime > cutOffDate;
-});
-
-uniqueNews.sort((a, b) => new Date(b.time) - new Date(a.time));
-
-// Enrich news items with real images (for items with placeholder)
-console.log('📸 Enriching ' + market + ' news with images...');
-uniqueNews = await enrichNewsWithImages(uniqueNews);
-
-// Update Cache
-newsCache[market] = { data: uniqueNews, time: Date.now() };
-console.log('✅ Cached ' + uniqueNews.length + ' ' + market + ' news items');
-return uniqueNews;
-}
 
 // Background Poller (Updates every 5 minutes)
 setTimeout(async () => {
