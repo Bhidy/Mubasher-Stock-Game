@@ -19,61 +19,74 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Fetch the HTML
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5'
-            },
-            timeout: 8000 // 8s timeout
-        });
+        // 1. Spoof Googlebot Mobile to bypass basic paywalls & lazy loading
+        const userAgent = 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
 
-        const html = response.data;
-        const $ = cheerio.load(html);
+        // Helper to fetch
+        const fetchHtml = async (targetUrl) => {
+            const r = await axios.get(targetUrl, {
+                headers: { 'User-Agent': userAgent, 'Accept': 'text/html,application/xhtml+xml' },
+                timeout: 8000
+            });
+            return r.data;
+        };
 
-        // Remove script, style, nav, footer, etc.
-        $('script, style, nav, footer, header, aside, .ad, .advertisement, .social-share, .related-articles').remove();
+        let html = await fetchHtml(url);
+        let $ = cheerio.load(html);
 
-        // Attempt to find the main article body using common selectors
+        // 2. Check for "Continue Reading" or Redirects (common in Yahoo/Simply Wall St)
+        // Simply Wall St often has a link: <a href="...">Read the full article...</a>
+        const readMoreLink = $('a:contains("Read the full article")').attr('href') ||
+            $('a:contains("Continue reading")').attr('href');
+
+        if (readMoreLink && readMoreLink.startsWith('http')) {
+            console.log('Followed redirect to:', readMoreLink);
+            html = await fetchHtml(readMoreLink);
+            $ = cheerio.load(html);
+        }
+
+        // Remove junk
+        $('script, style, nav, footer, header, aside, .ad, .advertisement, .social-share, .related-articles, .secondary-content').remove();
+
         let content = '';
         const selectors = [
-            'article',
+            '[data-test-id="post-content"]', // Simply Wall St specific
             '.caas-body', // Yahoo
+            'article',
             '.article-body',
             '.story-content',
             '.ArticleBody',
             '.main-content',
-            'main'
+            'main',
+            '#root' // Last resort for SPA
         ];
 
         for (const selector of selectors) {
             if ($(selector).length > 0) {
-                // Get paragraphs
                 $(selector).find('p').each((i, el) => {
                     const text = $(el).text().trim();
-                    if (text.length > 50) { // Filter short snippets
-                        content += `<p>${text}</p>`;
-                    }
+                    if (text.length > 40) content += `<p>${text}</p>`;
                 });
-                if (content.length > 200) break; // Found enough content
+                if (content.length > 500) break;
             }
         }
 
-        // Fallback: heuristic search for largest block of text
+        // Fallback: If still short, try stricter p-tag scrape
         if (content.length < 200) {
             $('p').each((i, el) => {
                 const text = $(el).text().trim();
-                // Avoid utility links/copyrights
-                if (text.length > 60 && !text.includes('Copyright') && !text.includes('Rights Reserved')) {
-                    content += `<p>${text}</p>`;
+                // Heuristic: valid paragraphs usually end in punctuation and aren't too short
+                if (text.length > 60 && /^[A-Z"']/.test(text) && /[.!?]$/.test(text)) {
+                    if (!text.includes('Copyright') && !text.includes('Rights Reserved')) {
+                        content += `<p>${text}</p>`;
+                    }
                 }
             });
         }
 
-        if (!content) {
+        if (!content || content.length < 100) {
             return res.status(200).json({
-                content: '<p>Could not extract article content automatically. Please view the original source.</p>'
+                content: '<p>Content is protected or requires login. Please view the original source.</p>'
             });
         }
 
