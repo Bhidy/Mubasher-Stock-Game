@@ -52,24 +52,25 @@ export default async function handler(req, res) {
     if (!symbol) return res.status(400).json({ error: "Symbol required" });
 
     try {
-        let interval = '5m';
+        let interval = '15m'; // Default to 15m for 1d to reduce data load
         let qRange = range.toLowerCase();
 
-        // Tune intervals
+        // Tune intervals for API success optimization
         if (range === '1D') { interval = '15m'; qRange = '1d'; }
         else if (range === '5D') { interval = '60m'; qRange = '5d'; }
         else if (range === '1M') { interval = '1d'; qRange = '1mo'; }
         else if (range === '6M') { interval = '1d'; qRange = '6mo'; }
         else if (range === '1Y') { interval = '1d'; qRange = '1y'; }
+        else if (range === 'Max') { interval = '1mo'; qRange = 'max'; }
 
         if (typeof yahooFinance.suppressNotices === 'function') {
             yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
         }
 
-        // Live Fetch with Timeout
+        // Live Fetch with Timeout (8 seconds for Vercel)
         const result = await Promise.race([
             yahooFinance.chart(symbol, { range: qRange, interval }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 4000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
         ]);
 
         const quotes = (result.quotes || []).map(q => ({
@@ -98,7 +99,10 @@ export default async function handler(req, res) {
 
             // Attempt live quote first (sometimes quote works even if chart fails)
             try {
-                const quote = await yahooFinance.quote(symbol);
+                const quote = await Promise.race([
+                    yahooFinance.quote(symbol),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000))
+                ]);
                 currentPrice = quote.regularMarketPrice;
                 prevClose = quote.regularMarketPreviousClose;
                 currency = quote.currency;
@@ -115,10 +119,19 @@ export default async function handler(req, res) {
                 }
             }
 
+            // Safety check for NaN
+            if (!currentPrice || isNaN(currentPrice)) currentPrice = 100;
+            if (!prevClose || isNaN(prevClose)) prevClose = 100;
+
             const simChart = generateSimulatedChart(symbol, prevClose, currentPrice, range.toLowerCase());
+
+            // Override currency to match market
+            simChart.currency = currency;
+
             res.status(200).json(simChart);
 
         } catch (simError) {
+            console.error("Simulation fallback failed:", simError);
             res.status(200).json({
                 symbol: symbol,
                 currency: 'USD',
