@@ -70,7 +70,7 @@ export default async function handler(req, res) {
         // Live Fetch with Timeout (8 seconds for Vercel)
         const result = await Promise.race([
             yahooFinance.chart(symbol, { range: qRange, interval }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 6000))
         ]);
 
         const quotes = (result.quotes || []).map(q => ({

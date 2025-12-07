@@ -15,14 +15,17 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
 
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState({ change: 0, percent: 0 });
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            setError(null);
             try {
                 // Ensure we use the correct encoded symbol
                 // Use relative URL for API call to work in both Dev (via proxy) and Prod (Vercel functions)
                 const res = await fetch(`/api/chart?symbol=${encodeURIComponent(symbol)}&range=${range}`);
+                if (!res.ok) throw new Error('API Error');
                 const json = await res.json();
 
                 if (json.quotes && json.quotes.length > 0) {
@@ -69,10 +72,12 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
                     setData(quotes);
                 } else {
                     setData([]);
+                    if (json.error) setError(json.error);
                 }
             } catch (e) {
                 console.error(e);
                 setData([]);
+                setError(e.message);
             } finally {
                 setLoading(false);
             }
@@ -159,7 +164,9 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
                         </AreaChart>
                     </ResponsiveContainer>
                 ) : (
-                    !loading && <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.875rem' }}>No chart available for {range}</div>
+                    !loading && <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontSize: '0.875rem', padding: '1rem', textAlign: 'center' }}>
+                        {error ? `Chart Unavailable: ${error}` : `No chart data for ${range}`}
+                    </div>
                 )}
             </div>
 
