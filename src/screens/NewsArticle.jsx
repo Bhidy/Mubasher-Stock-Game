@@ -40,18 +40,36 @@ export default function NewsArticle() {
             const titleData = await titleRes.json();
             if (titleData.translatedText) setTranslatedTitle(titleData.translatedText);
 
-            // Translate content (strip HTML for translation, then wrap back)
-            const plainText = (fullContent || article.summary || '').replace(/<[^>]*>/g, ' ').trim().substring(0, 4000);
-            if (plainText) {
+            // Translate content (preserve paragraph structure)
+            // 1. Replace block tags with newlines
+            let textToTranslate = (fullContent || article.summary || '')
+                .replace(/<\/p>/gi, '\n\n')
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<\/div>/gi, '\n')
+                .replace(/<\/li>/gi, '\n');
+
+            // 2. Strip remaining tags
+            textToTranslate = textToTranslate.replace(/<[^>]*>/g, ' ').trim();
+
+            // 3. Remove excessive newlines
+            textToTranslate = textToTranslate.replace(/\n\s*\n/g, '\n\n');
+
+            if (textToTranslate) {
                 const contentRes = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: plainText, targetLang: 'ar' })
+                    body: JSON.stringify({ text: textToTranslate, targetLang: 'ar' })
                 });
                 const contentData = await contentRes.json();
                 if (contentData.translatedText) {
-                    // Wrap in paragraphs for display
-                    setTranslatedContent(`<p style="direction: rtl; text-align: right;">${contentData.translatedText}</p>`);
+                    // 4. Wrap translated paragraphs with proper styling
+                    const formattedHtml = contentData.translatedText
+                        .split('\n\n')
+                        .filter(p => p.trim())
+                        .map(p => `<p style="direction: rtl; text-align: right; margin-bottom: 1.5rem; line-height: 1.8;">${p.trim()}</p>`)
+                        .join('');
+
+                    setTranslatedContent(formattedHtml);
                 }
             }
 

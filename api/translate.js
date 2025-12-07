@@ -23,25 +23,55 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await axios.get('https://translate.googleapis.com/translate_a/single', {
-            params: {
-                client: 'gtx',
-                sl: 'auto',
-                tl: targetLang,
-                dt: 't',
-                q: text.substring(0, 2000)
-            },
-            timeout: 5000
-        });
+        // 1. Split text into chunks to handle long articles (>2000 chars)
+        // We split by newlines to preserve paragraph structure
+        const paragraphs = text.split(/\n+/);
+        const translatedParagraphs = [];
 
-        if (response.data && response.data[0]) {
-            const translatedText = response.data[0].map(s => s[0]).join('');
-            return res.status(200).json({ translatedText });
-        } else {
-            return res.status(200).json({ translatedText: text });
+        // Chunk processing function
+        const translateChunk = async (chunk) => {
+            if (!chunk.trim()) return '';
+            const res = await axios.get('https://translate.googleapis.com/translate_a/single', {
+                params: {
+                    client: 'gtx',
+                    sl: 'auto',
+                    tl: targetLang,
+                    dt: 't',
+                    q: chunk
+                },
+                timeout: 8000
+            });
+            if (res.data && res.data[0]) {
+                return res.data[0].map(s => s[0]).join('');
+            }
+            return chunk;
+        };
+
+        // Process in smaller batches to match API limits
+        // We group paragraphs into chunks of ~1500 chars safely
+        let currentChunk = '';
+        for (const para of paragraphs) {
+            if (currentChunk.length + para.length < 1500) {
+                currentChunk += para + '\n\n';
+            } else {
+                // Translate accumulated chunk
+                if (currentChunk.trim()) {
+                    translatedParagraphs.push(await translateChunk(currentChunk));
+                }
+                currentChunk = para + '\n\n';
+            }
         }
+        // Last chunk
+        if (currentChunk.trim()) {
+            translatedParagraphs.push(await translateChunk(currentChunk));
+        }
+
+        const finalTranslation = translatedParagraphs.join('\n\n');
+        return res.status(200).json({ translatedText: finalTranslation });
+
     } catch (error) {
         console.error('Translation Error:', error.message);
-        res.status(500).json({ error: 'Translation failed' });
+        // Fallback: return original text if translation fails completely
+        return res.status(200).json({ translatedText: text });
     }
 }

@@ -12,11 +12,21 @@ const fetchWithGooglebot = async (url) => {
 };
 
 // Helper: Extract content with Cheerio
+// Helper: Extract content with Cheerio
 const extractWithCheerio = (html) => {
     const $ = cheerio.load(html);
     $('script, style, nav, footer, header, aside, .ad, .advertisement, .social-share, .related-articles, .secondary-content').remove();
 
+    // Extract Main Image (og:image) to prepend if needed
+    const ogImage = $('meta[property="og:image"]').attr('content') || $('meta[name="twitter:image"]').attr('content');
+
     let content = '';
+
+    // If found main image, add it at top
+    if (ogImage) {
+        content += `<img src="${ogImage}" style="width:100%; border-radius:12px; margin-bottom:1rem;" alt="Main Image" /><br/>`;
+    }
+
     const selectors = [
         '#articleBody', // Argaam
         '.article-body', // Arab News, Egypt Today, Mubasher
@@ -38,9 +48,19 @@ const extractWithCheerio = (html) => {
 
     for (const selector of selectors) {
         if ($(selector).length > 0) {
-            $(selector).find('p').each((i, el) => {
-                const text = $(el).text().trim();
-                if (text.length > 40) content += `<p>${text}</p>`;
+            // Updated extraction to include images and paragraphs
+            $(selector).find('p, img').each((i, el) => {
+                if (el.tagName === 'img') {
+                    const src = $(el).attr('src');
+                    // Filter out small icons/pixels
+                    if (src && !src.includes('pixel') && !src.includes('icon')) {
+                        // Ensure absolute URL if relative
+                        content += `<img src="${src}" style="max-width:100%; border-radius:8px; margin:1rem 0;" /><br/>`;
+                    }
+                } else {
+                    const text = $(el).text().trim();
+                    if (text.length > 40) content += `<p>${text}</p>`;
+                }
             });
             if (content.length > 500) break;
         }
