@@ -1,10 +1,17 @@
 import YahooFinance from 'yahoo-finance2';
 
-// Version: 2.2.0 - Fixed chart options to match backend
+// Version: 2.3.0 - Fixed for yahoo-finance2 v3 (period1/period2 required)
 // Deployed: 2025-12-07
 
 // Initialize Yahoo Finance (v3 requirement)
 const yahooFinance = new YahooFinance();
+
+// Helper: Get date string for period calculation
+const getDateString = (daysAgo) => {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    return date.toISOString().split('T')[0];
+};
 
 export default async function handler(req, res) {
     // CORS
@@ -21,18 +28,46 @@ export default async function handler(req, res) {
     if (!symbol) return res.status(400).json({ error: "Symbol required" });
 
     try {
-        // Determine range and interval (matching backend logic)
-        let queryRange, interval;
+        // Calculate period1 and period2 based on range
+        const today = getDateString(0);
+        let period1, interval;
+
         switch (range.toUpperCase()) {
-            case '1D': queryRange = '1d'; interval = '5m'; break;
-            case '5D': queryRange = '5d'; interval = '15m'; break;
-            case '1M': queryRange = '1mo'; interval = '60m'; break;
-            case '6M': queryRange = '6mo'; interval = '1d'; break;
-            case 'YTD': queryRange = 'ytd'; interval = '1d'; break;
-            case '1Y': queryRange = '1y'; interval = '1d'; break;
-            case '5Y': queryRange = '5y'; interval = '1wk'; break;
-            case 'MAX': queryRange = 'max'; interval = '1mo'; break;
-            default: queryRange = '1d'; interval = '5m';
+            case '1D':
+                period1 = getDateString(1);
+                interval = '5m';
+                break;
+            case '5D':
+                period1 = getDateString(5);
+                interval = '15m';
+                break;
+            case '1M':
+                period1 = getDateString(30);
+                interval = '60m';
+                break;
+            case '6M':
+                period1 = getDateString(180);
+                interval = '1d';
+                break;
+            case 'YTD':
+                period1 = new Date().getFullYear() + '-01-01';
+                interval = '1d';
+                break;
+            case '1Y':
+                period1 = getDateString(365);
+                interval = '1d';
+                break;
+            case '5Y':
+                period1 = getDateString(365 * 5);
+                interval = '1wk';
+                break;
+            case 'MAX':
+                period1 = '2000-01-01';
+                interval = '1mo';
+                break;
+            default:
+                period1 = getDateString(1);
+                interval = '5m';
         }
 
         // --- RETRY LOGIC: Try up to 3 times ---
@@ -43,10 +78,9 @@ export default async function handler(req, res) {
             try {
                 result = await Promise.race([
                     yahooFinance.chart(symbol, {
-                        period1: '2020-01-01', // Required by validation
-                        range: queryRange,
-                        interval: interval,
-                        includePrePost: false
+                        period1: period1,
+                        period2: today,
+                        interval: interval
                     }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
                 ]);
@@ -80,10 +114,10 @@ export default async function handler(req, res) {
 
         res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
         res.status(200).json({
-            symbol: result.meta.symbol,
-            currency: result.meta.currency,
-            granularity: result.meta.dataGranularity,
-            range: result.meta.range,
+            symbol: result.meta?.symbol || symbol,
+            currency: result.meta?.currency || 'USD',
+            granularity: interval,
+            range: range,
             quotes
         });
 
