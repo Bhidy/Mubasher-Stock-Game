@@ -1,7 +1,10 @@
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
 
-// Version: 2.0.0 - No simulated charts, real data only with 3x retry
+// Version: 2.1.0 - Fixed yahoo-finance2 v3 initialization
 // Deployed: 2025-12-07
+
+// Initialize Yahoo Finance (v3 requirement)
+const yahooFinance = new YahooFinance();
 
 export default async function handler(req, res) {
     // CORS

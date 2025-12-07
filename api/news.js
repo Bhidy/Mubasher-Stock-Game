@@ -1,6 +1,9 @@
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
 import Parser from 'rss-parser';
 import axios from 'axios';
+
+// Initialize Yahoo Finance (v3 requirement)
+const yahooFinance = new YahooFinance();
 
 // Helper: Translate Text (AR -> EN)
 async function translateText(text) {

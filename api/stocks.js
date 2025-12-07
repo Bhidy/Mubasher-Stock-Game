@@ -1,7 +1,10 @@
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
 
-// Version: 2.0.0 - No fallback data, real data only with retry logic
+// Version: 2.1.0 - Fixed yahoo-finance2 v3 initialization
 // Deployed: 2025-12-07
+
+// Initialize Yahoo Finance (v3 requirement)
+const yahooFinance = new YahooFinance();
 
 // Fully expanded lists matching backend/jobs/updateStockPrices.js
 const SAUDI_STOCKS = [
