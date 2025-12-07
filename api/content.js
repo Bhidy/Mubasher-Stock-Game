@@ -18,15 +18,20 @@ const extractWithCheerio = (html) => {
 
     let content = '';
     const selectors = [
-        '[data-test-id="post-content"]', // Simply Wall St
-        '.WYSIWYG.articlePage', // Investing.com (Specific)
-        '#article', // Investing.com (Alternative)
+        '#articleBody', // Argaam
+        '.article-body', // Arab News, Egypt Today, Mubasher
+        '.td-post-content', // Daily News Egypt
+        '.details-body', // Zawya (Alternative)
         '.article-text', // Zawya
+        '.WYSIWYG.articlePage', // Investing.com
+        '#article', // Investing.com (Alternative)
+        '[data-test-id="post-content"]', // Simply Wall St
         '.caas-body', // Yahoo
-        'article',
-        '.article-body',
+        '.news-details', // Mubasher
+        '.ArticleBody', // Bloomberg
+        '.story-text', // Reuters
         '.story-content',
-        '.ArticleBody',
+        'article',
         '.main-content',
         'main'
     ];
