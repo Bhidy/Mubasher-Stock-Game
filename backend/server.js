@@ -55,9 +55,20 @@ app.get('/', (req, res) => {
     res.send('Mubasher Stock Game API is Live! 🚀');
 });
 
-// Get all stocks
+// Get stocks with market filter
 app.get('/api/stocks', (req, res) => {
-    const stocks = getStocks();
+    const { market } = req.query;
+    let stocks = getStocks();
+
+    // Filter by market if specified
+    if (market === 'SA') {
+        stocks = stocks.filter(s => s.symbol.endsWith('.SR') || s.symbol.includes('TASI'));
+    } else if (market === 'EG') {
+        stocks = stocks.filter(s => s.symbol.endsWith('.CA') || s.symbol.includes('CASE') || s.symbol.includes('EGX'));
+    } else if (market === 'Global') {
+        stocks = stocks.filter(s => !s.symbol.endsWith('.SR') && !s.symbol.endsWith('.CA'));
+    }
+
     res.json(stocks);
 });
 
@@ -146,6 +157,61 @@ app.post('/api/translate', async (req, res) => {
     } catch (error) {
         console.error('Translation failed:', error.message);
         res.status(500).json({ error: 'Translation failed', original: text });
+    }
+});
+
+// Extract full article content
+app.get('/api/news/content', async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ error: 'URL required' });
+
+    try {
+        const axios = require('axios');
+        const cheerio = require('cheerio');
+
+        const userAgent = 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (compatible; Googlebot/2.1)';
+
+        const response = await axios.get(url, {
+            headers: { 'User-Agent': userAgent, 'Accept': 'text/html' },
+            timeout: 8000
+        });
+
+        const $ = cheerio.load(response.data);
+        $('script, style, nav, footer, header, aside, .ad, .advertisement').remove();
+
+        let content = '';
+        const selectors = ['[data-test-id="post-content"]', '.caas-body', 'article', '.article-body', 'main'];
+
+        for (const selector of selectors) {
+            if ($(selector).length > 0) {
+                $(selector).find('p').each((i, el) => {
+                    const text = $(el).text().trim();
+                    if (text.length > 40) content += `<p>${text}</p>`;
+                });
+                if (content.length > 500) break;
+            }
+        }
+
+        // Fallback
+        if (content.length < 200) {
+            $('p').each((i, el) => {
+                const text = $(el).text().trim();
+                if (text.length > 60 && !text.includes('Copyright')) {
+                    content += `<p>${text}</p>`;
+                }
+            });
+        }
+
+        if (!content || content.length < 100) {
+            let publisher = 'the source';
+            try { publisher = new URL(url).hostname.replace('www.', ''); } catch (e) { }
+            content = `<p>Content is protected. <a href="${url}" target="_blank">Read on ${publisher} →</a></p>`;
+        }
+
+        res.json({ content });
+    } catch (error) {
+        console.error('Content extract failed:', error.message);
+        res.json({ content: '<p>Unable to load content. Please view the original source.</p>' });
     }
 });
 
