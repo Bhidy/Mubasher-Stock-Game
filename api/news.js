@@ -108,8 +108,11 @@ export default async function handler(req, res) {
         tasks.push(fetchBingNews('site:mubasher.info Egypt', 2)); // Keep just in case
         tasks.push(fetchBingNews('اقتصاد مصر', 3)); // Egypt Economy (Arabic)
     } else if (market === 'US') {
-        tasks.push(fetchBingNews('S&P 500 Market', 5));
-        tasks.push(fetchBingNews('WSJ Markets', 3));
+        tasks.push(fetchBingNews('S&P 500 Market', 3));
+        tasks.push(fetchBingNews('NASDAQ Tech Stocks', 3));
+        tasks.push(fetchBingNews('CNBC Markets', 2));
+        tasks.push(fetchBingNews('Bloomberg Markets', 2));
+        tasks.push(fetchBingNews('WSJ Markets', 2));
     } else {
         tasks.push(fetchBingNews('Global Stock Markets', 5));
     }
