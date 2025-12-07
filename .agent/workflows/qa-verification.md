@@ -91,6 +91,38 @@ On iPhone/Android:
 - ✅ News loads with images
 - ✅ Prices update (pull to refresh or wait 15s)
 
+### 6. Cross-Page Consistency (CRITICAL)
+
+**NEWS CONSISTENCY:**
+```bash
+# Compare news on Market Summary vs News Feed for same market
+# They MUST show the same articles
+```
+- [ ] Open Market Summary -> Saudi tab -> Note first 3 news titles
+- [ ] Open News Feed -> Saudi -> Verify SAME titles appear
+- [ ] Repeat for Egypt and US markets
+- [ ] If different: BUG - The data sources are not unified
+
+**STOCK DATA CONSISTENCY:**
+- [ ] Stock prices on Market Summary match Stock Analysis page
+- [ ] Top Movers percentages match actual stock data
+
+### 7. Vercel vs Localhost Parity
+
+**After every deploy, compare:**
+```bash
+# Localhost
+curl -s "http://localhost:5001/api/news?market=US" | jq '.[0].title'
+
+# Vercel
+curl -s "https://bhidy.vercel.app/api/news?market=US" | jq '.[0].title'
+```
+✅ Both should return similar news (same sources, same freshness)
+
+**If different:**
+- Check if `api/news.js` (Vercel) matches `backend/server.js` (localhost) logic
+- Ensure same Yahoo Finance queries are used in both
+
 ## Post-Deployment Monitoring
 
 1. **Check Vercel Logs**: Look for any 500 errors or timeouts
