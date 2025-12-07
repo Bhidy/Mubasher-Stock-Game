@@ -168,12 +168,16 @@ async function fetchBingNews(query, count = 5) {
                 const imgMatch = item.content.match(/src="([^"]+)"/);
                 if (imgMatch) image = imgMatch[1];
             }
+            if (!image && item.enclosure && item.enclosure.url) {
+                image = item.enclosure.url;
+            }
 
             // Extract publisher from URL
             let publisher = 'News';
+            let hostname = '';
             try {
                 const sourceUrl = new URL(finalUrl);
-                const hostname = sourceUrl.hostname.replace('www.', '');
+                hostname = sourceUrl.hostname.replace('www.', '');
                 if (hostname.includes('zawya')) publisher = 'Zawya';
                 else if (hostname.includes('argaam')) publisher = 'Argaam';
                 else if (hostname.includes('mubasher')) publisher = 'Mubasher';
@@ -188,6 +192,11 @@ async function fetchBingNews(query, count = 5) {
                 else if (hostname.includes('arabfinance')) publisher = 'Arab Finance';
                 else publisher = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
             } catch (e) { }
+
+            // Fallback to publisher logo if no image
+            if (!image && hostname) {
+                image = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${hostname}&size=128`;
+            }
 
             return {
                 id: finalUrl,

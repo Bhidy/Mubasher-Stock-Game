@@ -19,6 +19,9 @@ const extractWithCheerio = (html) => {
     let content = '';
     const selectors = [
         '[data-test-id="post-content"]', // Simply Wall St
+        '.WYSIWYG.articlePage', // Investing.com (Specific)
+        '#article', // Investing.com (Alternative)
+        '.article-text', // Zawya
         '.caas-body', // Yahoo
         'article',
         '.article-body',
