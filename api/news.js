@@ -142,6 +142,63 @@ async function fetchYahooNews(queries, count = 5) {
     return allNews;
 }
 
+// Helper: Fetch Google News RSS (More reliable than Bing for specific sites)
+async function fetchGoogleNews(query, count = 5) {
+    try {
+        const parser = new Parser({
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            timeout: 5000
+        });
+
+        const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+        const feed = await parser.parseURL(url);
+
+        return feed.items.slice(0, count).map(item => {
+            // Extract publisher from title "Title - Publisher"
+            let publisher = 'News';
+            let title = item.title;
+            const parts = title.split(' - ');
+            if (parts.length > 1) {
+                publisher = parts.pop(); // Last part is publisher
+                title = parts.join(' - ');
+            }
+
+            // Refine publisher
+            if (publisher.toLowerCase().includes('mubasher')) publisher = 'Mubasher';
+            else if (publisher.toLowerCase().includes('argaam')) publisher = 'Argaam';
+            else if (publisher.toLowerCase().includes('zawya')) publisher = 'Zawya';
+
+            // Google News links are redirects, handled by frontend or scraper
+
+            // Thumbnails: Google RSS doesn't give images easily. Use fallback.
+            // We use the publisher domain logic inside fetchBingNews, repeated here efficiently
+            // Actually, we'll let the frontend handle the fallback or use a generic one
+            let image = null;
+            // Try to guess domain for logo
+            let domain = '';
+            if (publisher === 'Mubasher') domain = 'english.mubasher.info';
+            else if (publisher === 'Argaam') domain = 'argaam.com';
+            else if (publisher === 'Zawya') domain = 'zawya.com';
+
+            if (domain) {
+                image = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
+            }
+
+            return {
+                id: item.link,
+                title: title,
+                publisher: publisher,
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image
+            };
+        });
+    } catch (e) {
+        console.error(`Google News Fetch Error (${query}):`, e.message);
+        return [];
+    }
+}
+
 // Helper: Fetch Bing News RSS
 async function fetchBingNews(query, count = 5) {
     try {
@@ -226,6 +283,9 @@ export default async function handler(req, res) {
     const { market } = req.query;
     let allNews = [];
 
+    // Blacklist for US/Crypto noise in SA/EG
+    const BLACKLIST = ['Benzinga', 'The Telegraph', 'GlobeNewswire', 'PR Newswire', 'Business Wire', 'Zacks', 'Motley Fool'];
+
     try {
         // **UNIFIED NEWS STRATEGY - ALL REQUIRED SOURCES**
         // Egypt: Mubasher, Zawya, Egypt Today, Daily News Egypt, Arab Finance, Investing.com
@@ -236,55 +296,55 @@ export default async function handler(req, res) {
             const mubasherNews = await scrapeMubasher('SA');
             allNews.push(...mubasherNews);
 
-            // 2. Yahoo Finance
-            const yahooNews = await fetchYahooNews(['Tadawul', 'Saudi Aramco', 'Saudi stock'], 5);
-            allNews.push(...yahooNews);
-
-            // 3. Site-specific Bing RSS for required sources
-            const sourceQueries = [
-                'site:argaam.com',                    // Argaam
-                'site:reuters.com Saudi',             // Reuters
-                'site:bloomberg.com Saudi Arabia',    // Bloomberg
-                'site:investing.com Saudi',           // Investing.com
-                'site:arabnews.com stock market',     // Arab News
-                'Saudi stock market Tadawul'          // General
+            // 2. Google News (High Volume)
+            const googleQueries = [
+                'site:argaam.com',
+                'site:english.mubasher.info Saudi',
+                'site:reuters.com Saudi',
+                'site:bloomberg.com Saudi',
+                'site:arabnews.com stock',
+                'site:investing.com Saudi'
             ];
+            for (const query of googleQueries) {
+                const news = await fetchGoogleNews(query, 5);
+                allNews.push(...news);
+            }
 
-            for (const query of sourceQueries) {
+            // 3. Bing News (Backup)
+            const bingQueries = ['Saudi stock market Tadawul'];
+            for (const query of bingQueries) {
                 try {
                     const news = await fetchBingNews(query, 5);
                     allNews.push(...news);
-                } catch (e) {
-                    console.log(`Bing query failed: ${query}`);
-                }
+                } catch (e) { }
             }
 
         } else if (market === 'EG') {
-            // 1. Mubasher scraper (PRIMARY)
+            // 1. Mubasher scraper (Direct)
             const mubasherNews = await scrapeMubasher('EG');
             allNews.push(...mubasherNews);
 
-            // 2. Yahoo Finance
-            const yahooNews = await fetchYahooNews(['Egypt stock market', 'Egyptian Exchange', 'EGX'], 5);
-            allNews.push(...yahooNews);
-
-            // 3. Site-specific Bing RSS for required sources
-            const sourceQueries = [
-                'site:zawya.com Egypt',               // Zawya
-                'site:egypttoday.com economy',        // Egypt Today
-                'site:dailynewsegypt.com',            // Daily News Egypt
-                'site:arabfinance.com',               // Arab Finance
-                'site:investing.com Egypt',           // Investing.com
-                'Egypt stock market EGX'              // General
+            // 2. Google News (High Volume)
+            const googleQueries = [
+                'site:english.mubasher.info Egypt',
+                'site:zawya.com Egypt',
+                'site:egypttoday.com',
+                'site:dailynewsegypt.com',
+                'site:arabfinance.com',
+                'site:investing.com Egypt'
             ];
+            for (const query of googleQueries) {
+                const news = await fetchGoogleNews(query, 5);
+                allNews.push(...news);
+            }
 
-            for (const query of sourceQueries) {
+            // 3. Bing News (Backup)
+            const bingQueries = ['Egypt stock market EGX30'];
+            for (const query of bingQueries) {
                 try {
                     const news = await fetchBingNews(query, 5);
                     allNews.push(...news);
-                } catch (e) {
-                    console.log(`Bing query failed: ${query}`);
-                }
+                } catch (e) { }
             }
 
         } else if (market === 'US') {
@@ -302,10 +362,16 @@ export default async function handler(req, res) {
             allNews.push(...yahooNews);
         }
 
-        // Deduplicate by title
+        // Deduplicate and Filter
         const seen = new Set();
         const uniqueNews = allNews.filter(item => {
             if (!item || !item.title) return false;
+
+            // Strict Filter for EG/SA
+            if ((market === 'SA' || market === 'EG') && BLACKLIST.some(b => item.publisher.includes(b))) {
+                return false;
+            }
+
             const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
             if (seen.has(cleanTitle)) return false;
             seen.add(cleanTitle);

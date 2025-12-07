@@ -216,55 +216,55 @@ app.get('/api/news/content', async (req, res) => {
 });
 
 // Get market news
-// Get market news
 const newsCache = {};
 
-// Helper: Extract og:image from a URL
-async function extractImageFromUrl(url) {
+// Helper: Fetch Google News RSS matching Vercel logic
+async function fetchGoogleNews(query, count = 5) {
     try {
-        const axios = require('axios');
-        const cheerio = require('cheerio');
-
-        // Follow Google News redirects
-        let targetUrl = url;
-        if (url.includes('news.google.com')) {
-            try {
-                const response = await axios.get(url, {
-                    maxRedirects: 5,
-                    timeout: 8000,
-                    headers: { 'User-Agent': 'Mozilla/5.0' },
-                    validateStatus: () => true
-                });
-                targetUrl = response.request?.res?.responseUrl || url;
-            } catch (e) { /* ignore */ }
-        }
-
-        const response = await axios.get(targetUrl, {
-            timeout: 8000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'text/html'
-            },
-            maxRedirects: 5
+        const Parser = require('rss-parser');
+        const parser = new Parser({
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            timeout: 5000
         });
 
-        const $ = cheerio.load(response.data);
+        const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+        const feed = await parser.parseURL(url);
 
-        // Try multiple image sources
-        let image = $('meta[property="og:image"]').attr('content');
-        if (!image) image = $('meta[name="twitter:image"]').attr('content');
-        if (!image) image = $('article img').first().attr('src');
-        if (!image) image = $('.article img, .content img, .post img').first().attr('src');
+        return feed.items.slice(0, count).map(item => {
+            let publisher = 'News';
+            let title = item.title;
+            const parts = title.split(' - ');
+            if (parts.length > 1) {
+                publisher = parts.pop();
+                title = parts.join(' - ');
+            }
 
-        // Make absolute URL
-        if (image && !image.startsWith('http')) {
-            const base = new URL(targetUrl);
-            image = new URL(image, base.origin).href;
-        }
+            if (publisher.toLowerCase().includes('mubasher')) publisher = 'Mubasher';
+            else if (publisher.toLowerCase().includes('argaam')) publisher = 'Argaam';
+            else if (publisher.toLowerCase().includes('zawya')) publisher = 'Zawya';
 
-        return image || null;
+            let image = null;
+            let domain = '';
+            if (publisher === 'Mubasher') domain = 'english.mubasher.info';
+            else if (publisher === 'Argaam') domain = 'argaam.com';
+            else if (publisher === 'Zawya') domain = 'zawya.com';
+
+            if (domain) {
+                image = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
+            }
+
+            return {
+                id: item.link,
+                title: title,
+                publisher: publisher,
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image
+            };
+        });
     } catch (e) {
-        return null;
+        console.error(`Google News Fetch Error (${query}):`, e.message);
+        return [];
     }
 }
 
@@ -347,217 +347,242 @@ async function enrichNewsWithImages(newsItems) {
 
 
 // News Fetching Logic (Background)
+// Helper: Scrape Mubasher Direct (Mirrors Vercel)
+async function scrapeMubasher(market = 'SA') {
+    const articles = [];
+    const url = market === 'SA'
+        ? 'https://english.mubasher.info/markets/TDWL'
+        : 'https://english.mubasher.info/countries/eg';
+
+    try {
+        console.log(`Scraping Mubasher for ${market}...`);
+        const axios = require('axios');
+        const cheerio = require('cheerio');
+
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'text/html'
+            },
+            timeout: 10000
+        });
+        const $ = cheerio.load(response.data);
+        const links = new Set();
+
+        $('a').each((i, el) => {
+            const href = $(el).attr('href');
+            if (href && href.match(/\/news\/\d+\//)) {
+                const fullUrl = href.startsWith('http') ? href : 'https://english.mubasher.info' + href;
+                links.add(fullUrl);
+            }
+        });
+
+        const uniqueLinks = Array.from(links).slice(0, 8);
+        const articlePromises = uniqueLinks.map(async (link) => {
+            try {
+                const pageRes = await axios.get(link, { timeout: 5000 });
+                const $page = cheerio.load(pageRes.data);
+                const title = $page('h1').first().text().trim();
+                let image = $page('meta[property="og:image"]').attr('content') ||
+                    $page('.article-image img').attr('src');
+                if (image && !image.startsWith('http')) image = 'https://english.mubasher.info' + image;
+                const dateStr = $page('time').attr('datetime') || new Date().toISOString();
+
+                if (title) {
+                    return {
+                        id: link,
+                        title: title,
+                        publisher: 'Mubasher',
+                        link: link,
+                        time: new Date(dateStr).toISOString(),
+                        thumbnail: image || 'https://placehold.co/600x400/f1f5f9/475569?text=Mubasher',
+                        summary: ''
+                    };
+                }
+            } catch (e) { }
+        });
+
+        const results = await Promise.all(articlePromises);
+        return results.filter(i => i);
+    } catch (e) {
+        console.error('Mubasher scrape failed:', e.message);
+        return [];
+    }
+}
+
+// News Fetching Logic (Background)
 async function fetchNewsForMarket(market) {
     console.log('Background fetching news for: ' + market);
     let allNews = [];
 
-    // 1. SA and EG: STRICTLY Mubasher & Argaam RSS
-    if (market === 'SA' || market === 'EG') {
+    try {
+        if (market === 'SA') {
+            // 1. Mubasher
+            const mubasher = await scrapeMubasher('SA');
+            allNews.push(...mubasher);
+
+            // 2. Google News
+            const googleQueries = [
+                'site:argaam.com',
+                'site:english.mubasher.info Saudi',
+                'site:reuters.com Saudi',
+                'site:bloomberg.com Saudi',
+                'site:arabnews.com stock',
+                'site:investing.com Saudi'
+            ];
+            for (const q of googleQueries) allNews.push(...await fetchGoogleNews(q));
+
+            // 3. Bing (via RSS Parser inline or helper - using simple RSS Parser here for brevity/consistency)
+            const bingUrls = ['https://www.bing.com/news/search?q=Saudi+stock+market+Tadawul&format=rss&mkt=en-us'];
+            // ... simplify to reuse google/fetch logic or existing loop ...
+            // Let's rely on Google News mainly as it covers most, effectively parity with Vercel's robust logic
+
+        } else if (market === 'EG') {
+            // 1. Mubasher
+            const mubasher = await scrapeMubasher('EG');
+            allNews.push(...mubasher);
+
+            // 2. Google News
+            const googleQueries = [
+                'site:english.mubasher.info Egypt',
+                'site:zawya.com Egypt',
+                'site:egypttoday.com',
+                'site:dailynewsegypt.com',
+                'site:arabfinance.com',
+                'site:investing.com Egypt'
+            ];
+            for (const q of googleQueries) allNews.push(...await fetchGoogleNews(q));
+        }
+
+        // Yahoo Finance fallback (existing logic for supplements)
         try {
-            const Parser = require('rss-parser');
-            const parser = new Parser({
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                },
-                timeout: 5000
-            });
-            let feedUrls = [];
-
-            if (market === 'SA') {
-                // Saudi: Mubasher, Argaam, Bloomberg, Reuters, Investing.com, Arab News
-                feedUrls = [
-                    'https://www.bing.com/news/search?q=Saudi+stock+market+Tadawul&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:argaam.com&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:reuters.com+Saudi&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:bloomberg.com+Saudi+Arabia&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:investing.com+Saudi&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:arabnews.com+stock+market&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=Saudi+Aramco+stocks&format=rss&mkt=en-us'
-                ];
-            } else {
-                // Egypt: Mubasher, Zawya, Egypt Today, Daily News Egypt, Arab Finance, Investing.com
-                feedUrls = [
-                    'https://www.bing.com/news/search?q=site:zawya.com+Egypt&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:egypttoday.com+economy&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:dailynewsegypt.com&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:arabfinance.com&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=site:investing.com+Egypt&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=Egyptian+Stock+Exchange+EGX&format=rss&mkt=en-us',
-                    'https://www.bing.com/news/search?q=Egypt+economy+stocks&format=rss&mkt=en-us'
-                ];
+            const query = market === 'SA' ? 'Tadawul' : (market === 'EG' ? 'EGX30' : 'Stock Market');
+            const yahooFinance = require('yahoo-finance2').default;
+            const results = await yahooFinance.search(query, { newsCount: 5 });
+            if (results.news) {
+                const yItems = results.news.map(n => ({
+                    id: n.uuid,
+                    title: n.title,
+                    publisher: n.providerPublishTime ? 'Yahoo' : 'Yahoo',
+                    link: n.link,
+                    time: new Date(n.providerPublishTime * 1000).toISOString(),
+                    thumbnail: n.thumbnail?.resolutions?.[0]?.url
+                }));
+                allNews.push(...yItems);
             }
+        } catch (e) { }
 
-            const fetchWithTimeout = (url, timeout = 4000) => {
-                return Promise.race([
-                    parser.parseURL(url),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
-                ]);
-            };
+    } catch (e) {
+        console.error('Fetch Market News Error:', e);
+    }
 
-            const feedPromises = feedUrls.map(url => fetchWithTimeout(url).catch(e => {
-                return { items: [] };
-            }));
+    return allNews;
+}
 
-            const feeds = await Promise.all(feedPromises);
+// Supplement with Yahoo (with timeout)
+try {
+    const yahoo = require('yahoo-finance2').default;
+    let yQueries = market === 'SA' ? ['Saudi Stock Market', 'Tadawul'] : ['Egyptian Exchange', 'EGX'];
 
-            feeds.forEach((feed, index) => {
-                const feedUrl = feedUrls[index];
-                if (feed.items && feed.items.length > 0) {
-                    const parsedItems = feed.items.map(item => {
-                        if (market === 'SA' && feedUrl.includes('reuters')) {
-                            const text = (item.title + ' ' + (item.contentSnippet || '')).toLowerCase();
-                            const keywords = ['saudi', 'aramco', 'tadawul', 'riyadh', 'kingdom', 'middle east', 'opec'];
-                            if (!keywords.some(k => text.includes(k))) return null;
-                        }
+    const yahooSearchWithTimeout = (query) => Promise.race([
+        yahoo.search(query, { newsCount: 3 }),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
+    ]);
 
-                        let imageUrl = item.enclosure?.url || null;
-                        if (!imageUrl && item.content) {
-                            const imgMatch = item.content.match(/<img[^>]+src="([^">]+)"/);
-                            if (imgMatch) imageUrl = imgMatch[1];
-                        }
-                        if (!imageUrl && item.description) {
-                            const imgMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
-                            if (imgMatch) imageUrl = imgMatch[1];
-                        }
+    const yResults = await Promise.all(yQueries.map(q => yahooSearchWithTimeout(q).catch(() => ({ news: [] }))));
 
-                        if (imageUrl && imageUrl.includes('mubasher.info')) {
-                            imageUrl = 'http://localhost:5001/api/proxy-image?url=' + encodeURIComponent(imageUrl);
-                        }
-
-                        let summary = (item.contentSnippet || item.description || "").replace(/<[^>]*>?/gm, "").trim();
-                        if (summary.length > 300) summary = summary.substring(0, 300) + "...";
-
-                        let publisher = 'Market News';
-                        if (item.link.includes('mubasher')) publisher = 'Mubasher';
-                        else if (item.link.includes('argaam')) publisher = 'Argaam';
-                        else if (item.link.includes('arabfinance')) publisher = 'ArabFinance';
-                        else if (item.link.includes('zawya')) publisher = 'Zawya';
-                        else if (item.link.includes('reuters')) publisher = 'Reuters';
-                        else if (item.link.includes('almal')) publisher = 'Al Mal';
-                        else if (item.link.includes('google')) publisher = item.source?.title || 'Google News';
-
-                        if (!imageUrl) imageUrl = "https://placehold.co/600x400/f1f5f9/475569?text=News";
-
-                        return {
-                            id: item.guid || item.link,
-                            title: item.title,
-                            publisher: publisher,
-                            link: item.link,
-                            time: new Date(item.pubDate).toISOString(),
-                            thumbnail: imageUrl,
-                            relatedTickers: [],
-                            summary: summary
-                        };
-                    }).filter(i => i);
-
-                    allNews = [...allNews, ...parsedItems];
-                }
-            });
-
-            // Supplement with Yahoo (with timeout)
-            try {
-                const yahoo = require('yahoo-finance2').default;
-                let yQueries = market === 'SA' ? ['Saudi Stock Market', 'Tadawul'] : ['Egyptian Exchange', 'EGX'];
-
-                const yahooSearchWithTimeout = (query) => Promise.race([
-                    yahoo.search(query, { newsCount: 3 }),
-                    new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
-                ]);
-
-                const yResults = await Promise.all(yQueries.map(q => yahooSearchWithTimeout(q).catch(() => ({ news: [] }))));
-
-                yResults.forEach(res => {
-                    if (res.news) {
-                        allNews = [...allNews, ...res.news.map(item => ({
-                            id: item.uuid || item.link,
-                            title: item.title,
-                            publisher: item.publisher || 'Yahoo',
-                            link: item.link,
-                            time: new Date(item.providerPublishTime).toISOString(),
-                            thumbnail: item.thumbnail?.resolutions?.[0]?.url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
-                            relatedTickers: [],
-                            summary: null
-                        }))];
-                    }
-                });
-            } catch (e) { /* ignore */ }
+    yResults.forEach(res => {
+        if (res.news) {
+            allNews = [...allNews, ...res.news.map(item => ({
+                id: item.uuid || item.link,
+                title: item.title,
+                publisher: item.publisher || 'Yahoo',
+                link: item.link,
+                time: new Date(item.providerPublishTime).toISOString(),
+                thumbnail: item.thumbnail?.resolutions?.[0]?.url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
+                relatedTickers: [],
+                summary: null
+            }))];
+        }
+    });
+} catch (e) { /* ignore */ }
 
         } catch (error) {
-            console.error('Fetch failed for ' + market + ': ', error.message);
-        }
+    console.error('Fetch failed for ' + market + ': ', error.message);
+}
     }
     // 2. US / Global via Yahoo
     else {
-        try {
-            const yahoo = require('yahoo-finance2').default;
-            let queries = market === 'US' ? ['Stock Market', 'S&P 500', 'Nasdaq'] : ['Global Markets'];
-            const promises = queries.map(q => yahoo.search(q, { newsCount: 5 }));
-            const results = await Promise.allSettled(promises);
+    try {
+        const yahoo = require('yahoo-finance2').default;
+        let queries = market === 'US' ? ['Stock Market', 'S&P 500', 'Nasdaq'] : ['Global Markets'];
+        const promises = queries.map(q => yahoo.search(q, { newsCount: 5 }));
+        const results = await Promise.allSettled(promises);
 
-            results.forEach(result => {
-                if (result.status === 'fulfilled' && result.value.news) {
-                    allNews = [...allNews, ...result.value.news.map(item => ({
-                        id: item.uuid || Math.random().toString(36),
-                        title: item.title,
-                        publisher: item.publisher || "Yahoo Finance",
-                        link: item.link,
-                        time: new Date(item.providerPublishTime).toISOString(),
-                        thumbnail: item.thumbnail?.resolutions?.[0]?.url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
-                        relatedTickers: [],
-                        summary: null
-                    }))];
-                }
-            });
-        } catch (error) {
-            console.error('Yahoo fetch failed:', error);
-        }
+        results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value.news) {
+                allNews = [...allNews, ...result.value.news.map(item => ({
+                    id: item.uuid || Math.random().toString(36),
+                    title: item.title,
+                    publisher: item.publisher || "Yahoo Finance",
+                    link: item.link,
+                    time: new Date(item.providerPublishTime).toISOString(),
+                    thumbnail: item.thumbnail?.resolutions?.[0]?.url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
+                    relatedTickers: [],
+                    summary: null
+                }))];
+            }
+        });
+    } catch (error) {
+        console.error('Yahoo fetch failed:', error);
     }
+}
 
-    // 3. Merge with ROBUST News Scraper Cache
-    const scrapedNews = getCachedNews(market);
-    if (scrapedNews && scrapedNews.length > 0) {
-        // Map to format
-        const formattedScraped = scrapedNews.map(item => ({
-            id: item.url,
-            title: item.title,
-            publisher: item.source || 'Market News',
-            link: item.url,
-            time: item.published_at,
-            thumbnail: item.image_url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
-            relatedTickers: item.tickers || [],
-            summary: item.content ? item.content.substring(0, 300) + '...' : null
-        }));
-        allNews = [...allNews, ...formattedScraped];
-    }
+// 3. Merge with ROBUST News Scraper Cache
+const scrapedNews = getCachedNews(market);
+if (scrapedNews && scrapedNews.length > 0) {
+    // Map to format
+    const formattedScraped = scrapedNews.map(item => ({
+        id: item.url,
+        title: item.title,
+        publisher: item.source || 'Market News',
+        link: item.url,
+        time: item.published_at,
+        thumbnail: item.image_url || "https://placehold.co/600x400/f1f5f9/475569?text=News",
+        relatedTickers: item.tickers || [],
+        summary: item.content ? item.content.substring(0, 300) + '...' : null
+    }));
+    allNews = [...allNews, ...formattedScraped];
+}
 
-    // Final Dedupe & Sort
-    const seen = new Set();
-    let uniqueNews = allNews.filter(item => {
-        const cleanTitle = item.title.trim().toLowerCase();
-        if (seen.has(cleanTitle)) return false;
-        seen.add(cleanTitle);
-        return true;
-    });
+// Final Dedupe & Sort
+const seen = new Set();
+let uniqueNews = allNews.filter(item => {
+    const cleanTitle = item.title.trim().toLowerCase();
+    if (seen.has(cleanTitle)) return false;
+    seen.add(cleanTitle);
+    return true;
+});
 
-    const currentYear = new Date().getFullYear();
-    const cutOffDate = new Date();
-    cutOffDate.setDate(cutOffDate.getDate() - 180);
+const currentYear = new Date().getFullYear();
+const cutOffDate = new Date();
+cutOffDate.setDate(cutOffDate.getDate() - 180);
 
-    uniqueNews = uniqueNews.filter(item => {
-        const itemTime = new Date(item.time);
-        return itemTime.getFullYear() <= currentYear + 1 && itemTime > cutOffDate;
-    });
+uniqueNews = uniqueNews.filter(item => {
+    const itemTime = new Date(item.time);
+    return itemTime.getFullYear() <= currentYear + 1 && itemTime > cutOffDate;
+});
 
-    uniqueNews.sort((a, b) => new Date(b.time) - new Date(a.time));
+uniqueNews.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-    // Enrich news items with real images (for items with placeholder)
-    console.log('📸 Enriching ' + market + ' news with images...');
-    uniqueNews = await enrichNewsWithImages(uniqueNews);
+// Enrich news items with real images (for items with placeholder)
+console.log('📸 Enriching ' + market + ' news with images...');
+uniqueNews = await enrichNewsWithImages(uniqueNews);
 
-    // Update Cache
-    newsCache[market] = { data: uniqueNews, time: Date.now() };
-    console.log('✅ Cached ' + uniqueNews.length + ' ' + market + ' news items');
-    return uniqueNews;
+// Update Cache
+newsCache[market] = { data: uniqueNews, time: Date.now() };
+console.log('✅ Cached ' + uniqueNews.length + ' ' + market + ' news items');
+return uniqueNews;
 }
 
 // Background Poller (Updates every 5 minutes)
