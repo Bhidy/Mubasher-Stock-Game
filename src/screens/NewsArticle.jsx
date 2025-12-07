@@ -54,6 +54,20 @@ export default function NewsArticle() {
             // 3. Remove excessive newlines
             textToTranslate = textToTranslate.replace(/\n\s*\n/g, '\n\n');
 
+            // 4. CLEANUP: Remove title if it appears at the start (common scraper artifact)
+            if (article.title && textToTranslate.includes(article.title)) {
+                textToTranslate = textToTranslate.replace(article.title, '');
+            }
+
+            // 5. CLEANUP: Deduplicate paragraphs (remove repeated sentences/lines)
+            const seenParas = new Set();
+            textToTranslate = textToTranslate.split('\n\n').filter(p => {
+                const cleanP = p.trim();
+                if (!cleanP || seenParas.has(cleanP)) return false;
+                seenParas.add(cleanP);
+                return true;
+            }).join('\n\n');
+
             if (textToTranslate) {
                 const contentRes = await fetch('/api/translate', {
                     method: 'POST',
