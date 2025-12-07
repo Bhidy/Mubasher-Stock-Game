@@ -21,6 +21,14 @@
             "destination": "/api/debug.js"
         },
         {
+            "source": "/api/news/content",
+            "destination": "/api/content.js"
+        },
+        {
+            "source": "/api/translate",
+            "destination": "/api/translate.js"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
