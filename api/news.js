@@ -88,11 +88,33 @@ async function fetchBingNews(query, count = 5) {
                 if (imgMatch) image = imgMatch[1];
             }
 
+            // Extract publisher from URL or source field
+            let publisher = item.source || 'News';
+            try {
+                const sourceUrl = new URL(finalUrl);
+                const hostname = sourceUrl.hostname.replace('www.', '');
+                // Map common domains to proper names
+                if (hostname.includes('zawya')) publisher = 'Zawya';
+                else if (hostname.includes('argaam')) publisher = 'Argaam';
+                else if (hostname.includes('mubasher')) publisher = 'Mubasher';
+                else if (hostname.includes('reuters')) publisher = 'Reuters';
+                else if (hostname.includes('bloomberg')) publisher = 'Bloomberg';
+                else if (hostname.includes('cnbc')) publisher = 'CNBC';
+                else if (hostname.includes('investing.com')) publisher = 'Investing.com';
+                else if (hostname.includes('yahoo')) publisher = 'Yahoo Finance';
+                else if (hostname.includes('nasdaq')) publisher = 'NASDAQ';
+                else if (hostname.includes('marketwatch')) publisher = 'MarketWatch';
+                else if (hostname.includes('arabnews')) publisher = 'Arab News';
+                else if (hostname.includes('egypttoday')) publisher = 'Egypt Today';
+                else if (hostname.includes('dailynewsegypt')) publisher = 'Daily News Egypt';
+                else publisher = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
+            } catch (e) { }
+
             return {
                 originalTitle: item.title,
                 link: finalUrl,
                 pubDate: item.pubDate,
-                source: item.source || 'News',
+                source: publisher,
                 thumbnail: image
             };
         });
