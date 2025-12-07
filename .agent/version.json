@@ -1,0 +1,88 @@
+{
+    "currentVersion": "1.7",
+    "productionUrl": "https://bhidy.vercel.app",
+    "versionHistory": [
+        {
+            "version": "1.7",
+            "date": "2025-12-07",
+            "changes": [
+                "Fixed news scraper issues (Arabic keywords, translation)",
+                "Improved market data accuracy and status display",
+                "Debugged and fixed chart data rendering"
+            ]
+        },
+        {
+            "version": "1.6",
+            "date": "2025-12-05",
+            "changes": [
+                "Replaced image logo with custom SVG StudiesHeroLogo component",
+                "Fixed all background transparency issues",
+                "Implemented dynamic SVG color theming"
+            ]
+        },
+        {
+            "version": "1.5",
+            "date": "2025-12-05",
+            "changes": [
+                "Fixed logo background issue on Vercel deployment",
+                "Implemented dynamic color filtering for transparent logo in Onboarding"
+            ]
+        },
+        {
+            "version": "1.4",
+            "date": "2025-12-05",
+            "changes": [
+                "Enhanced Company Profile with Balance Sheet, Valuation, and Dividend visualizations",
+                "Removed Community Sentiment section",
+                "Updated Market Summary card color to blue",
+                "Fixed syntax and runtime errors"
+            ]
+        },
+        {
+            "version": "1.3",
+            "date": "2025-12-03",
+            "changes": [
+                "Redesigned Rewards profile card to be compact and horizontal",
+                "Verified Onboarding logo and name update"
+            ]
+        },
+        {
+            "version": "1.2",
+            "date": "2025-12-03",
+            "changes": [
+                "Updated Onboarding screen with new Stocks Hero logo and name",
+                "Renamed 'TradingView Analysis Subscription' to 'TradingView Subscription' in Rewards",
+                "Reduced profile card size in Rewards screen"
+            ]
+        },
+        {
+            "version": "1.1",
+            "date": "2025-12-03",
+            "changes": [
+                "Rebranded to 'Stocks Hero'",
+                "Updated app logo",
+                "Updated app name in manifest and config"
+            ]
+        },
+        {
+            "version": "1.0",
+            "date": "2025-12-02",
+            "changes": [
+                "Initial release",
+                "White mobile frame with shadow",
+                "Daily spin modal (appears once per session)",
+                "Lesson detail pages with interactive sections",
+                "Compact tooltips",
+                "Circular profile picture (72px)",
+                "Hidden scrollbars for native feel"
+            ]
+        }
+    ],
+    "nextVersion": "1.8",
+    "versioningScheme": {
+        "major": "Breaking changes or complete redesigns (e.g., 1.x → 2.0)",
+        "minor": "New features or significant improvements (e.g., 1.0 → 1.1)",
+        "patch": "Bug fixes or small tweaks (e.g., 1.1 → 1.1.1)"
+    },
+    "deploymentNote": "Always deploy to https://bhidy.vercel.app - DO NOT create new URLs"
+}

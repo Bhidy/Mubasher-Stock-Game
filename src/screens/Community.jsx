@@ -1,21 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageCircle, ThumbsUp, TrendingUp, Share2, Award, Flame, Target } from 'lucide-react';
+import { StockLogo, SAUDI_STOCKS } from '../components/StockCard';
+import { usePrices } from '../context/PriceContext';
 
 export default function Community() {
     const navigate = useNavigate();
+    const { prices } = usePrices();
     const [activeTab, setActiveTab] = useState('Feed');
     const [likedPosts, setLikedPosts] = useState([]);
+    const [activeCommentsPostId, setActiveCommentsPostId] = useState(null);
+
+    // Scroll to top on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    const dummyComments = [
+        { id: 1, author: 'Faisal', text: 'Great analysis! I agree with 2222.', time: '10m ago' },
+        { id: 2, author: 'Noura', text: 'What is your target price for 1120?', time: '5m ago' },
+        { id: 3, author: 'Salem', text: 'Following this strategy. Thanks!', time: '1m ago' },
+    ];
 
     const tabs = ['Feed', 'Top Picks', 'Discussions'];
 
     const posts = [
         {
             id: 1,
-            author: 'StockMaster',
+            author: 'Yasser Al-Qahtani',
             avatar: '👑',
             time: '2h ago',
             content: 'Just locked in 2222, 1120, and 2010 for today. Feeling bullish! 🚀',
@@ -26,7 +41,7 @@ export default function Community() {
         },
         {
             id: 2,
-            author: 'DiamondHands',
+            author: 'Saad Al-Harbi',
             avatar: '💎',
             time: '4h ago',
             content: 'My 7-day streak strategy: Always pick one safe stock, one volatile, and one trending. Works like magic! ✨',
@@ -36,7 +51,7 @@ export default function Community() {
         },
         {
             id: 3,
-            author: 'MoonShot',
+            author: 'Majed Abdullah',
             avatar: '🚀',
             time: '6h ago',
             content: 'ACWA Power is looking spicy today! Who else is riding the wave? 🌊',
@@ -47,19 +62,37 @@ export default function Community() {
         },
     ];
 
-    const topPicks = [
-        { ticker: '2222', picks: 4291, change: 1.2, trend: 'up', logo: 'https://logo.clearbit.com/aramco.com' },
-        { ticker: '1120', picks: 3847, change: 0.8, trend: 'up', logo: 'https://logo.clearbit.com/alrajhibank.com.sa' },
-        { ticker: '2010', picks: 3562, change: -1.5, trend: 'down', logo: 'https://logo.clearbit.com/sabic.com' },
-        { ticker: '7010', picks: 2934, change: 2.4, trend: 'up', logo: 'https://logo.clearbit.com/stc.com.sa' },
-        { ticker: '4061', picks: 2456, change: 5.6, trend: 'up', logo: 'https://logo.clearbit.com/acwapower.com' },
+    // Top Picks - Using REAL prices from API (picks count is simulated for now as it comes from user data)
+    const topPicksBase = [
+        { ticker: '2222', picks: 4291 },
+        { ticker: '1120', picks: 3847 },
+        { ticker: '2010', picks: 2156 },
+        { ticker: '7010', picks: 1892 },
+        { ticker: '2082', picks: 1534 },
+        { ticker: '1180', picks: 1423 },
+        { ticker: '2380', picks: 1287 },
+        { ticker: '4030', picks: 1156 },
+        { ticker: '2350', picks: 1089 },
+        { ticker: '4200', picks: 998 },
     ];
+
+    const topPicks = topPicksBase.map(pick => {
+        const stockData = prices[`${pick.ticker}.SR`] || {};
+        const stockMeta = SAUDI_STOCKS[pick.ticker] || {};
+        return {
+            ticker: pick.ticker,
+            name: stockMeta.name || stockData.name || pick.ticker,
+            price: stockData.price || stockData.regularMarketPrice || 0,
+            picks: pick.picks,
+            change: stockData.changePercent || stockData.regularMarketChangePercent || 0
+        };
+    });
 
     const discussions = [
         {
             id: 1,
             title: 'Best stocks for beginners?',
-            author: 'NewTrader',
+            author: 'Khalid',
             replies: 23,
             time: '1h ago',
             category: 'Strategy'
@@ -67,7 +100,7 @@ export default function Community() {
         {
             id: 2,
             title: 'How to maintain a winning streak?',
-            author: 'ProPlayer',
+            author: 'Fahad',
             replies: 45,
             time: '3h ago',
             category: 'Tips'
@@ -75,7 +108,7 @@ export default function Community() {
         {
             id: 3,
             title: 'Tech stocks vs. Blue chips - Debate',
-            author: 'Analyst99',
+            author: 'Abdullah',
             replies: 67,
             time: '5h ago',
             category: 'Discussion'
@@ -241,7 +274,7 @@ export default function Community() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        alert(`Opening comments for post by ${post.author}`);
+                                        setActiveCommentsPostId(activeCommentsPostId === post.id ? null : post.id);
                                     }}
                                     style={{
                                         background: 'none',
@@ -250,7 +283,7 @@ export default function Community() {
                                         alignItems: 'center',
                                         gap: '0.375rem',
                                         cursor: 'pointer',
-                                        color: 'var(--text-secondary)',
+                                        color: activeCommentsPostId === post.id ? 'var(--primary)' : 'var(--text-secondary)',
                                         fontWeight: 600,
                                         fontSize: '0.875rem',
                                         transition: 'all 0.2s'
@@ -261,7 +294,7 @@ export default function Community() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        alert(`Sharing post by ${post.author}`);
+                                        // Share functionality would go here
                                     }}
                                     style={{
                                         background: 'none',
@@ -279,6 +312,44 @@ export default function Community() {
                                     Share
                                 </button>
                             </div>
+
+                            {activeCommentsPostId === post.id && (
+                                <div className="animate-fade-in" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                                    {dummyComments.map(comment => (
+                                        <div key={comment.id} style={{ marginBottom: '0.75rem' }}>
+                                            <div className="flex-between">
+                                                <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>{comment.author}</span>
+                                                <span className="caption">{comment.time}</span>
+                                            </div>
+                                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{comment.text}</p>
+                                        </div>
+                                    ))}
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Add a comment..."
+                                            style={{
+                                                flex: 1,
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: 'var(--radius-full)',
+                                                border: '1px solid #e2e8f0',
+                                                fontSize: '0.875rem',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                        <button style={{
+                                            background: 'var(--primary)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: 'var(--radius-full)',
+                                            padding: '0.5rem 1rem',
+                                            fontWeight: 600,
+                                            fontSize: '0.875rem',
+                                            cursor: 'pointer'
+                                        }}>Post</button>
+                                    </div>
+                                </div>
+                            )}
                         </Card>
                     ))}
                 </div>
@@ -293,7 +364,8 @@ export default function Community() {
                             <Card key={stock.ticker} onClick={() => navigate(`/company/${stock.ticker}`)} style={{
                                 padding: '1rem 1.25rem',
                                 animationDelay: `${index * 0.05}s`,
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                position: 'relative'
                             }} className="animate-slide-up">
                                 <div className="flex-between">
                                     <div className="flex-center" style={{ gap: '1rem' }}>
@@ -310,7 +382,7 @@ export default function Community() {
                                                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                                                 overflow: 'hidden'
                                             }}>
-                                                <img src={stock.logo} alt={stock.ticker} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
+                                                <StockLogo ticker={stock.ticker} size={48} />
                                             </div>
                                             <div style={{
                                                 position: 'absolute',
@@ -334,23 +406,27 @@ export default function Community() {
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 className="h3" style={{ fontSize: '1.125rem', marginBottom: '0.125rem' }}>{stock.ticker}</h3>
+                                            <h3 className="h3" style={{ fontSize: '1.125rem', marginBottom: '0.125rem' }}>{stock.name || stock.ticker}</h3>
                                             <div className="flex-center" style={{ gap: '0.25rem' }}>
                                                 <Users size={12} color="var(--text-muted)" />
                                                 <span className="caption">{stock.picks.toLocaleString()} picks</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex-col" style={{ alignItems: 'flex-end' }}>
+                                    <div className="flex-col" style={{ alignItems: 'flex-end', gap: '0.25rem' }}>
+                                        <span style={{
+                                            fontWeight: 800,
+                                            fontSize: '1.125rem',
+                                            color: '#1e293b'
+                                        }}>
+                                            {Number(stock.price).toFixed(2)} SAR
+                                        </span>
                                         <span style={{
                                             color: stock.change >= 0 ? 'var(--success)' : 'var(--danger)',
                                             fontWeight: 700,
-                                            fontSize: '1rem'
+                                            fontSize: '0.875rem'
                                         }}>
-                                            {stock.change >= 0 ? '+' : ''}{stock.change}%
-                                        </span>
-                                        <span className="caption" style={{ color: stock.trend === 'up' ? 'var(--success)' : 'var(--danger)' }}>
-                                            {stock.trend === 'up' ? '↑ Rising' : '↓ Falling'}
+                                            {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}%
                                         </span>
                                     </div>
                                 </div>
@@ -368,7 +444,9 @@ export default function Community() {
                         {discussions.map((discussion, index) => (
                             <Card
                                 key={discussion.id}
-                                onClick={() => alert(`Opening discussion: ${discussion.title}\n\nThis would show the full discussion thread in a real app!`)}
+                                onClick={() => {
+                                    navigate(`/community/discussion/${discussion.id}`);
+                                }}
                                 style={{
                                     padding: '1.25rem',
                                     cursor: 'pointer',

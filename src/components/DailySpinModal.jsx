@@ -67,10 +67,10 @@ export default function DailySpinModal({ isOpen, onClose }) {
                 style={{
                     background: 'radial-gradient(circle at 50% 30%, #4338ca 0%, #1e1b4b 100%)',
                     borderRadius: '1.5rem',
-                    padding: '1.5rem 1.25rem',
-                    maxWidth: '380px',
-                    width: '100%',
-                    maxHeight: '85vh',
+                    padding: '1.25rem 1rem',
+                    maxWidth: '320px',
+                    width: '90%',
+                    maxHeight: '80vh',
                     overflowY: 'auto',
                     position: 'relative',
                     boxShadow: '0 25px 100px rgba(0,0,0,0.5)',
@@ -95,13 +95,13 @@ export default function DailySpinModal({ isOpen, onClose }) {
                         onClick={onClose}
                         style={{
                             position: 'absolute',
-                            top: '1rem',
-                            right: '1rem',
+                            top: '0.75rem',
+                            right: '0.75rem',
                             background: 'rgba(255,255,255,0.1)',
                             border: '1px solid rgba(255,255,255,0.2)',
                             borderRadius: '50%',
-                            width: '36px',
-                            height: '36px',
+                            width: '32px',
+                            height: '32px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -111,29 +111,29 @@ export default function DailySpinModal({ isOpen, onClose }) {
                             transition: 'all 0.2s'
                         }}
                     >
-                        <X size={20} color="white" />
+                        <X size={18} color="white" />
                     </button>
                 )}
 
                 {/* Header */}
-                <div className="flex-col flex-center" style={{ marginBottom: '1.25rem', textAlign: 'center', zIndex: 1, position: 'relative' }}>
+                <div className="flex-col flex-center" style={{ marginBottom: '1rem', textAlign: 'center', zIndex: 1, position: 'relative' }}>
                     <div style={{
                         background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-                        padding: '0.375rem 0.875rem',
+                        padding: '0.25rem 0.75rem',
                         borderRadius: '999px',
-                        fontSize: '0.75rem',
+                        fontSize: '0.7rem',
                         fontWeight: 700,
                         color: '#78350f',
-                        marginBottom: '0.75rem',
+                        marginBottom: '0.5rem',
                         boxShadow: '0 0 20px rgba(251, 191, 36, 0.4)'
                     }}>
                         ✨ DAILY BONUS
                     </div>
                     <h1 style={{
-                        fontSize: '2rem',
+                        fontSize: '1.75rem',
                         fontWeight: 900,
                         textShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                        marginBottom: '0.375rem',
+                        marginBottom: '0.25rem',
                         background: 'linear-gradient(to bottom, #ffffff, #94a3b8)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -141,15 +141,15 @@ export default function DailySpinModal({ isOpen, onClose }) {
                     }}>
                         SPIN & WIN
                     </h1>
-                    <p style={{ opacity: 0.8, fontSize: '0.875rem' }}>Your daily chance for free rewards!</p>
+                    <p style={{ opacity: 0.8, fontSize: '0.8rem' }}>Your daily chance for free rewards!</p>
                 </div>
 
                 {/* Wheel Container */}
                 <div style={{
                     position: 'relative',
-                    width: '240px',
-                    height: '240px',
-                    margin: '0 auto 2rem',
+                    width: '200px',
+                    height: '200px',
+                    margin: '0 auto 1.5rem',
                     zIndex: 1
                 }}>
                     {/* Pointer */}
@@ -279,20 +279,20 @@ export default function DailySpinModal({ isOpen, onClose }) {
                     <div className="animate-fade-in" style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'rgba(0,0,0,0.85)',
+                        background: 'transparent',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         zIndex: 50,
-                        backdropFilter: 'blur(12px)',
+                        backdropFilter: 'blur(4px)',
                         borderRadius: '2rem'
                     }}>
                         <div className="animate-pulse-scale" style={{
-                            background: 'rgba(255,255,255,0.1)',
-                            padding: '2.5rem',
+                            background: 'radial-gradient(circle at 50% 0%, #4f46e5 0%, #312e81 100%)',
+                            padding: '2rem',
                             borderRadius: '2rem',
                             textAlign: 'center',
-                            maxWidth: '320px',
+                            maxWidth: '280px',
                             width: '90%',
                             position: 'relative',
                             border: '1px solid rgba(255,255,255,0.2)',
@@ -352,5 +352,5 @@ export default function DailySpinModal({ isOpen, onClose }) {
         </div>
     );
 
-    return ReactDOM.createPortal(modalContent, document.body);
+    return modalContent;
 }

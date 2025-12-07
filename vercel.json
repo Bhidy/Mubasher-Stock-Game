@@ -1,0 +1,28 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/stocks",
+            "destination": "/api/stocks.js"
+        },
+        {
+            "source": "/api/news",
+            "destination": "/api/news.js"
+        },
+        {
+            "source": "/api/chart",
+            "destination": "/api/chart.js"
+        },
+        {
+            "source": "/api/proxy-image",
+            "destination": "/api/proxy-image.js"
+        },
+        {
+            "source": "/api/debug",
+            "destination": "/api/debug.js"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}

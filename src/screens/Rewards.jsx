@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../App';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
@@ -11,6 +11,11 @@ export default function Rewards() {
     const [activeTab, setActiveTab] = useState('achievements');
     const [showStreakInfo, setShowStreakInfo] = useState(false);
 
+    // Scroll to top on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const badges = [
         { id: 1, name: 'Sniper', desc: 'Top 1% gain in a day', icon: Target, unlocked: true, color: '#10b981', rarity: 'epic' },
         { id: 2, name: 'Hot Start', desc: 'Win your first contest', icon: Zap, unlocked: true, color: '#f59e0b', rarity: 'common' },
@@ -22,7 +27,7 @@ export default function Rewards() {
 
     const rewards = [
         { id: 1, name: 'Mubasher Info Plus Subscription', cost: 5000, image: mubasherInfoPlusLogo, type: 'subscription' },
-        { id: 2, name: 'TradingView Analysis Subscription', cost: 2000, image: 'https://logo.clearbit.com/tradingview.com', type: 'feature' },
+        { id: 2, name: 'TradingView Subscription', cost: 2000, image: 'https://logo.clearbit.com/tradingview.com', type: 'feature' },
         { id: 3, name: 'No Ads (1 Month)', cost: 1500, icon: Zap, type: 'feature', color: '#f59e0b' },
         { id: 4, name: 'Exclusive Avatar Frame', cost: 1000, icon: Star, type: 'cosmetic', color: '#06b6d4' }
     ];
@@ -32,63 +37,65 @@ export default function Rewards() {
     return (
         <div className="flex-col" style={{ padding: '1.5rem', gap: '1.5rem', paddingBottom: '6rem' }}>
 
-            {/* Profile Header */}
+            {/* Profile Header - Compact Design */}
             <Card className="animate-fade-in" style={{
-                textAlign: 'center',
-                padding: '2rem 1.5rem',
+                padding: '1rem',
                 background: 'linear-gradient(135deg, #d1fae5 0%, #dbeafe 100%)',
-                border: '2px solid var(--primary)'
+                border: '1px solid var(--primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem'
             }}>
+                {/* Avatar */}
                 <div style={{
-                    width: '100px',
-                    height: '100px',
-                    borderRadius: '30px',
+                    width: '72px',
+                    height: '72px',
+                    borderRadius: '20px',
                     background: 'var(--gradient-primary)',
-                    margin: '0 auto 1rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '3rem',
-                    fontWeight: 900,
-                    color: 'white',
-                    boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)',
-                    border: '4px solid white',
-                    overflow: 'hidden'
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                    border: '2px solid white',
+                    overflow: 'hidden',
+                    flexShrink: 0
                 }}>
                     <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <h2 className="h2" style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>{user.name}</h2>
-                <div className="flex-center" style={{ gap: '0.75rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                    <Badge color="primary">Level {user.level}</Badge>
-                    <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{user.levelTitle}</span>
-                </div>
 
-                {/* XP Progress */}
-                <div>
-                    <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                        <span className="caption" style={{ fontWeight: 700 }}>LEVEL PROGRESS</span>
-                        <span className="caption" style={{ fontWeight: 700, color: 'var(--primary)' }}>{xpProgress}%</span>
+                {/* User Info & Progress */}
+                <div style={{ flex: 1 }}>
+                    <div className="flex-between" style={{ marginBottom: '0.25rem' }}>
+                        <h2 className="h3" style={{ fontSize: '1.25rem', margin: 0 }}>{user.name}</h2>
+                        <Badge color="primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}>Lvl {user.level}</Badge>
                     </div>
-                    <div style={{
-                        width: '100%',
-                        height: '16px',
-                        background: 'rgba(99, 102, 241, 0.1)',
-                        borderRadius: 'var(--radius-full)',
-                        overflow: 'hidden',
-                        border: '2px solid rgba(16, 185, 129, 0.2)'
-                    }}>
+
+                    <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 700, marginBottom: '0.5rem' }}>
+                        {user.levelTitle}
+                    </div>
+
+                    {/* XP Progress */}
+                    <div>
                         <div style={{
-                            width: `${xpProgress}%`,
-                            height: '100%',
-                            background: 'var(--gradient-primary)',
+                            width: '100%',
+                            height: '8px',
+                            background: 'rgba(255, 255, 255, 0.5)',
                             borderRadius: 'var(--radius-full)',
-                            transition: 'width 0.5s ease',
-                            boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)'
-                        }} />
-                    </div>
-                    <div className="flex-between" style={{ marginTop: '0.5rem' }}>
-                        <span className="caption">1,450 XP</span>
-                        <span className="caption">2,000 XP</span>
+                            overflow: 'hidden',
+                            marginBottom: '0.25rem'
+                        }}>
+                            <div style={{
+                                width: `${xpProgress}%`,
+                                height: '100%',
+                                background: 'var(--gradient-primary)',
+                                borderRadius: 'var(--radius-full)',
+                                transition: 'width 0.5s ease'
+                            }} />
+                        </div>
+                        <div className="flex-between">
+                            <span className="caption" style={{ fontSize: '0.7rem', opacity: 0.8 }}>{xpProgress}% to Level {user.level + 1}</span>
+                            <span className="caption" style={{ fontSize: '0.7rem', fontWeight: 700 }}>1,450 / 2,000 XP</span>
+                        </div>
                     </div>
                 </div>
             </Card>
@@ -286,7 +293,11 @@ export default function Rewards() {
                                         fontWeight: 700,
                                         cursor: user.coins >= reward.cost ? 'pointer' : 'not-allowed',
                                         fontSize: '0.875rem'
-                                    }} onClick={() => user.coins >= reward.cost && alert(`Redeemed ${reward.name}!`)}>
+                                    }} onClick={() => {
+                                        if (user.coins >= reward.cost) {
+                                            // Redemption functionality would go here
+                                        }
+                                    }}>
                                         {reward.cost} 🪙
                                     </button>
                                 </div>

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import { TrendingUp, Award, Users, ChevronRight, Zap, Target, Trophy, ArrowRight } from 'lucide-react';
+import { TrendingUp, Award, Users, Zap, ArrowRight } from 'lucide-react';
+import StocksHeroLogo from '../components/StocksHeroLogo';
 
+
+// Onboarding Screen
 export default function Onboarding() {
     const navigate = useNavigate();
     const [step, setStep] = useState(0);
@@ -93,36 +96,33 @@ export default function Onboarding() {
 
             {/* Header with Logo - Restored Size, Minimal Spacing */}
             <div className="flex-center flex-col animate-fade-in" style={{
-                marginTop: '0.5rem',
+                marginTop: '3.5rem',
                 position: 'relative',
                 zIndex: 10
             }}>
                 <div style={{
-                    width: '80px', /* Restored Size */
-                    height: '80px', /* Restored Size */
-                    borderRadius: '24px',
-                    background: currentSlide.gradient,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: `0 15px 40px ${currentSlide.accentColor}40`,
-                    marginBottom: '0.5rem', /* Reduced Margin */
+                    width: '120px', /* Increased Size for new SVG logo */
+                    height: '120px', /* Increased Size for new SVG logo */
+                    marginBottom: '0rem', /* Reduced Margin */
                     position: 'relative',
                     transition: 'all 0.5s ease',
-                    border: '3px solid white'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }} className="animate-pulse-scale">
-                    {/* Inner glow */}
-                    <div style={{
-                        position: 'absolute',
-                        inset: '6px',
-                        borderRadius: '18px',
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%)',
-                        pointerEvents: 'none'
-                    }} />
-                    <Zap size={36} color="white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }} />
+                    {/* New Dynamic SVG Logo */}
+                    <StocksHeroLogo
+                        key={step} // Force animation on step change
+                        size={120}
+                        color={currentSlide.accentColor}
+                        style={{
+                            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.1))',
+                            animation: 'fadeIn 0.5s ease-in-out'
+                        }}
+                    />
                 </div>
                 <h1 style={{
-                    fontSize: '1.75rem', /* Restored Size */
+                    fontSize: '2rem', /* Increased Size */
                     fontWeight: 900,
                     textAlign: 'center',
                     marginBottom: '0',
@@ -131,7 +131,7 @@ export default function Onboarding() {
                     lineHeight: 1.1,
                     transition: 'color 0.5s ease'
                 }}>
-                    Mubasher<br />Stock Game
+                    Stocks Hero
                 </h1>
                 <p style={{
                     color: currentSlide.accentColor,
@@ -236,7 +236,7 @@ export default function Onboarding() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex-col" style={{ gap: '0.5rem', width: '100%', position: 'relative', zIndex: 10 }}>
+            <div className="flex-col" style={{ gap: '0.5rem', width: '100%', position: 'relative', zIndex: 10, marginBottom: '3rem' }}>
                 {step < slides.length - 1 ? (
                     <>
                         <Button

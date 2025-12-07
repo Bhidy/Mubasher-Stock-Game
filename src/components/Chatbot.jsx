@@ -61,8 +61,8 @@ export default function Chatbot() {
                     position: 'fixed',
                     bottom: 'calc(var(--nav-height) + 1.5rem)', // Above bottom nav
                     right: '1.5rem',
-                    width: '60px',
-                    height: '60px',
+                    width: '50px',
+                    height: '50px',
                     borderRadius: '50%',
                     background: 'var(--gradient-primary)',
                     border: 'none',
@@ -77,7 +77,7 @@ export default function Chatbot() {
                 }}
                 className="animate-bounce-subtle"
             >
-                <Bot size={32} color="white" />
+                <Bot size={24} color="white" />
             </button>
 
             {/* Chat Popup */}

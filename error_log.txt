@@ -1,0 +1,12 @@
+1. Fetching US news to find the article...
+Found Target Article: These 7 Stocks Are Analyst Favorites For Magnificent Earnings Growth; Lam Research, Google Among Winners
+URL: https://finance.yahoo.com/m/2b47c372-177e-3051-aa01-406a8d82b220/these-7-stocks-are-analyst.html
+
+2. Fetching content for: "These 7 Stocks Are Analyst Favorites For Magnificent Earnings Growth; Lam Research, Google Among Winners"
+URL: https://finance.yahoo.com/m/2b47c372-177e-3051-aa01-406a8d82b220/these-7-stocks-are-analyst.html
+Content fetch error: Request failed with status code 500
+SERVER ERROR DETAILS: {
+  "error": "Failed to fetch article",
+  "details": "Parse Error: Header overflow",
+  "stack": "Error: Parse Error: Header overflow\n    at AxiosError.from (/Users/home/Documents/Antigravity/backend/node_modules/axios/dist/node/axios.cjs:914:14)\n    at RedirectableRequest.handleRequestError (/Users/home/Documents/Antigravity/backend/node_modules/axios/dist/node/axios.cjs:3515:25)\n    at RedirectableRequest.emit (node:events:520:35)\n    at eventHandlers.<computed> (/Users/home/Documents/Antigravity/backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:508:28)\n    at emitErrorEvent (node:_http_client:108:11)\n    at TLSSocket.socketOnData (node:_http_client:624:5)\n    at TLSSocket.emit (node:events:508:28)\n    at addChunk (node:internal/streams/readable:559:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)\n    at Axios.request (/Users/home/Documents/Antigravity/backend/node_modules/axios/dist/node/axios.cjs:4731:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async /Users/home/Documents/Antigravity/backend/server.js:647:26"
+}

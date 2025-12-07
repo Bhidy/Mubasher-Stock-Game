@@ -1,30 +1,77 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Info, Check, Lock, AlertTriangle, X } from 'lucide-react';
 import { UserContext } from '../App';
+import { usePrices } from '../context/PriceContext';
 import StockCard from '../components/StockCard';
-import Button from '../components/Button';
-import { Search, Lock, X, Filter, Sparkles } from 'lucide-react';
 import BurgerMenu from '../components/BurgerMenu';
-
-const MOCK_STOCKS = [
-    { id: 1, ticker: '2222', name: 'Saudi Aramco', price: 32.50, change: 1.2, popularity: 42, isTrending: true, category: 'Safe', rarity: 'legendary', logo: 'https://logo.clearbit.com/aramco.com' },
-    { id: 2, ticker: '1120', name: 'Al Rajhi Bank', price: 88.20, change: 0.8, popularity: 25, isTrending: false, category: 'Safe', rarity: 'common', logo: 'https://logo.clearbit.com/alrajhibank.com.sa' },
-    { id: 3, ticker: '2010', name: 'SABIC', price: 78.90, change: -1.5, popularity: 18, isTrending: false, category: 'Volatile', rarity: 'rare', logo: 'https://logo.clearbit.com/sabic.com' },
-    { id: 4, ticker: '7010', name: 'Saudi Telecom (STC)', price: 41.30, change: 2.4, popularity: 15, isTrending: true, category: 'Safe', rarity: 'common', logo: 'https://logo.clearbit.com/stc.com.sa' },
-    { id: 5, ticker: '1180', name: 'Saudi National Bank', price: 39.80, change: 1.5, popularity: 12, isTrending: true, category: 'Safe', rarity: 'rare', logo: 'https://logo.clearbit.com/alahli.com' },
-    { id: 6, ticker: '4061', name: 'ACWA Power', price: 125.40, change: 5.6, popularity: 20, isTrending: true, category: 'Volatile', rarity: 'epic', logo: 'https://logo.clearbit.com/acwapower.com' },
-    { id: 7, ticker: '2030', name: 'Saudi Kayan', price: 14.50, change: 3.2, popularity: 8, isTrending: false, category: 'Volatile', rarity: 'epic', logo: 'https://logo.clearbit.com/saudikayan.com' },
-    { id: 8, ticker: '2380', name: 'Petrochemical', price: 22.80, change: -0.9, popularity: 10, isTrending: false, category: 'Volatile', rarity: 'rare', logo: 'https://logo.clearbit.com/sipchem.com' },
-];
+import Card from '../components/Card';
+import Button from '../components/Button';
+import Badge from '../components/Badge';
+import Toast from '../components/Toast';
 
 export default function Pick() {
     const { user, setUser } = useContext(UserContext);
+    const { prices } = usePrices();
     const navigate = useNavigate();
     const [selected, setSelected] = useState([]);
     const [filter, setFilter] = useState('All');
     const [showConfirm, setShowConfirm] = useState(false);
 
+    // Scroll to top on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+
     const filters = ['All', '🔥 Trending', '🛡️ Safe', '⚡ Volatile'];
+
+    // Import stock data from StockCard
+    const STOCK_DATA = {
+        '2222': { name: 'Saudi Aramco', tag: 'safe' },
+        '1120': { name: 'Al Rajhi Bank', tag: 'safe' },
+        '2010': { name: 'SABIC', tag: 'trending' },
+        '7010': { name: 'STC', tag: 'safe' },
+        '2082': { name: 'ACWA Power', tag: 'volatile' },
+        '1180': { name: 'SNB', tag: 'safe' },
+        '2380': { name: 'Petro Rabigh', tag: 'volatile' },
+        '4030': { name: 'Al Babtain', tag: 'trending' },
+        '2350': { name: 'SIDC', tag: 'volatile' },
+        '4200': { name: 'Aldrees', tag: 'trending' },
+        '1211': { name: 'Alinma Bank', tag: 'safe' },
+        '4001': { name: 'Abdullah Al-Othaim', tag: 'trending' },
+        '2310': { name: 'Sipchem', tag: 'volatile' },
+        '4003': { name: 'Extra', tag: 'trending' },
+        '2050': { name: 'Savola', tag: 'safe' },
+        '1150': { name: 'Amlak', tag: 'volatile' },
+        '4190': { name: 'Jarir', tag: 'trending' },
+        '2290': { name: 'Yanbu Cement', tag: 'safe' },
+        '4002': { name: 'Mouwasat', tag: 'safe' },
+        '1010': { name: 'Riyad Bank', tag: 'safe' },
+    };
+
+    // Map context prices to component format (20 stocks)
+    // Merge API prices with static data to ensure all 20 stocks are shown
+    const availableStocks = Object.entries(STOCK_DATA)
+        .sort(([tickerA], [tickerB]) => {
+            if (tickerA === '2222') return -1;
+            if (tickerB === '2222') return 1;
+            return 0;
+        })
+        .map(([ticker, data], index) => {
+            // Find price data for this ticker if available
+            const priceKey = Object.keys(prices).find(k => k.startsWith(ticker));
+            const priceData = priceKey ? prices[priceKey] : null;
+
+            return {
+                id: index + 1,
+                ticker: ticker,
+                name: data.name,
+                price: priceData ? priceData.price : (50 + Math.random() * 150), // Fallback price
+                change: priceData ? priceData.changePercent : ((Math.random() - 0.5) * 4), // Fallback change
+                tag: data.tag
+            };
+        });
 
     const toggleStock = (stock) => {
         if (selected.find(s => s.id === stock.id)) {
@@ -41,11 +88,11 @@ export default function Pick() {
         navigate('/live');
     };
 
-    const filteredStocks = MOCK_STOCKS.filter(stock => {
+    const filteredStocks = availableStocks.filter(stock => {
         if (filter === 'All') return true;
-        if (filter === '🔥 Trending') return stock.isTrending;
-        if (filter === '🛡️ Safe') return stock.category === 'Safe';
-        if (filter === '⚡ Volatile') return stock.category === 'Volatile';
+        if (filter === '🔥 Trending') return stock.tag === 'trending';
+        if (filter === '🛡️ Safe') return stock.tag === 'safe';
+        if (filter === '⚡ Volatile') return stock.tag === 'volatile';
         return true;
     });
 
@@ -142,7 +189,7 @@ export default function Pick() {
                     zIndex: 20,
                     border: '2px solid var(--primary)',
                     boxShadow: '0 10px 40px rgba(16, 185, 129, 0.25)'
-                }} className="animate-slide-up">
+                }}>
                     <div className="flex-between" style={{ marginBottom: '1rem' }}>
                         <span style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.875rem' }}>YOUR DECK</span>
                         <div className="flex-center" style={{ gap: '0.5rem' }}>

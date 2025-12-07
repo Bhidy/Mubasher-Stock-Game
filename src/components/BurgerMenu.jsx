@@ -1,31 +1,44 @@
 import React, { useState, useContext } from 'react';
 import ReactDOM from 'react-dom';
-import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield, Zap } from 'lucide-react';
+import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield, Zap, BarChart3, Newspaper, Gamepad2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../App';
 
-export default function BurgerMenu() {
+export default function BurgerMenu({ variant = 'default' }) {
     const [isOpen, setIsOpen] = useState(false);
+    const [expanded, setExpanded] = useState(null); // Default closed
     const navigate = useNavigate();
     const location = useLocation();
     const { setShowChat } = useContext(UserContext);
 
     const menuItems = [
         { icon: Home, label: 'Home', path: '/home' },
-        { icon: TrendingUp, label: 'Pick Stocks', path: '/pick' },
-        { icon: Activity, label: 'Live Contest', path: '/live' },
-        { icon: Award, label: 'Leaderboard', path: '/leaderboard' },
-        { icon: Trophy, label: 'Rewards & Shop', path: '/rewards' },
+        { icon: BarChart3, label: 'Market Summary', path: '/market' },
+        { icon: Newspaper, label: 'News Feed', path: '/news-feed' },
+        {
+            icon: Gamepad2,
+            label: 'Play & Win',
+            subItems: [
+                { icon: TrendingUp, label: 'Pick Stocks', path: '/pick' },
+                { icon: Activity, label: 'Live Contest', path: '/live' },
+                { icon: Award, label: 'Leaderboard', path: '/leaderboard' },
+                { icon: Trophy, label: 'Rewards & Shop', path: '/rewards' },
+                { icon: Shield, label: 'Clans', path: '/clans' },
+            ]
+        },
         { icon: Bot, label: 'Mubasher AI', action: () => setShowChat(true) },
         { icon: BookOpen, label: 'Academy', path: '/academy' },
         { icon: Users, label: 'Community', path: '/community' },
-        { icon: Shield, label: 'Clans', path: '/clans' },
         { icon: Gift, label: 'Invite Friends', path: '/invite' },
     ];
 
     const handleNavigate = (path) => {
         navigate(path);
         setIsOpen(false);
+    };
+
+    const toggleExpand = (label) => {
+        setExpanded(expanded === label ? null : label);
     };
 
     const menuContent = isOpen && (
@@ -54,7 +67,8 @@ export default function BurgerMenu() {
                 padding: '2rem',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: '-4px 0 20px rgba(0,0,0,0.1)'
+                boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
+                overflowY: 'auto'
             }} className="animate-slide-in-right">
                 <div className="flex-between" style={{ marginBottom: '2rem' }}>
                     <h2 className="h3">Menu</h2>
@@ -68,46 +82,92 @@ export default function BurgerMenu() {
 
                 <div className="flex-col" style={{ gap: '0.5rem' }}>
                     {menuItems.map((item, index) => {
-                        const isActive = location.pathname === item.path;
+                        const hasSubItems = item.subItems && item.subItems.length > 0;
+                        const isExpanded = expanded === item.label;
+                        const isActive = location.pathname === item.path || (hasSubItems && item.subItems.some(sub => location.pathname === sub.path));
+
                         return (
-                            <div
-                                key={index}
-                                className="flex-center"
-                                style={{
-                                    padding: '1rem',
-                                    borderRadius: 'var(--radius-lg)',
-                                    background: isActive ? 'var(--bg-secondary)' : 'transparent',
-                                    cursor: 'pointer',
-                                    gap: '1rem',
-                                    justifyContent: 'flex-start',
-                                    transition: 'background 0.2s'
-                                }}
-                                onClick={() => {
-                                    if (item.action) {
-                                        item.action();
-                                        setIsOpen(false);
-                                    } else {
-                                        handleNavigate(item.path);
-                                    }
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!isActive) e.currentTarget.style.background = '#f8fafc';
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!isActive) e.currentTarget.style.background = 'transparent';
-                                }}
-                            >
-                                <item.icon
-                                    size={20}
-                                    color={isActive ? 'var(--primary)' : 'var(--text-secondary)'}
-                                />
-                                <span style={{
-                                    fontWeight: isActive ? 700 : 600,
-                                    color: isActive ? 'var(--primary)' : 'var(--text-primary)'
-                                }}>
-                                    {item.label}
-                                </span>
-                            </div>
+                            <React.Fragment key={index}>
+                                <div
+                                    className="flex-center"
+                                    style={{
+                                        padding: '1rem',
+                                        borderRadius: 'var(--radius-lg)',
+                                        background: isActive && !hasSubItems ? 'var(--bg-secondary)' : 'transparent',
+                                        cursor: 'pointer',
+                                        gap: '1rem',
+                                        justifyContent: 'space-between',
+                                        transition: 'background 0.2s'
+                                    }}
+                                    onClick={() => {
+                                        if (hasSubItems) {
+                                            toggleExpand(item.label);
+                                        } else if (item.action) {
+                                            item.action();
+                                            setIsOpen(false);
+                                        } else {
+                                            handleNavigate(item.path);
+                                        }
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isActive) e.currentTarget.style.background = '#f8fafc';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isActive) e.currentTarget.style.background = 'transparent';
+                                    }}
+                                >
+                                    <div className="flex-center" style={{ gap: '1rem' }}>
+                                        <item.icon
+                                            size={20}
+                                            color={isActive ? 'var(--primary)' : 'var(--text-secondary)'}
+                                        />
+                                        <span style={{
+                                            fontWeight: isActive ? 700 : 600,
+                                            color: isActive ? 'var(--primary)' : 'var(--text-primary)'
+                                        }}>
+                                            {item.label}
+                                        </span>
+                                    </div>
+                                    {hasSubItems && (
+                                        isExpanded ?
+                                            <ChevronUp size={16} color="#94a3b8" /> :
+                                            <ChevronDown size={16} color="#94a3b8" />
+                                    )}
+                                </div>
+
+                                {/* Sub Menu */}
+                                {hasSubItems && isExpanded && (
+                                    <div className="flex-col animate-fade-in" style={{ paddingLeft: '1rem', gap: '0.25rem', marginBottom: '0.5rem' }}>
+                                        {item.subItems.map((sub, j) => {
+                                            const isSubActive = location.pathname === sub.path;
+                                            return (
+                                                <div
+                                                    key={j}
+                                                    onClick={() => handleNavigate(sub.path)}
+                                                    className="flex-center"
+                                                    style={{
+                                                        padding: '0.75rem 1rem',
+                                                        borderRadius: 'var(--radius-lg)',
+                                                        background: isSubActive ? 'var(--bg-secondary)' : 'transparent',
+                                                        cursor: 'pointer',
+                                                        gap: '1rem',
+                                                        justifyContent: 'flex-start'
+                                                    }}
+                                                >
+                                                    <sub.icon size={18} color={isSubActive ? 'var(--primary)' : '#94a3b8'} />
+                                                    <span style={{
+                                                        fontWeight: isSubActive ? 600 : 500,
+                                                        color: isSubActive ? 'var(--primary)' : '#64748b',
+                                                        fontSize: '0.9rem'
+                                                    }}>
+                                                        {sub.label}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </React.Fragment>
                         );
                     })}
                 </div>
@@ -143,24 +203,43 @@ export default function BurgerMenu() {
         </>
     );
 
+    const buttonStyles = {
+        default: {
+            background: 'white',
+            border: 'none',
+            padding: '0.5rem',
+            borderRadius: '50%',
+            boxShadow: 'var(--shadow-sm)',
+            color: 'var(--text-primary)'
+        },
+        glass: {
+            background: 'rgba(255,255,255,0.2)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            padding: '0.5rem',
+            borderRadius: '50%',
+            backdropFilter: 'blur(4px)',
+            color: 'white',
+            boxShadow: 'none'
+        }
+    };
+
+    const currentStyle = buttonStyles[variant] || buttonStyles.default;
+
     return (
         <>
             <button
                 onClick={() => setIsOpen(true)}
                 style={{
-                    background: 'white',
-                    border: 'none',
-                    padding: '0.5rem',
-                    borderRadius: '50%',
-                    boxShadow: 'var(--shadow-sm)',
+                    ...currentStyle,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}
             >
-                <Menu size={24} color="var(--text-primary)" />
+                <Menu size={24} color={currentStyle.color} />
             </button>
+
 
             {/* Render menu using Portal to escape stacking context */}
             {menuContent && ReactDOM.createPortal(menuContent, document.body)}

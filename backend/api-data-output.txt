@@ -1,0 +1,418 @@
+[yahoo-finance2] v2 is no longer maintained nor supported.  Please migrate to v3. See https://github.com/gadicc/yahoo-finance2/blob/dev/docs/UPGRADING.md for details.
+🔍 Fetching ALL available data for 2222.SR (Aramco)...
+
+============================================================
+📊 QUOTE DATA (Real-time prices)
+============================================================
+Please consider completing the survey at https://bit.ly/yahoo-finance-api-feedback if you haven't already; for more info see https://github.com/gadicc/node-yahoo-finance2/issues/764#issuecomment-2056623851.  This will only be shown once, but you can suppress this message in future with `yahooFinance.suppressNotices(['yahooSurvey'])`.
+Fetching crumb and cookies from https://finance.yahoo.com/quote/AAPL...
+We expected a redirect to guce.yahoo.com, but got https://finance.yahoo.com/quote/AAPL/
+We'll try to continue anyway - you can safely ignore this if the request succeeds
+Success. Cookie expires on Fri Dec 04 2026 07:34:19 GMT+0200 (Eastern European Standard Time)
+fetch https://query1.finance.yahoo.com/v1/test/getcrumb
+New crumb: Qyr4MPIfCvM
+{
+  "language": "en-US",
+  "region": "US",
+  "quoteType": "EQUITY",
+  "typeDisp": "Equity",
+  "quoteSourceName": "Delayed Quote",
+  "triggerable": false,
+  "customPriceAlertConfidence": "LOW",
+  "regularMarketChange": 0.059999466,
+  "regularMarketDayHigh": 24.46,
+  "regularMarketDayRange": {
+    "low": 24.26,
+    "high": 24.46
+  },
+  "regularMarketDayLow": 24.26,
+  "regularMarketVolume": 6962338,
+  "regularMarketPreviousClose": 24.4,
+  "bid": 24.33,
+  "ask": 24.35,
+  "fullExchangeName": "Saudi",
+  "financialCurrency": "SAR",
+  "regularMarketOpen": 24.33,
+  "averageDailyVolume3Month": 11882410,
+  "averageDailyVolume10Day": 9609905,
+  "fiftyTwoWeekLowChange": 1.4199982,
+  "fiftyTwoWeekLowChangePercent": 0.061631862,
+  "fiftyTwoWeekRange": {
+    "low": 23.04,
+    "high": 29
+  },
+  "fiftyTwoWeekHighChange": -4.540001,
+  "fiftyTwoWeekHighChangePercent": -0.15655175,
+  "fiftyTwoWeekLow": 23.04,
+  "fiftyTwoWeekHigh": 29,
+  "fiftyTwoWeekChangePercent": -12.544805,
+  "earningsTimestamp": "2025-11-04T12:00:00.000Z",
+  "earningsTimestampStart": "2025-11-04T12:00:00.000Z",
+  "earningsTimestampEnd": "2025-11-04T12:00:00.000Z",
+  "earningsCallTimestampStart": 1762257600,
+  "earningsCallTimestampEnd": 1762257600,
+  "isEarningsDateEstimate": false,
+  "trailingAnnualDividendRate": 1.325,
+  "trailingPE": 16.198675,
+  "dividendRate": 1.31,
+  "trailingAnnualDividendYield": 0.05430328,
+  "dividendYield": 5.37,
+  "epsTrailingTwelveMonths": 1.51,
+  "epsForward": 1.67,
+  "epsCurrentYear": 1.56137,
+  "priceEpsCurrentYear": 15.665729,
+  "sharesOutstanding": 241854700000,
+  "bookValue": 6.169,
+  "fiftyDayAverage": 25.258,
+  "fiftyDayAverageChange": -0.79800034,
+  "fiftyDayAverageChangePercent": -0.031593964,
+  "twoHundredDayAverage": 25.06875,
+  "twoHundredDayAverageChange": -0.6087513,
+  "twoHundredDayAverageChangePercent": -0.024283273,
+  "marketCap": 5915765374976,
+  "forwardPE": 14.646707,
+  "priceToBook": 3.964986,
+  "sourceInterval": 15,
+  "exchangeDataDelayedBy": 15,
+  "averageAnalystRating": "2.1 - Buy",
+  "tradeable": false,
+  "cryptoTradeable": false,
+  "corporateActions": [],
+  "currency": "SAR",
+  "marketState": "PREPRE",
+  "regularMarketPrice": 24.46,
+  "hasPrePostMarketData": false,
+  "firstTradeDateMilliseconds": "2019-12-11T07:00:00.000Z",
+  "priceHint": 2,
+  "shortName": "Saudi Arabian Oil Co.",
+  "longName": "Saudi Arabian Oil Company",
+  "regularMarketTime": "2025-12-03T12:19:46.000Z",
+  "exchange": "SAU",
+  "messageBoardId": "finmb_1241120",
+  "exchangeTimezoneName": "Asia/Riyadh",
+  "exchangeTimezoneShortName": "AST",
+  "gmtOffSetMilliseconds": 10800000,
+  "market": "sr_market",
+  "esgPopulated": false,
+  "regularMarketChangePercent": 0.24589945,
+  "symbol": "2222.SR"
+}
+
+============================================================
+📈 QUOTE SUMMARY (Detailed fundamentals)
+============================================================
+
+--- SUMMARY PROFILE ---
+{
+  "address1": "P.O. Box 5000",
+  "city": "Dhahran",
+  "zip": "31311",
+  "country": "Saudi Arabia",
+  "phone": "966 13 872 0115",
+  "fax": "966 13 873 8190",
+  "website": "https://www.aramco.com",
+  "industry": "Oil & Gas Integrated",
+  "industryKey": "oil-gas-integrated",
+  "industryDisp": "Oil & Gas Integrated",
+  "sector": "Energy",
+  "sectorKey": "energy",
+  "sectorDisp": "Energy",
+  "longBusinessSummary": "Saudi Arabian Oil Company operates as an integrated energy and chemical company in the Kingdom of Saudi Arabia and internationally. The company operates through two segments, Upstream and Downstream. The Upstream segment explores, develops, produces, and sells crude oil, condensate, natural gas, and natural gas liquids (NGLs). The Downstream segment produces various chemicals, such as aromatics, olefins, and polyolefins; polyols, isocyanates, and synthetic rubber; methanol, MTBE, glycols, linear alpha olefins, polyethylene, polypropylene, polyethylene terephthalate, polyvinyl chloride, polystyrene, polycarbonate, and engineering thermoplastics and their blends; and lubricants and base oils, as well as engages in the refining and petrochemicals, retail operations, distribution, supply and trading, and power generation. It also markets and distributes hydrocarbons, petroleum products; and trades crude oil, refined petroleum, and liquid chemical products. In addition, the company develops, manufactures, and markets high-performance rubber; and provides crude oil storage, investment, consulting, information technology, personnel and other support, agri-nutrients, purchasing, engineering, benefits administration, oil field, insurance, pipeline transport, vendor sourcing, marketing and sales support, financing, support, and marine management and transportation services. Further, it engages in aircraft operations and leasing; aviation; sports club; retail fuel marketing and operations; investment management of post-employment benefit plans; wholesale fuel operations; importing and exporting refined products and crude oil; and real estate holdings. Additionally, the company engages in prospecting, exploring, drilling, processing, manufacturing, refining, extracting, and marketing hydrocarbon substances. Saudi Arabian Oil Company was founded in 1933 and is headquartered in Dhahran, the Kingdom of Saudi Arabia.",
+  "companyOfficers": [],
+  "executiveTeam": [],
+  "maxAge": 86400
+}
+
+--- SUMMARY DETAIL ---
+{
+  "maxAge": 1,
+  "priceHint": 2,
+  "previousClose": 24.4,
+  "open": 24.33,
+  "dayLow": 24.26,
+  "dayHigh": 24.46,
+  "regularMarketPreviousClose": 24.4,
+  "regularMarketOpen": 24.33,
+  "regularMarketDayLow": 24.26,
+  "regularMarketDayHigh": 24.46,
+  "dividendRate": 1.31,
+  "dividendYield": 0.0537,
+  "exDividendDate": "2025-11-18T00:00:00.000Z",
+  "payoutRatio": 0.8595,
+  "fiveYearAvgDividendYield": 3.96,
+  "beta": 0.025,
+  "trailingPE": 16.198675,
+  "forwardPE": 14.646707,
+  "volume": 6962338,
+  "regularMarketVolume": 6962338,
+  "averageVolume": 11882410,
+  "averageVolume10days": 9609905,
+  "averageDailyVolume10Day": 9609905,
+  "bid": 24.33,
+  "ask": 24.35,
+  "marketCap": 5915765374976,
+  "fiftyTwoWeekLow": 23.04,
+  "fiftyTwoWeekHigh": 29,
+  "allTimeHigh": 39.40909,
+  "allTimeLow": 22.314049,
+  "priceToSalesTrailing12Months": 3.5139577,
+  "fiftyDayAverage": 25.258,
+  "twoHundredDayAverage": 25.06875,
+  "trailingAnnualDividendRate": 1.325,
+  "trailingAnnualDividendYield": 0.05430328,
+  "currency": "SAR",
+  "fromCurrency": null,
+  "toCurrency": null,
+  "lastMarket": null,
+  "coinMarketCapLink": null,
+  "algorithm": null,
+  "tradeable": false
+}
+
+--- FINANCIAL DATA ---
+{
+  "maxAge": 86400,
+  "currentPrice": 24.46,
+  "targetHighPrice": 33,
+  "targetLowPrice": 25.5,
+  "targetMeanPrice": 28.85811,
+  "targetMedianPrice": 28.9,
+  "recommendationMean": 2.10526,
+  "recommendationKey": "buy",
+  "numberOfAnalystOpinions": 19,
+  "totalCash": 232504000512,
+  "totalCashPerShare": 0.956,
+  "ebitda": 815800975360,
+  "totalDebt": 356552015872,
+  "quickRatio": 1.593,
+  "currentRatio": 1.997,
+  "totalRevenue": 1683505020928,
+  "debtToEquity": 21.077,
+  "revenuePerShare": 6.951,
+  "returnOnAssets": 0.18764,
+  "returnOnEquity": 0.21721001,
+  "grossProfits": 930603008000,
+  "freeCashflow": 351685738496,
+  "operatingCashflow": 491912003584,
+  "earningsGrowth": 0,
+  "revenueGrowth": -0.1,
+  "grossMargins": 0.55278,
+  "ebitdaMargins": 0.48458,
+  "operatingMargins": 0.47557,
+  "profitMargins": 0.21700001,
+  "financialCurrency": "SAR"
+}
+
+--- KEY STATISTICS ---
+{
+  "maxAge": 1,
+  "priceHint": 2,
+  "enterpriseValue": 6263420747776,
+  "forwardPE": 15.773114,
+  "profitMargins": 0.21700001,
+  "floatShares": 5984167600,
+  "sharesOutstanding": 241854700000,
+  "heldPercentInsiders": 0.81486,
+  "heldPercentInstitutions": 0.16317,
+  "beta": 0.025,
+  "impliedSharesOutstanding": 241854700000,
+  "category": null,
+  "bookValue": 6.169,
+  "priceToBook": 3.964986,
+  "fundFamily": null,
+  "legalType": null,
+  "lastFiscalYearEnd": "2024-12-31T00:00:00.000Z",
+  "nextFiscalYearEnd": "2025-12-31T00:00:00.000Z",
+  "mostRecentQuarter": "2025-09-30T00:00:00.000Z",
+  "earningsQuarterlyGrowth": -0.004,
+  "netIncomeToCommon": 365328007168,
+  "trailingEps": 1.51,
+  "forwardEps": 1.67,
+  "lastSplitFactor": "11:10",
+  "lastSplitDate": 1683590400,
+  "enterpriseToRevenue": 3.72,
+  "enterpriseToEbitda": 7.678,
+  "52WeekChange": -0.12544805,
+  "SandP52WeekChange": 0.12205398,
+  "lastDividendValue": 0.3312,
+  "lastDividendDate": "2025-11-18T00:00:00.000Z",
+  "latestShareClass": null,
+  "leadInvestor": null
+}
+
+--- PRICE INFO ---
+{
+  "maxAge": 1,
+  "regularMarketChangePercent": 0.0024589945,
+  "regularMarketChange": 0.059999466,
+  "regularMarketTime": "2025-12-03T12:19:46.000Z",
+  "priceHint": 2,
+  "regularMarketPrice": 24.46,
+  "regularMarketDayHigh": 24.46,
+  "regularMarketDayLow": 24.26,
+  "regularMarketVolume": 6962338,
+  "averageDailyVolume10Day": 9609905,
+  "averageDailyVolume3Month": 11882410,
+  "regularMarketPreviousClose": 24.4,
+  "regularMarketSource": "DELAYED",
+  "regularMarketOpen": 24.33,
+  "exchange": "SAU",
+  "exchangeName": "Saudi",
+  "exchangeDataDelayedBy": 15,
+  "marketState": "PREPRE",
+  "quoteType": "EQUITY",
+  "symbol": "2222.SR",
+  "underlyingSymbol": null,
+  "shortName": "Saudi Arabian Oil Co.",
+  "longName": "Saudi Arabian Oil Company",
+  "currency": "SAR",
+  "quoteSourceName": "Delayed Quote",
+  "currencySymbol": "ر.س.‏",
+  "fromCurrency": null,
+  "toCurrency": null,
+  "lastMarket": null,
+  "marketCap": 5915765374976
+}
+
+--- EARNINGS ---
+{
+  "maxAge": 86400,
+  "earningsChart": {
+    "quarterly": [
+      {
+        "date": "4Q2024",
+        "actual": 0.36,
+        "estimate": 0.36528,
+        "fiscalQuarter": "4Q2024",
+        "calendarQuarter": "4Q2024",
+        "difference": "-0.01",
+        "surprisePct": "-1.45"
+      },
+      {
+        "date": "1Q2025",
+        "actual": 0.4,
+        "estimate": 0.38274,
+        "fiscalQuarter": "1Q2025",
+        "calendarQuarter": "1Q2025",
+        "difference": "0.02",
+        "surprisePct": "4.51"
+      },
+      {
+        "date": "2Q2025",
+        "actual": 0.3787,
+        "estimate": 0.36328,
+        "fiscalQuarter": "2Q2025",
+        "calendarQuarter": "2Q2025",
+        "difference": "0.02",
+        "surprisePct": "4.24"
+      },
+      {
+        "date": "3Q2025",
+        "actual": 0.4161,
+        "estimate": 0.40489,
+        "fiscalQuarter": "3Q2025",
+        "calendarQuarter": "3Q2025",
+        "difference": "0.01",
+        "surprisePct": "2.77"
+      }
+    ],
+    "currentQuarterEstimate": 0.39177,
+    "currentQuarterEstimateDate": "4Q",
+    "currentCalendarQuarter": "4Q2025",
+    "currentQuarterEstimateYear": 2025,
+    "currentFiscalQuarter": "4Q2025",
+    "earningsDate": [],
+    "isEarningsDateEstimate": false
+  },
+  "financialsChart": {
+    "yearly": [
+      {
+        "date": 2021,
+        "revenue": 1501758000000,
+        "earnings": 395203000000
+      },
+      {
+        "date": 2022,
+        "revenue": 2266373000000,
+        "earnings": 597215000000
+      },
+      {
+        "date": 2023,
+        "revenue": 1856373000000,
+        "earnings": 452753000000
+      },
+      {
+        "date": 2024,
+        "revenue": 1801674000000,
+        "earnings": 393891000000
+      }
+    ],
+    "quarterly": [
+      {
+        "date": "4Q2024",
+        "fiscalQuarter": "4Q2024",
+        "revenue": 428591000000,
+        "earnings": 86756000000
+      },
+      {
+        "date": "1Q2025",
+        "fiscalQuarter": "1Q2025",
+        "revenue": 429748725600,
+        "earnings": 95676000000
+      },
+      {
+        "date": "2Q2025",
+        "fiscalQuarter": "2Q2025",
+        "revenue": 407142000000,
+        "earnings": 92651000000
+      },
+      {
+        "date": "3Q2025",
+        "fiscalQuarter": "3Q2025",
+        "revenue": 418160000000,
+        "earnings": 101172000000
+      }
+    ]
+  },
+  "financialCurrency": "SAR",
+  "defaultMethodology": "nongaap"
+}
+
+--- RECOMMENDATION TREND ---
+{
+  "trend": [
+    {
+      "period": "0m",
+      "strongBuy": 3,
+      "buy": 7,
+      "hold": 9,
+      "sell": 0,
+      "strongSell": 0
+    },
+    {
+      "period": "-1m",
+      "strongBuy": 4,
+      "buy": 7,
+      "hold": 8,
+      "sell": 0,
+      "strongSell": 0
+    },
+    {
+      "period": "-2m",
+      "strongBuy": 4,
+      "buy": 7,
+      "hold": 8,
+      "sell": 0,
+      "strongSell": 0
+    },
+    {
+      "period": "-3m",
+      "strongBuy": 4,
+      "buy": 7,
+      "hold": 8,
+      "sell": 0,
+      "strongSell": 0
+    }
+  ],
+  "maxAge": 86400
+}

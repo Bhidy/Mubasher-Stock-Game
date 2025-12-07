@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../App';
 import Card from '../components/Card';
 import { Trophy, ChevronUp, ChevronDown, Crown, Medal } from 'lucide-react';
@@ -9,24 +9,36 @@ export default function Leaderboard() {
     const { user } = useContext(UserContext);
     const [period, setPeriod] = useState('Today');
 
+    // Scroll to top on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const top3Data = {
         Today: [
-            { rank: 2, name: 'DiamondHands', gain: 4.8, avatar: '💎', color: '#94a3b8' },
-            { rank: 1, name: 'StockMaster', gain: 5.4, avatar: '👑', color: '#f59e0b' },
-            { rank: 3, name: 'MoonShot', gain: 4.2, avatar: '🚀', color: '#cd7f32' },
+            { rank: 2, name: 'Saad Al-Harbi', gain: 4.8, avatar: '💎', color: '#94a3b8' },
+            { rank: 1, name: 'Yasser Al-Qahtani', gain: 5.4, avatar: '👑', color: '#f59e0b' },
+            { rank: 3, name: 'Majed Abdullah', gain: 4.2, avatar: '🚀', color: '#cd7f32' },
         ],
         Yesterday: [
-            { rank: 2, name: 'CryptoKing', gain: 12.5, avatar: '🦁', color: '#94a3b8' },
-            { rank: 1, name: 'AlphaWolf', gain: 15.2, avatar: '🐺', color: '#f59e0b' },
-            { rank: 3, name: 'BullRun', gain: 10.8, avatar: '🐂', color: '#cd7f32' },
+            { rank: 2, name: 'Fahad Al-Saud', gain: 12.5, avatar: '🦁', color: '#94a3b8' },
+            { rank: 1, name: 'Ahmed Ali', gain: 15.2, avatar: '🐺', color: '#f59e0b' },
+            { rank: 3, name: 'Omar Khalid', gain: 10.8, avatar: '🐂', color: '#cd7f32' },
         ]
     };
 
     const top3 = top3Data[period];
 
+    const saudiNames = [
+        'Faisal', 'Noura', 'Salem', 'Abdullah', 'Khalid',
+        'Mohammed', 'Sara', 'Fatima', 'Sultan', 'Bandar',
+        'Turki', 'Hassan', 'Ali', 'Ibrahim', 'Yousef',
+        'Huda', 'Layla', 'Maha', 'Reem', 'Zaid'
+    ];
+
     const list = Array.from({ length: 20 }, (_, i) => ({
         rank: i + 4,
-        name: period === 'Today' ? `Player${i + 4}` : `Trader${i + 4}`,
+        name: saudiNames[i % saudiNames.length],
         gain: (period === 'Today' ? 4.0 - i * 0.1 : 8.5 - i * 0.2).toFixed(1),
         trend: (i + (period === 'Today' ? 0 : 1)) % 3 === 0 ? 'up' : 'down',
         avatar: ['🎯', '⭐', '🔥', '💪', '🎮'][i % 5]
@@ -152,7 +164,8 @@ export default function Leaderboard() {
                                 fontWeight: 700,
                                 fontSize: '0.875rem',
                                 marginBottom: '0.375rem',
-                                marginTop: '0.5rem'
+                                marginTop: '0.5rem',
+                                textAlign: 'center'
                             }}>
                                 {player.name}
                             </span>
@@ -273,7 +286,7 @@ export default function Leaderboard() {
                             <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>Top 8% • Keep climbing!</span>
                         </div>
                     </div>
-                    <span style={{ color: 'white', fontWeight: 800, fontSize: '1.25rem' }}>
+                    <span style={{ color: 'white', fontWeight: 800, fontSize: '1.25rem', marginRight: '3.5rem' }}>
                         +{user.gain}%
                     </span>
                 </div>

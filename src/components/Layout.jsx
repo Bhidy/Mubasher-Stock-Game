@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, TrendingUp, Radio, Trophy, BookOpen, Users } from 'lucide-react';
 import Chatbot from './Chatbot';
@@ -6,6 +6,25 @@ import Chatbot from './Chatbot';
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const mainRef = useRef(null);
+
+  // Scroll to top on every route change
+  useEffect(() => {
+    // Scroll the main container to top
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+    // Also scroll window (for browsers that might use window scroll)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Also scroll document element
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // Also scroll #root element (used on desktop)
+    const rootEl = document.getElementById('root');
+    if (rootEl) {
+      rootEl.scrollTop = 0;
+    }
+  }, [location.pathname]);
 
   const navItems = [
     { id: 'home', icon: Home, label: 'Home', path: '/home', color: '#10b981' },
@@ -20,6 +39,7 @@ export default function Layout() {
   return (
     <>
       <main
+        ref={mainRef}
         className="animate-fade-in"
         style={{
           flex: 1,

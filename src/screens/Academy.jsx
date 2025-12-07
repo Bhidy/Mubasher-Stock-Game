@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
@@ -8,6 +8,11 @@ import { BookOpen, TrendingUp, Target, Award, Lock, Play, CheckCircle, Clock } f
 export default function Academy() {
     const navigate = useNavigate();
     const [selectedCategory, setSelectedCategory] = useState('All');
+
+    // Scroll to top on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const categories = ['All', 'Beginner', 'Strategy', 'Analysis', 'Advanced'];
 
@@ -194,7 +199,7 @@ export default function Academy() {
                             key={lesson.id}
                             onClick={() => {
                                 if (!lesson.locked) {
-                                    alert(`Starting lesson: ${lesson.title}\n\nThis would open the lesson content in a real app!`);
+                                    navigate(`/academy/lesson/${lesson.id}`);
                                 }
                             }}
                             style={{
@@ -228,31 +233,17 @@ export default function Academy() {
                                             {lesson.completed && <CheckCircle size={18} color="#10b981" />}
                                         </div>
                                         <p className="caption" style={{ marginBottom: '0.5rem' }}>{lesson.desc}</p>
-                                        <div className="flex-center" style={{ gap: '1rem', justifyContent: 'flex-start' }}>
-                                            <div className="flex-center" style={{ gap: '0.25rem' }}>
+                                        <div className="flex-center" style={{ gap: '0.75rem', justifyContent: 'flex-start', flexWrap: 'nowrap' }}>
+                                            <div className="flex-center" style={{ gap: '0.25rem', whiteSpace: 'nowrap' }}>
                                                 <Clock size={14} color="var(--text-muted)" />
                                                 <span className="caption">{lesson.duration}</span>
                                             </div>
-                                            <Badge color="primary">+{lesson.xp} XP</Badge>
-                                            <Badge color="neutral">{lesson.category}</Badge>
+                                            <Badge color="primary" style={{ whiteSpace: 'nowrap' }}>+{lesson.xp} XP</Badge>
+                                            <Badge color="neutral" style={{ whiteSpace: 'nowrap' }}>{lesson.category}</Badge>
                                         </div>
                                     </div>
                                 </div>
-                                {!lesson.locked && (
-                                    <div style={{
-                                        background: lesson.completed ? '#10b981' : 'var(--gradient-primary)',
-                                        color: 'white',
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                                    }}>
-                                        {lesson.completed ? <CheckCircle size={20} /> : <Play size={20} />}
-                                    </div>
-                                )}
+
                             </div>
                         </Card>
                     ))}
