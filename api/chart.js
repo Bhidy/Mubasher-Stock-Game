@@ -1,6 +1,6 @@
 import YahooFinance from 'yahoo-finance2';
 
-// Version: 2.1.0 - Fixed yahoo-finance2 v3 initialization
+// Version: 2.2.0 - Fixed chart options to match backend
 // Deployed: 2025-12-07
 
 // Initialize Yahoo Finance (v3 requirement)
@@ -17,23 +17,23 @@ export default async function handler(req, res) {
         return;
     }
 
-    const { symbol, range = '1d' } = req.query;
+    const { symbol, range = '1D' } = req.query;
     if (!symbol) return res.status(400).json({ error: "Symbol required" });
 
     try {
-        if (typeof yahooFinance.suppressNotices === 'function') {
-            yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
+        // Determine range and interval (matching backend logic)
+        let queryRange, interval;
+        switch (range.toUpperCase()) {
+            case '1D': queryRange = '1d'; interval = '5m'; break;
+            case '5D': queryRange = '5d'; interval = '15m'; break;
+            case '1M': queryRange = '1mo'; interval = '60m'; break;
+            case '6M': queryRange = '6mo'; interval = '1d'; break;
+            case 'YTD': queryRange = 'ytd'; interval = '1d'; break;
+            case '1Y': queryRange = '1y'; interval = '1d'; break;
+            case '5Y': queryRange = '5y'; interval = '1wk'; break;
+            case 'MAX': queryRange = 'max'; interval = '1mo'; break;
+            default: queryRange = '1d'; interval = '5m';
         }
-
-        let interval = '15m';
-        let qRange = range.toLowerCase();
-
-        if (range === '1D') { interval = '15m'; qRange = '1d'; }
-        else if (range === '5D') { interval = '60m'; qRange = '5d'; }
-        else if (range === '1M') { interval = '1d'; qRange = '1mo'; }
-        else if (range === '6M') { interval = '1d'; qRange = '6mo'; }
-        else if (range === '1Y') { interval = '1d'; qRange = '1y'; }
-        else if (range === 'Max') { interval = '1mo'; qRange = 'max'; }
 
         // --- RETRY LOGIC: Try up to 3 times ---
         let lastError = null;
@@ -42,15 +42,20 @@ export default async function handler(req, res) {
         for (let attempt = 1; attempt <= 3; attempt++) {
             try {
                 result = await Promise.race([
-                    yahooFinance.chart(symbol, { range: qRange, interval }),
+                    yahooFinance.chart(symbol, {
+                        period1: '2020-01-01', // Required by validation
+                        range: queryRange,
+                        interval: interval,
+                        includePrePost: false
+                    }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
                 ]);
-                break; // Success, exit loop
+                break;
             } catch (e) {
                 lastError = e;
                 console.log(`Chart attempt ${attempt} failed for ${symbol}: ${e.message}`);
                 if (attempt < 3) {
-                    await new Promise(r => setTimeout(r, 500)); // Wait before retry
+                    await new Promise(r => setTimeout(r, 500));
                 }
             }
         }
@@ -65,12 +70,11 @@ export default async function handler(req, res) {
         })).filter(q => q.price);
 
         if (quotes.length === 0) {
-            // Return empty with clear error message
             return res.status(200).json({
                 symbol: symbol,
                 currency: 'USD',
                 quotes: [],
-                error: "No chart data available from market"
+                error: "No chart data available"
             });
         }
 
@@ -78,15 +82,13 @@ export default async function handler(req, res) {
         res.status(200).json({
             symbol: result.meta.symbol,
             currency: result.meta.currency,
-            granularity: interval,
-            range: qRange,
+            granularity: result.meta.dataGranularity,
+            range: result.meta.range,
             quotes
         });
 
     } catch (e) {
         console.error(`Chart API failed for ${symbol}:`, e.message);
-
-        // Return empty chart - NO SIMULATED DATA
         res.status(200).json({
             symbol: symbol,
             currency: 'USD',
