@@ -4,6 +4,13 @@ import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Tr
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../App';
 
+// X Logo SVG Component for menu
+const XLogoIcon = ({ size = 20, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+);
+
 export default function BurgerMenu({ variant = 'default' }) {
     const [isOpen, setIsOpen] = useState(false);
     const [expanded, setExpanded] = useState(null); // Default closed
@@ -15,6 +22,7 @@ export default function BurgerMenu({ variant = 'default' }) {
         { icon: Home, label: 'Home', path: '/home' },
         { icon: BarChart3, label: 'Market Summary', path: '/market' },
         { icon: Newspaper, label: 'News Feed', path: '/news-feed' },
+        { icon: XLogoIcon, label: 'X Community', path: '/x-community', highlight: true },
         {
             icon: Gamepad2,
             label: 'Play & Win',

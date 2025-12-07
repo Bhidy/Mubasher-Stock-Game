@@ -169,49 +169,157 @@ app.get('/api/news/content', async (req, res) => {
         const axios = require('axios');
         const cheerio = require('cheerio');
 
-        const userAgent = 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (compatible; Googlebot/2.1)';
+        const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
         const response = await axios.get(url, {
-            headers: { 'User-Agent': userAgent, 'Accept': 'text/html' },
-            timeout: 8000
+            headers: {
+                'User-Agent': userAgent,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8'
+            },
+            timeout: 12000,
+            maxRedirects: 5
         });
 
         const $ = cheerio.load(response.data);
-        $('script, style, nav, footer, header, aside, .ad, .advertisement').remove();
+        $('script, style, nav, footer, header, aside, .ad, .advertisement, .sidebar, .related, .comments, .social-share').remove();
 
         let content = '';
-        const selectors = ['[data-test-id="post-content"]', '.caas-body', 'article', '.article-body', 'main'];
+        const hostname = new URL(url).hostname.toLowerCase();
 
-        for (const selector of selectors) {
-            if ($(selector).length > 0) {
-                $(selector).find('p').each((i, el) => {
-                    const text = $(el).text().trim();
-                    if (text.length > 40) content += `<p>${text}</p>`;
-                });
-                if (content.length > 500) break;
+        // Source-specific content selectors (prioritized)
+        const sourceSelectors = {
+            'mubasher': ['.story-body', '.article-body', '.news-details', '.article-content'],
+            'argaam': ['#articleContent', '.article-content', '.article-body', '.post-content'],
+            'arabnews': ['.article__content', '.article-body', 'article .body'],
+            'aleqt': ['.article-body', '.article-content', '.post-content'],
+            'dailynewsegypt': ['.entry-content', '.post-content', 'article'],
+            'egypttoday': ['.article-text', '.article-body', '.post-body'],
+            'zawya': ['.article-body', '.article-content', '.story-content'],
+            'arabfinance': ['.news-details-content', '.article-body'],
+            'reuters': ['.article-body', '[data-testid="paragraph-"]', 'article'],
+            'bloomberg': ['.body-content', '.article-body'],
+            'investing': ['.articlePage', '.articleContent', '#leftColumn']
+        };
+
+        // Find matching source
+        let matchedSelectors = [];
+        for (const [source, selectors] of Object.entries(sourceSelectors)) {
+            if (hostname.includes(source)) {
+                matchedSelectors = selectors;
+                break;
             }
         }
 
-        // Fallback
+        // Add generic selectors as fallback
+        matchedSelectors.push(
+            '[data-test-id="post-content"]', '.caas-body', 'article',
+            '.article-body', '.article-content', '.post-content',
+            '.entry-content', 'main', '.content'
+        );
+
+        // Try each selector
+        for (const selector of matchedSelectors) {
+            if ($(selector).length > 0) {
+                $(selector).find('p').each((i, el) => {
+                    const text = $(el).text().trim();
+                    if (text.length > 30 && !text.includes('©') && !text.includes('login')) {
+                        content += `<p>${text}</p>`;
+                    }
+                });
+                if (content.length > 300) break;
+            }
+        }
+
+        // Fallback: Get all paragraphs
         if (content.length < 200) {
             $('p').each((i, el) => {
                 const text = $(el).text().trim();
-                if (text.length > 60 && !text.includes('Copyright')) {
+                if (text.length > 40 && !text.includes('Copyright') && !text.includes('©') && !text.includes('login') && !text.includes('register')) {
                     content += `<p>${text}</p>`;
                 }
             });
         }
 
+        // NOISE FILTERING: Remove unwanted content patterns
+        const noisePatterns = [
+            /Argaam Investment Company.*Privacy Policy[^<]*/gi,
+            /Privacy Policy[^<]*/gi,
+            /You need to log in[^<]*/gi,
+            /If you don't have an account[^<]*/gi,
+            /register now to take advantage[^<]*/gi,
+            /subscribe to (our|the) newsletter[^<]*/gi,
+            /cookie(s)? (policy|notice)[^<]*/gi,
+            /terms (of use|and conditions)[^<]*/gi,
+            /<p>\s*<\/p>/gi
+        ];
+
+        for (const pattern of noisePatterns) {
+            content = content.replace(pattern, '');
+        }
+
+        // Remove empty paragraphs left behind
+        content = content.replace(/<p>\s*<\/p>/gi, '').trim();
+
+        // FALLBACK 1: Use og:description or meta description if content is short
+        if (content.length < 150) {
+            const ogDesc = $('meta[property="og:description"]').attr('content') ||
+                $('meta[name="description"]').attr('content') ||
+                $('meta[name="twitter:description"]').attr('content');
+            if (ogDesc && ogDesc.length > 50) {
+                content = `<p>${ogDesc}</p>` + content;
+            }
+        }
+
+        // FALLBACK 2: Extract from article summary/lead
+        if (content.length < 200) {
+            const leadSelectors = ['.article-lead', '.article-summary', '.lead', '.intro', '.excerpt', 'article > p:first-of-type'];
+            for (const sel of leadSelectors) {
+                const lead = $(sel).text().trim();
+                if (lead && lead.length > 50 && !content.includes(lead)) {
+                    content = `<p>${lead}</p>` + content;
+                    break;
+                }
+            }
+        }
+
+        // Translate Arabic content to English
+        if (content && /[\u0600-\u06FF]/.test(content)) {
+            try {
+                const plainText = content.replace(/<[^>]+>/g, '\n').trim();
+                const translateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(plainText.substring(0, 4000))}`;
+                const translateRes = await axios.get(translateUrl, { timeout: 5000 });
+                if (translateRes.data && translateRes.data[0]) {
+                    const translatedText = translateRes.data[0].map(s => s[0]).join('');
+                    const paragraphs = translatedText.split('\n').filter(p => p.trim().length > 20);
+                    content = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+                }
+            } catch (e) {
+                console.log('Translation failed, keeping original');
+            }
+        }
+
+        // FINAL: If still no usable content, create a summary from title and available data
         if (!content || content.length < 100) {
-            let publisher = 'the source';
-            try { publisher = new URL(url).hostname.replace('www.', ''); } catch (e) { }
-            content = `<p>Content is protected. <a href="${url}" target="_blank">Read on ${publisher} →</a></p>`;
+            const title = $('h1').first().text().trim() || $('meta[property="og:title"]').attr('content') || '';
+            const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
+
+            let publisher = hostname.replace('www.', '').replace('english.', '').split('.')[0];
+            publisher = publisher.charAt(0).toUpperCase() + publisher.slice(1);
+
+            if (description && description.length > 30) {
+                content = `<p>${description}</p><p><a href="${url}" target="_blank" style="color: #0ea5e9;">Read full article on ${publisher} →</a></p>`;
+            } else {
+                content = `<p>This article from ${publisher} requires viewing on the original website.</p><p><a href="${url}" target="_blank" style="color: #0ea5e9;">Read full article on ${publisher} →</a></p>`;
+            }
         }
 
         res.json({ content });
     } catch (error) {
         console.error('Content extract failed:', error.message);
-        res.json({ content: '<p>Unable to load content. Please view the original source.</p>' });
+        let publisher = 'the source';
+        try { publisher = new URL(url).hostname.replace('www.', '').split('.')[0]; } catch (e) { }
+        res.json({ content: `<p>Unable to load content. Please view the original source.</p><p><a href="${url}" target="_blank" style="color: #0ea5e9;">Read on ${publisher} →</a></p>` });
     }
 });
 
@@ -268,6 +376,61 @@ async function fetchGoogleNews(query, count = 5) {
     }
 }
 
+// Helper: Fetch Bing News RSS (Strict Fallback)
+async function fetchBingNews(query, count = 5) {
+    try {
+        const Parser = require('rss-parser');
+        const parser = new Parser({
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            timeout: 5000
+        });
+
+        // Use Bing RSS Search
+        const url = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=rss`;
+        const feed = await parser.parseURL(url);
+
+        return feed.items.slice(0, count).map(item => {
+            let publisher = 'News';
+
+            // Extract publisher if possible (Bing doesn't always provide clean source in RSS standard fields, 
+            // but usually puts it in title or description? No, just title mostly.)
+            // We rely on the STRICT QUERY to filter sources, so publisher name is cosmetic here.
+
+            // Try to map known domains if we can
+            if (item.link && item.link.includes('mubasher')) publisher = 'Mubasher';
+            else if (item.link && item.link.includes('argaam')) publisher = 'Argaam';
+            else if (item.link && item.link.includes('zawya')) publisher = 'Zawya';
+            else if (item.link && item.link.includes('bloomberg')) publisher = 'Bloomberg';
+            else if (item.link && item.link.includes('reuters')) publisher = 'Reuters';
+
+            let image = null;
+            // Bing RSS often has image in 'content' or 'content:encoded' or specific extensions
+            // Simple fallback to domain logo for now to keep it fast
+            let domain = '';
+            if (publisher === 'Mubasher') domain = 'english.mubasher.info';
+            else if (publisher === 'Argaam') domain = 'argaam.com';
+            else if (publisher === 'Zawya') domain = 'zawya.com';
+            else if (publisher === 'Bloomberg') domain = 'bloomberg.com';
+
+            if (domain) {
+                image = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
+            }
+
+            return {
+                id: item.link,
+                title: item.title,
+                publisher: publisher,
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image
+            };
+        });
+    } catch (e) {
+        console.error(`Bing Fetch Error (${query}):`, e.message);
+        return [];
+    }
+}
+
 // Batch extract images for news items without thumbnails
 async function enrichNewsWithImages(newsItems) {
     const limit = 5; // Limit concurrent requests
@@ -309,10 +472,37 @@ async function enrichNewsWithImages(newsItems) {
 
                 const $ = cheerio.load(response.data);
 
-                // 3. Extract Image
+                // 3. Extract Image - Source-specific selectors for Egypt/Saudi sites
                 let image = $('meta[property="og:image"]').attr('content');
                 if (!image) image = $('meta[name="twitter:image"]').attr('content');
+
+                // Source-specific image selectors
+                const hostname = new URL(targetUrl).hostname.toLowerCase();
+                if (!image) {
+                    if (hostname.includes('mubasher')) {
+                        image = $('.article-image img').attr('src') || $('.story-image img').attr('src') || $('figure img').first().attr('src');
+                    } else if (hostname.includes('argaam')) {
+                        image = $('.article-featured-image img').attr('src') || $('[class*="article"] img').first().attr('src');
+                    } else if (hostname.includes('zawya')) {
+                        image = $('.article-main-image img').attr('src') || $('picture img').first().attr('src');
+                    } else if (hostname.includes('egypttoday')) {
+                        image = $('.article-img img').attr('src') || $('.post-thumbnail img').attr('src');
+                    } else if (hostname.includes('dailynewsegypt')) {
+                        image = $('.featured-image img').attr('src') || $('.wp-post-image').attr('src');
+                    } else if (hostname.includes('arabfinance')) {
+                        image = $('[class*="news-image"] img').attr('src');
+                    } else if (hostname.includes('arabnews')) {
+                        image = $('[class*="article-image"] img').attr('src') || $('figure img').first().attr('src');
+                    } else if (hostname.includes('aleqt')) {
+                        image = $('[class*="article-image"] img').attr('src') || $('article img').first().attr('src');
+                    } else if (hostname.includes('investing')) {
+                        image = $('[class*="articleImage"] img').attr('src');
+                    }
+                }
+
+                // Generic fallback
                 if (!image) image = $('article img').first().attr('src');
+                if (!image) image = $('main img').first().attr('src');
 
                 // Fix relative URLs
                 if (image && !image.startsWith('http')) {
@@ -322,9 +512,17 @@ async function enrichNewsWithImages(newsItems) {
                     } catch (e) { }
                 }
 
-                // 4. Extract Content (Summary)
-                $('script, style, nav, footer, header, .ad, .social, .menu').remove();
-                let text = $('article').text() || $('main').text() || $('body').text();
+                // 4. Extract Content (Summary) - Source-specific
+                $('script, style, nav, footer, header, .ad, .social, .menu, .related, .comments').remove();
+                let text = '';
+                if (hostname.includes('mubasher')) {
+                    text = $('.story-body').text() || $('.news-details').text();
+                } else if (hostname.includes('argaam')) {
+                    text = $('#articleContent').text() || $('.article-content').text();
+                } else if (hostname.includes('zawya')) {
+                    text = $('.article-body').text();
+                }
+                if (!text) text = $('article').text() || $('main').text() || $('body').text();
                 text = text.replace(/\s+/g, ' ').trim();
 
                 if (image && (!item.thumbnail || item.thumbnail.includes('placehold.co'))) {
@@ -410,62 +608,35 @@ async function scrapeMubasher(market = 'SA') {
     }
 }
 
-// News Fetching Logic (Background)
+// News Fetching Logic (Background) - Using dedicated scrapers
+const { fetchAllSaudiNews, fetchAllEgyptNews } = require('./scrapers/newsSources');
+
 async function fetchNewsForMarket(market) {
-    console.log('Background fetching news for: ' + market);
+    console.log('🔄 Background fetching news for: ' + market);
     let allNews = [];
-    const BLACKLIST = ['Benzinga', 'The Telegraph', 'GlobeNewswire', 'PR Newswire', 'Business Wire', 'Zacks', 'Motley Fool'];
 
     try {
         if (market === 'SA') {
-            // 1. Mubasher
-            const mubasher = await scrapeMubasher('SA');
-            allNews.push(...mubasher);
-
-            // 2. Google News
-            const googleQueries = [
-                'site:argaam.com',
-                'site:english.mubasher.info Saudi',
-                'site:reuters.com Saudi',
-                'site:bloomberg.com Saudi',
-                'site:arabnews.com stock',
-                'site:investing.com Saudi'
-            ];
-            for (const q of googleQueries) allNews.push(...await fetchGoogleNews(q));
-
-            // 3. Bing (via RSS Parser)
-            // ...
+            // Use dedicated Saudi scrapers (all 7 sources)
+            allNews = await fetchAllSaudiNews();
 
         } else if (market === 'EG') {
-            // 1. Mubasher
-            const mubasher = await scrapeMubasher('EG');
-            allNews.push(...mubasher);
-
-            // 2. Google News
-            const googleQueries = [
-                'site:english.mubasher.info Egypt',
-                'site:zawya.com Egypt',
-                'site:egypttoday.com',
-                'site:dailynewsegypt.com',
-                'site:arabfinance.com',
-                'site:investing.com Egypt'
-            ];
-            for (const q of googleQueries) allNews.push(...await fetchGoogleNews(q));
+            // Use dedicated Egypt scrapers (all 6 sources)
+            allNews = await fetchAllEgyptNews();
 
         } else {
-            // Default: Global/US
+            // Default: Global/US - Use Yahoo Finance
             const yahooFinance = require('yahoo-finance2').default;
-            const results = await yahooFinance.search('Stock Market', { newsCount: 10 });
+            const results = await yahooFinance.search('Stock Market', { newsCount: 15 });
             if (results.news) {
-                const yItems = results.news.map(n => ({
+                allNews = results.news.map(n => ({
                     id: n.uuid,
                     title: n.title,
-                    publisher: n.providerPublishTime ? 'Yahoo' : 'Yahoo',
+                    publisher: n.publisher || 'Yahoo Finance',
                     link: n.link,
                     time: new Date(n.providerPublishTime * 1000).toISOString(),
                     thumbnail: n.thumbnail?.resolutions?.[0]?.url
                 }));
-                allNews.push(...yItems);
             }
         }
 
@@ -473,18 +644,23 @@ async function fetchNewsForMarket(market) {
         console.error('Fetch Market News Error:', e);
     }
 
-    // Deduplicate and Filter Blacklist
+    // For SA/EG, scrapers already handle deduplication and image enrichment
+    // Just sort and cache
+    if (market === 'SA' || market === 'EG') {
+        // Sort by time (newest first)
+        allNews.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+        // Update Cache
+        newsCache[market] = { data: allNews, time: Date.now() };
+        console.log(`✅ Cached ${allNews.length} articles for ${market}`);
+
+        return allNews;
+    }
+
+    // For US/Other markets, apply additional processing
     const seen = new Set();
     const filteredNews = allNews.filter(item => {
         if (!item || !item.title) return false;
-
-        // Strict Filter for EG/SA (Case Insensitive)
-        if ((market === 'SA' || market === 'EG')) {
-            const pub = (item.publisher || '').toLowerCase();
-            const blacklistLower = BLACKLIST.map(b => b.toLowerCase());
-            if (blacklistLower.some(b => pub.includes(b))) return false;
-        }
-
         const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
         if (seen.has(cleanTitle)) return false;
         seen.add(cleanTitle);
@@ -689,35 +865,66 @@ app.get('/api/news/content', async (req, res) => {
         $('script, style, nav, header, footer, aside, .advertisement, .ad, .sidebar, .related-articles, .social-share, .comments, .newsletter, .subscription, [role="navigation"], [role="banner"]').remove();
 
         // Selectors for major news sites (ordered by specificity)
+        // EGYPT/SAUDI SPECIFIC SOURCES FIRST
         let content = data ? (
-            // Discovery Alert / Specific sites
+            // === MUBASHER (English & Arabic) ===
+            $('.story-body').html() ||
+            $('.news-details').html() ||
+            $('.article-body-content').html() ||
+            $('.article-details').html() ||
+            $('[class*="news-content"]').html() ||
+
+            // === ARGAAM ===
+            $('#articleContent').html() ||
+            $('.article-content').html() ||
+            $('[class*="article-body"]').html() ||
+            $('.news-body').html() ||
+
+            // === ZAWYA ===
+            $('.article-body').html() ||
+            $('[class*="story-content"]').html() ||
+            $('.zawya-article-content').html() ||
+
+            // === EGYPT TODAY ===
             $('.article-text').html() ||
             $('.article-content-body').html() ||
-            // ... (rest of selectors) ...
-            $('.article-content').html() ||
-            $('.article__body').html() ||
-            $('.story-content').html() ||
-            // Reuters
+            $('[class*="post-content"]').html() ||
+
+            // === DAILY NEWS EGYPT ===
+            $('.entry-content').html() ||
+            $('article .content').html() ||
+
+            // === ARAB FINANCE ===
+            $('.news-details-content').html() ||
+            $('[class*="article-text"]').html() ||
+
+            // === ALEQT (الاقتصادية) ===
+            $('.article-body').html() ||
+            $('[class*="post-body"]').html() ||
+
+            // === ARAB NEWS ===
+            $('.article__content').html() ||
+            $('[class*="article-content"]').html() ||
+
+            // === INVESTING.COM ===
+            $('.articlePage').html() ||
+            $('[class*="article_WYSIWYG"]').html() ||
+
+            // === REUTERS ===
             $('.article-body__content').html() ||
             $('[class*="ArticleBody"]').html() ||
             $('[data-testid="article-body"]').html() ||
-            // Mubasher
-            $('.story-body').html() ||
-            $('.news-details').html() ||
-            $('#article-body').html() ||
-            // Argaam
-            $('#articleContent').html() ||
-            // Yahoo
+
+            // === BLOOMBERG ===
+            $('[class*="body-content"]').html() ||
+            $('article[class*="body"]').html() ||
+
+            // === YAHOO ===
             $('.caas-body').html() ||
-            // Investing.com
-            $('.articlePage').html() ||
-            // MarketWatch
-            $('.article__body').html() ||
-            // Generic selectors
-            $('article .content').html() ||
+
+            // === GENERIC FALLBACKS ===
             $('article').html() ||
             $('.post-content').html() ||
-            $('.entry-content').html() ||
             $('[itemprop="articleBody"]').html() ||
             $('main article').html() ||
             $('.main-content').html()
@@ -1096,6 +1303,461 @@ app.get('/api/proxy-image', async (req, res) => {
     } catch (e) {
         console.error("Proxy fail:", e.message);
         res.status(500).send('Image fetch failed');
+    }
+});
+
+// ============ X COMMUNITY API ============
+// Target accounts for X Community
+const X_COMMUNITY_ACCOUNTS = [
+    { username: 'THEWOLFOFTASI', displayName: 'The Wolf of TASI', category: 'Trading' },
+    { username: 'Anas_S_Alrajhi', displayName: 'Anas Al-Rajhi', category: 'Finance' },
+    { username: 'RiadhAlhumaidan', displayName: 'Riyadh Al-Humaidan', category: 'Markets' },
+    { username: 'ahmadammar1993', displayName: 'Ahmad Ammar', category: 'Trading' },
+    { username: 'FutrueGlimpse', displayName: 'Future Glimpse', category: 'Insights' },
+    { username: 'AlsagriCapital', displayName: 'Alsagri Capital', category: 'Capital' },
+    { username: 'Reda_Alidarous', displayName: 'Reda Alidarous', category: 'Analysis' },
+    { username: 'Ezzo_Khrais', displayName: 'Ezzo Khrais', category: 'Markets' },
+    { username: 'King_night90', displayName: 'King Night', category: 'Trading' },
+    { username: 'ABU_KHALED2021', displayName: 'Abu Khaled', category: 'Investing' }
+];
+
+// Nitter instances for fetching
+const NITTER_INSTANCES = [
+    'https://nitter.privacydev.net',
+    'https://nitter.poast.org',
+    'https://nitter.cz',
+    'https://nitter.unixfox.eu',
+    'https://nitter.1d4.us'
+];
+
+// X Community Cache
+const xCommunityCache = {
+    data: null,
+    timestamp: 0,
+    perUser: {}
+};
+const X_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const X_PER_USER_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+
+// Demo tweets for fallback (when live fetching fails)
+const DEMO_TWEETS = [
+    {
+        id: 'demo_1',
+        username: 'THEWOLFOFTASI',
+        displayName: 'The Wolf of TASI',
+        category: 'Trading',
+        content: '🚀 TASI showing strong momentum today! Key sectors to watch: Banking and Petrochemicals. My top picks are performing well. #SaudiStocks #TASI',
+        images: [],
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '2h ago',
+        url: 'https://x.com/THEWOLFOFTASI',
+        source: 'demo'
+    },
+    {
+        id: 'demo_2',
+        username: 'Anas_S_Alrajhi',
+        displayName: 'Anas Al-Rajhi',
+        category: 'Finance',
+        content: 'Banking sector update: Al Rajhi Bank continues to show resilience. Q4 earnings expectations remain positive. Stay tuned for detailed analysis. 📊',
+        images: [],
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '3h ago',
+        url: 'https://x.com/Anas_S_Alrajhi',
+        source: 'demo'
+    },
+    {
+        id: 'demo_3',
+        username: 'RiadhAlhumaidan',
+        displayName: 'Riyadh Al-Humaidan',
+        category: 'Markets',
+        content: 'Market outlook for this week: Expecting volatility due to global factors. Keep stop losses tight and focus on quality stocks. 📈 #TradingTips',
+        images: [],
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '4h ago',
+        url: 'https://x.com/RiadhAlhumaidan',
+        source: 'demo'
+    },
+    {
+        id: 'demo_4',
+        username: 'ahmadammar1993',
+        displayName: 'Ahmad Ammar',
+        category: 'Trading',
+        content: 'Technical analysis update: SABIC forming a bullish pattern. Watch for breakout above resistance. Entry and exit points shared in channel. 💹',
+        images: [],
+        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '5h ago',
+        url: 'https://x.com/ahmadammar1993',
+        source: 'demo'
+    },
+    {
+        id: 'demo_5',
+        username: 'FutrueGlimpse',
+        displayName: 'Future Glimpse',
+        category: 'Insights',
+        content: 'Vision 2030 stocks continue to outperform. Entertainment and tourism sectors showing promising growth. Long-term investors should take note! 🎯',
+        images: [],
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '6h ago',
+        url: 'https://x.com/FutrueGlimpse',
+        source: 'demo'
+    },
+    {
+        id: 'demo_6',
+        username: 'AlsagriCapital',
+        displayName: 'Alsagri Capital',
+        category: 'Capital',
+        content: 'Weekly portfolio review: Defensive positioning paying off. Healthcare and utilities providing stability in current market conditions. 📋',
+        images: [],
+        timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '8h ago',
+        url: 'https://x.com/AlsagriCapital',
+        source: 'demo'
+    },
+    {
+        id: 'demo_7',
+        username: 'Reda_Alidarous',
+        displayName: 'Reda Alidarous',
+        category: 'Analysis',
+        content: 'Oil prices impact on TASI: Aramco and related stocks moving with crude. Keep an eye on $80 support level for Brent. 🛢️ #OilMarkets',
+        images: [],
+        timestamp: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '10h ago',
+        url: 'https://x.com/Reda_Alidarous',
+        source: 'demo'
+    },
+    {
+        id: 'demo_8',
+        username: 'Ezzo_Khrais',
+        displayName: 'Ezzo Khrais',
+        category: 'Markets',
+        content: 'IPO watch: New listings expected Q1 2025. Several exciting companies in the pipeline. Will share detailed analysis soon! 🆕',
+        images: [],
+        timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '12h ago',
+        url: 'https://x.com/Ezzo_Khrais',
+        source: 'demo'
+    },
+    {
+        id: 'demo_9',
+        username: 'King_night90',
+        displayName: 'King Night',
+        category: 'Trading',
+        content: 'Day trading strategy for tomorrow: Focus on high volume movers at market open. Patience is key - wait for confirmation! ⚡',
+        images: [],
+        timestamp: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '14h ago',
+        url: 'https://x.com/King_night90',
+        source: 'demo'
+    },
+    {
+        id: 'demo_10',
+        username: 'ABU_KHALED2021',
+        displayName: 'Abu Khaled',
+        category: 'Investing',
+        content: 'Dividend stocks for 2024: My top 5 high-yield picks in Saudi market. Building passive income one stock at a time! 💰 #DividendInvesting',
+        images: [],
+        timestamp: new Date(Date.now() - 16 * 60 * 60 * 1000).toISOString(),
+        relativeTime: '16h ago',
+        url: 'https://x.com/ABU_KHALED2021',
+        source: 'demo'
+    }
+];
+
+// Helper: Clean tweet text
+function cleanTweetText(content) {
+    if (!content) return '';
+    let text = content.replace(/<[^>]+>/g, ' ');
+    text = text.replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, ' ');
+    return text.replace(/\s+/g, ' ').trim();
+}
+
+// Helper: Extract images from tweet content
+function extractTweetImages(content) {
+    if (!content) return [];
+    const images = [];
+    const imgMatches = content.match(/<img[^>]+src="([^"]+)"/gi);
+    if (imgMatches) {
+        imgMatches.forEach(match => {
+            const srcMatch = match.match(/src="([^"]+)"/);
+            if (srcMatch && srcMatch[1]) {
+                let imgUrl = srcMatch[1];
+                if (!imgUrl.includes('profile') && !imgUrl.includes('emoji') && !imgUrl.includes('pic/')) {
+                    if (imgUrl.startsWith('/pic/')) {
+                        const decoded = decodeURIComponent(imgUrl.replace('/pic/', ''));
+                        if (decoded.startsWith('http')) images.push(decoded);
+                    } else if (imgUrl.startsWith('http')) {
+                        images.push(imgUrl);
+                    }
+                }
+            }
+        });
+    }
+    return images;
+}
+
+// Helper: Get relative time
+function getRelativeTime(dateString) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Fetch tweets from Twitter Syndication API (Embed endpoint) - REAL TWEETS
+async function fetchFromSyndication(username) {
+    try {
+        console.log(`📡 Fetching @${username} via Twitter Syndication API...`);
+
+        const axios = require('axios');
+        const cheerio = require('cheerio');
+
+        const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`;
+
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9'
+            },
+            timeout: 15000
+        });
+
+        // Parse the HTML to extract __NEXT_DATA__ JSON
+        const $ = cheerio.load(response.data);
+        const nextDataScript = $('#__NEXT_DATA__').html();
+
+        if (!nextDataScript) {
+            console.log(`❌ No __NEXT_DATA__ found for @${username}`);
+            return null;
+        }
+
+        const data = JSON.parse(nextDataScript);
+        const timeline = data?.props?.pageProps?.timeline;
+
+        if (!timeline || !timeline.entries || timeline.entries.length === 0) {
+            console.log(`❌ No timeline entries for @${username}`);
+            return null;
+        }
+
+        const account = X_COMMUNITY_ACCOUNTS.find(a => a.username.toLowerCase() === username.toLowerCase());
+        const tweets = [];
+
+        for (const entry of timeline.entries) {
+            if (entry.type !== 'tweet') continue;
+
+            const tweet = entry.content?.tweet;
+            if (!tweet) continue;
+
+            // Extract images
+            const images = [];
+            if (tweet.extended_entities?.media) {
+                for (const media of tweet.extended_entities.media) {
+                    if (media.type === 'photo' && media.media_url_https) {
+                        images.push(media.media_url_https);
+                    }
+                }
+            } else if (tweet.entities?.media) {
+                for (const media of tweet.entities.media) {
+                    if (media.type === 'photo' && media.media_url_https) {
+                        images.push(media.media_url_https);
+                    }
+                }
+            }
+
+            // Get tweet text (prefer full_text)
+            const text = tweet.full_text || tweet.text || '';
+
+            // Skip retweets
+            if (text.startsWith('RT @')) continue;
+
+            // Parse the created_at date
+            const createdAt = tweet.created_at ? new Date(tweet.created_at) : new Date();
+
+            tweets.push({
+                id: tweet.id_str || entry.entry_id?.replace('tweet-', '') || `${username}_${Date.now()}`,
+                username: username,
+                displayName: account?.displayName || tweet.user?.name || username,
+                category: account?.category || 'Trading',
+                profileImage: tweet.user?.profile_image_url_https?.replace('_normal', '_400x400') || null,
+                content: text.replace(/https:\/\/t\.co\/\w+$/g, '').trim(), // Remove trailing t.co links
+                images: images,
+                timestamp: createdAt.toISOString(),
+                relativeTime: getRelativeTime(createdAt),
+                url: `https://x.com/${username}/status/${tweet.id_str}`,
+                likes: tweet.favorite_count || 0,
+                retweets: tweet.retweet_count || 0,
+                replies: tweet.reply_count || 0,
+                source: 'syndication'
+            });
+        }
+
+        console.log(`✅ Fetched ${tweets.length} real tweets for @${username}`);
+        return tweets;
+
+    } catch (error) {
+        console.log(`❌ Failed to fetch @${username}: ${error.message}`);
+        return null;
+    }
+}
+
+// Fetch user tweets with caching
+async function fetchXUserTweets(account) {
+    const { username } = account;
+
+    // Check per-user cache
+    const cached = xCommunityCache.perUser[username];
+    if (cached && (Date.now() - cached.timestamp) < X_PER_USER_CACHE_TTL) {
+        return cached.data;
+    }
+
+    // Fetch from Syndication API
+    const tweets = await fetchFromSyndication(username);
+
+    if (tweets && tweets.length > 0) {
+        xCommunityCache.perUser[username] = { data: tweets, timestamp: Date.now() };
+        return tweets;
+    }
+
+    // Return cached data if available (even if stale)
+    if (cached) {
+        return cached.data;
+    }
+
+    return [];
+}
+
+// Fetch all X Community tweets
+async function fetchAllXCommunityTweets() {
+    console.log('🐦 Fetching X Community tweets...');
+    const allTweets = [];
+    const batchSize = 3;
+
+    for (let i = 0; i < X_COMMUNITY_ACCOUNTS.length; i += batchSize) {
+        const batch = X_COMMUNITY_ACCOUNTS.slice(i, i + batchSize);
+        const results = await Promise.allSettled(
+            batch.map(account => fetchXUserTweets(account))
+        );
+
+        results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value) {
+                allTweets.push(...result.value);
+            }
+        });
+
+        if (i + batchSize < X_COMMUNITY_ACCOUNTS.length) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+
+    // If no live tweets fetched, use demo data
+    if (allTweets.length === 0) {
+        console.log('⚠️ No live tweets available, using demo data');
+        // Update demo tweets with fresh relative times
+        const demoWithFreshTimes = DEMO_TWEETS.map((tweet, index) => ({
+            ...tweet,
+            id: `demo_${Date.now()}_${index}`,
+            timestamp: new Date(Date.now() - (index + 1) * 2 * 60 * 60 * 1000).toISOString(),
+            relativeTime: `${(index + 1) * 2}h ago`
+        }));
+        return demoWithFreshTimes;
+    }
+
+    allTweets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    console.log(`✅ Fetched ${allTweets.length} tweets from X Community`);
+    return allTweets;
+}
+
+// X Community API Endpoint
+app.get('/api/x-community', async (req, res) => {
+    const { username, refresh } = req.query;
+    const now = Date.now();
+
+    try {
+        // Single user request
+        if (username) {
+            const account = X_COMMUNITY_ACCOUNTS.find(a =>
+                a.username.toLowerCase() === username.toLowerCase()
+            );
+
+            if (!account) {
+                return res.status(404).json({
+                    error: 'User not found',
+                    availableUsers: X_COMMUNITY_ACCOUNTS.map(a => a.username)
+                });
+            }
+
+            const tweets = await fetchXUserTweets(account);
+            return res.json({
+                success: true,
+                user: account,
+                tweets: tweets,
+                count: tweets.length,
+                cached: false,
+                fetchedAt: new Date().toISOString()
+            });
+        }
+
+        // Full community feed - check cache
+        if (!refresh && xCommunityCache.data && (now - xCommunityCache.timestamp) < X_CACHE_TTL) {
+            return res.json({
+                success: true,
+                tweets: xCommunityCache.data,
+                accounts: X_COMMUNITY_ACCOUNTS,
+                count: xCommunityCache.data.length,
+                cached: true,
+                cacheAge: Math.round((now - xCommunityCache.timestamp) / 1000),
+                fetchedAt: new Date(xCommunityCache.timestamp).toISOString()
+            });
+        }
+
+        // Fetch fresh data
+        const tweets = await fetchAllXCommunityTweets();
+        xCommunityCache.data = tweets;
+        xCommunityCache.timestamp = now;
+
+        res.json({
+            success: true,
+            tweets: tweets,
+            accounts: X_COMMUNITY_ACCOUNTS,
+            count: tweets.length,
+            cached: false,
+            fetchedAt: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ X Community API Error:', error.message);
+
+        if (xCommunityCache.data) {
+            return res.json({
+                success: true,
+                tweets: xCommunityCache.data,
+                accounts: X_COMMUNITY_ACCOUNTS,
+                count: xCommunityCache.data.length,
+                cached: true,
+                stale: true,
+                error: error.message
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            tweets: [],
+            accounts: X_COMMUNITY_ACCOUNTS
+        });
     }
 });
 

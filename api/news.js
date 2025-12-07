@@ -6,6 +6,15 @@ import * as cheerio from 'cheerio';
 // Initialize Yahoo Finance (v3 requirement)
 const yahooFinance = new YahooFinance();
 
+// ============ IN-MEMORY CACHE ============
+// Cache persists across warm function invocations
+const newsCache = {
+    SA: { data: null, timestamp: 0 },
+    EG: { data: null, timestamp: 0 },
+    US: { data: null, timestamp: 0 }
+};
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 // Helper: Fetch with timeout
 async function fetchWithTimeout(url, timeout = 8000) {
     const controller = new AbortController();
@@ -44,68 +53,458 @@ async function translateText(text) {
     return text;
 }
 
-// SCRAPER: Mubasher Direct (same as localhost backend)
+// SCRAPER: Mubasher Direct (English + Arabic with Auto-Translate)
 async function scrapeMubasher(market = 'SA') {
     const articles = [];
-    const url = market === 'SA'
-        ? 'https://english.mubasher.info/markets/TDWL'
+
+    // English URLs (Fixed SA URL)
+    const urlEn = market === 'SA'
+        ? 'https://english.mubasher.info/countries/sa'
         : 'https://english.mubasher.info/countries/eg';
 
+    // Arabic URLs (New Source)
+    const urlAr = market === 'SA'
+        ? 'https://www.mubasher.info/countries/sa'
+        : 'https://www.mubasher.info/countries/eg';
+
     try {
-        console.log(`Scraping Mubasher for ${market}...`);
-        const html = await fetchWithTimeout(url, 10000);
-        const $ = cheerio.load(html);
-        const links = new Set();
+        console.log(`📰 Scraping Mubasher (${market}) - EN & AR...`);
 
-        // Find article links
-        $('a').each((i, el) => {
-            const href = $(el).attr('href');
-            if (href && href.match(/\/news\/\d+\//)) {
-                const fullUrl = href.startsWith('http') ? href : 'https://english.mubasher.info' + href;
-                links.add(fullUrl);
+        // Fetch both EN and AR pages in parallel
+        const [htmlEn, htmlAr] = await Promise.all([
+            fetchWithHeaders(urlEn).catch(() => null),
+            fetchWithHeaders(urlAr).catch(() => null)
+        ]);
+
+        // Process English
+        if (htmlEn) {
+            const $ = cheerio.load(htmlEn);
+            const links = new Set();
+            $('a').each((i, el) => {
+                const href = $(el).attr('href');
+                if (href && href.match(/\/news\/\d+\//)) {
+                    links.add(href.startsWith('http') ? href : 'https://english.mubasher.info' + href);
+                }
+            });
+
+            // Add English articles
+            for (const link of Array.from(links).slice(0, 25)) {
+                articles.push({ link, lang: 'en' });
             }
-        });
+        }
 
-        const uniqueLinks = Array.from(links).slice(0, 8); // Top 8 articles
+        // Process Arabic
+        if (htmlAr) {
+            const $ = cheerio.load(htmlAr);
+            const links = new Set();
+            $('a').each((i, el) => {
+                const href = $(el).attr('href');
+                if (href && href.match(/\/news\/\d+\//)) {
+                    links.add(href.startsWith('http') ? href : 'https://www.mubasher.info' + href);
+                }
+            });
 
-        // Fetch article details in parallel
-        const articlePromises = uniqueLinks.map(async (link) => {
+            // Add Arabic articles (limit 10 to avoid timeouts)
+            for (const link of Array.from(links).slice(0, 10)) {
+                articles.push({ link, lang: 'ar' });
+            }
+        }
+
+        // Fetch details in parallel
+        const processed = await Promise.all(articles.map(async ({ link, lang }) => {
             try {
-                const pageHtml = await fetchWithTimeout(link, 5000);
+                const pageHtml = await fetchWithHeaders(link);
+                if (!pageHtml) return null;
                 const $page = cheerio.load(pageHtml);
 
-                const title = $page('h1').first().text().trim();
+                let title = $page('h1').first().text().trim();
                 let image = $page('meta[property="og:image"]').attr('content') ||
-                    $page('.article-image img').attr('src') ||
-                    $page('article img').first().attr('src');
+                    $page('.article-image img').attr('src');
 
                 if (image && !image.startsWith('http')) {
-                    image = 'https://english.mubasher.info' + image;
+                    const baseUrl = lang === 'en' ? 'https://english.mubasher.info' : 'https://www.mubasher.info';
+                    image = baseUrl + image;
                 }
 
-                const dateStr = $page('time').attr('datetime') || new Date().toISOString();
+                // Translate Arabic title
+                if (lang === 'ar') {
+                    title = await translateToEnglish(title);
+                }
 
                 if (title && title.length > 10) {
                     return {
                         id: link,
                         title: title,
                         publisher: 'Mubasher',
-                        link: link,
-                        time: new Date(dateStr).toISOString(),
+                        link: link, // Link to original (even if Arabic)
+                        time: new Date().toISOString(), // Default to now as fallback
                         thumbnail: image || 'https://placehold.co/600x400/f1f5f9/475569?text=Mubasher'
                     };
                 }
-            } catch (e) {
-                console.log(`Failed to fetch article ${link}: ${e.message}`);
-            }
+            } catch (e) { }
             return null;
-        });
+        }));
 
-        const results = await Promise.all(articlePromises);
-        articles.push(...results.filter(a => a !== null));
+        return processed.filter(a => a !== null);
 
     } catch (e) {
         console.error(`Mubasher scrape failed for ${market}:`, e.message);
+        return [];
+    }
+}
+
+// Helper: Create robust RSS parser with anti-bot headers
+const createParser = () => new Parser({
+    timeout: 15000,
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        'Referer': 'https://www.google.com/',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Upgrade-Insecure-Requests': '1'
+    },
+    customFields: {
+        item: [['media:content', 'media'], ['enclosure', 'enclosure']]
+    }
+});
+
+// Helper: Fetch URL with robust headers (for direct scraping)
+async function fetchWithHeaders(url) {
+    try {
+        const response = await axios.get(url, {
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Referer': 'https://www.google.com/',
+                'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+        });
+        return response.data;
+    } catch (e) {
+        if (e.response && e.response.status === 404) return null;
+        throw e;
+    }
+}
+
+// SCRAPER: Argaam RSS (Direct) - PRIMARY SOURCE FOR SAUDI
+async function scrapeArgaam() {
+    const articles = [];
+    const parser = createParser();
+    const feeds = [
+        'https://www.argaam.com/en/rss/ho-main-news?sectionid=1524', // Main News
+        'https://www.argaam.com/en/rss/ho-main-news?sectionid=24'    // Companies
+    ];
+
+    try {
+        console.log('📰 Scraping Argaam RSS (Deep Scraping)...');
+
+        for (const url of feeds) {
+            try {
+                const feed = await parser.parseURL(url);
+
+                for (const item of feed.items.slice(0, 15)) {
+                    let image = null;
+                    if (item.content) {
+                        const imgMatch = item.content.match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
+                        if (imgMatch) image = imgMatch[1];
+                    }
+                    if (!image && item.media?.url) image = item.media.url;
+                    if (!image && item.enclosure?.url) image = item.enclosure.url;
+
+                    if (!image) {
+                        if (item.title?.toLowerCase().includes('oil')) image = 'https://argaamplus.s3.amazonaws.com/files/images/oil-prices.png';
+                        else if (item.title?.toLowerCase().includes('result')) image = 'https://argaamplus.s3.amazonaws.com/files/images/results.png';
+                    }
+
+                    articles.push({
+                        id: item.link,
+                        title: item.title || '',
+                        publisher: 'Argaam',
+                        link: item.link,
+                        time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                        thumbnail: image || 'https://www.argaam.com/assets/images/argaam-logo.png'
+                    });
+                }
+            } catch (err) { }
+        }
+
+        // Deduplicate
+        const unique = [];
+        const seen = new Set();
+        for (const a of articles) {
+            if (!seen.has(a.id)) {
+                seen.add(a.id);
+                unique.push(a);
+            }
+        }
+
+        console.log(`Argaam: ${unique.length} articles`);
+        return unique.slice(0, 35); // Max 35 articles
+
+    } catch (e) {
+        console.error('Argaam RSS failed:', e.message);
+        return articles;
+    }
+}
+
+// SCRAPER: Amwal Al Ghad RSS (English)
+async function scrapeAmwalAlGhad() {
+    let articles = [];
+    const parser = createParser();
+
+    try {
+        console.log('📰 Scraping Amwal Al Ghad RSS...');
+        const feed = await parser.parseURL('https://en.amwalalghad.com/feed/');
+
+        for (const item of feed.items.slice(0, 10)) {
+            let image = item.enclosure?.url || item.media?.url || null;
+            if (!image && item['media:content']) image = item['media:content'].$?.url;
+
+            articles.push({
+                id: item.link,
+                title: item.title || '',
+                publisher: 'Amwal Al Ghad',
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image || 'https://en.amwalalghad.com/wp-content/themes/amwal/images/logo.png'
+            });
+        }
+    } catch (e) {
+        console.error('Amwal Al Ghad RSS failed:', e.message);
+    }
+
+    // Fallback if blocked/empty
+    if (articles.length === 0) {
+        console.log('⚠️ Amwal blocked, using Bing fallback...');
+        const bing = await fetchBingNews('Amwal Al Ghad Egypt business news', 10);
+        bing.forEach(n => n.publisher = 'Amwal Al Ghad');
+        articles = bing;
+    }
+
+    return articles;
+}
+
+// SCRAPER: Enterprise RSS (English)
+async function scrapeEnterprise() {
+    let articles = [];
+    const parser = createParser();
+
+    try {
+        console.log('📰 Scraping Enterprise RSS...');
+        const feed = await parser.parseURL('https://enterprise.news/feed/');
+
+        for (const item of feed.items.slice(0, 10)) {
+            let image = item.enclosure?.url || item.media?.url || null;
+
+            articles.push({
+                id: item.link,
+                title: item.title || '',
+                publisher: 'Enterprise',
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image || 'https://enterprise.news/wp-content/uploads/2021/01/logo.png'
+            });
+        }
+    } catch (e) {
+        console.error('Enterprise RSS failed:', e.message);
+    }
+
+    // Fallback
+    if (articles.length === 0) {
+        console.log('⚠️ Enterprise blocked, using Bing fallback...');
+        const bing = await fetchBingNews('Enterprise Press Egypt business newsletter', 10);
+        bing.forEach(n => n.publisher = 'Enterprise');
+        articles = bing;
+    }
+
+    return articles;
+}
+
+// SCRAPER: CNBC Arabia RSS (Arabic -> Translate)
+async function scrapeCNBC() {
+    let articles = [];
+    const parser = createParser();
+
+    try {
+        console.log('📰 Scraping CNBC Arabia RSS...');
+        const feed = await parser.parseURL('https://www.cnbcarabia.com/rss');
+
+        for (const item of feed.items.slice(0, 10)) {
+            let title = item.title || '';
+            const link = item.link;
+
+            // Translate title
+            title = await translateToEnglish(title);
+
+            let image = item.enclosure?.url || item.media?.url || null;
+
+            articles.push({
+                id: link,
+                title: title,
+                publisher: 'CNBC',
+                link: link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image || 'https://www.cnbcarabia.com/images/logo.png'
+            });
+        }
+    } catch (e) {
+        console.error('CNBC RSS failed:', e.message);
+    }
+
+    // Fallback
+    if (articles.length === 0) {
+        console.log('⚠️ CNBC blocked, using Bing fallback...');
+        const bing = await fetchBingNews('CNBC Arabia business news', 10);
+        bing.forEach(n => n.publisher = 'CNBC');
+        articles = bing;
+    }
+
+    return articles;
+}
+
+// SCRAPER: Saudi Gazette RSS (English) - Direct
+async function scrapeSaudiGazette() {
+    const articles = [];
+    const parser = createParser();
+    try {
+        console.log('📰 Scraping Saudi Gazette RSS...');
+        const feed = await parser.parseURL('https://saudigazette.com.sa/rssFeed/1');
+        for (const item of feed.items.slice(0, 10)) {
+            let image = item.enclosure?.url || item.media?.url || null;
+            if (!image && item.content) {
+                const imgMatch = item.content.match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
+                if (imgMatch) image = imgMatch[1];
+            }
+            articles.push({
+                id: item.link,
+                title: item.title || '',
+                publisher: 'Saudi Gazette',
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image || 'https://saudigazette.com.sa/assets/images/logo.png'
+            });
+        }
+    } catch (e) {
+        console.error('Saudi Gazette RSS failed:', e.message);
+    }
+    return articles;
+}
+
+// SCRAPER: Investing.com (Arabic -> Translate)
+async function scrapeInvesting(market = 'SA') {
+    const articles = [];
+    const parser = createParser();
+    const url = market === 'SA'
+        ? 'https://sa.investing.com/rss/news_14.rss'
+        : 'https://eg.investing.com/rss/news_14.rss';
+
+    try {
+        console.log(`📰 Scraping Investing.com (${market}) RSS...`);
+        const feed = await parser.parseURL(url);
+
+        for (const item of feed.items.slice(0, 10)) {
+            let title = await translateToEnglish(item.title);
+            let image = item.enclosure?.url || item.media?.url || null;
+            if (!image) image = 'https://i-invdn-com.investing.com/logos/investing-com-logo.png';
+
+            articles.push({
+                id: item.link,
+                title: title,
+                publisher: 'Investing.com',
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image
+            });
+        }
+    } catch (e) {
+        console.error(`Investing.com ${market} RSS failed:`, e.message);
+    }
+    return articles;
+}
+
+// SCRAPER: Daily News Egypt RSS (Direct)
+async function scrapeDailyNewsEgypt() {
+    let articles = [];
+    const parser = createParser();
+
+    try {
+        console.log('📰 Scraping Daily News Egypt RSS...');
+        const feed = await parser.parseURL('https://www.dailynewsegypt.com/feed/');
+
+        for (const item of feed.items.slice(0, 15)) {
+            let image = item.enclosure?.url || item.media?.url || null;
+            if (!image && item['media:content']) {
+                image = item['media:content'].$?.url;
+            }
+
+            articles.push({
+                id: item.link,
+                title: item.title || '',
+                publisher: 'Daily News Egypt',
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image || 'https://dailynewsegypt.com/wp-content/uploads/2019/01/logo.png'
+            });
+        }
+        console.log(`Daily News Egypt: ${articles.length} articles`);
+    } catch (e) {
+        console.error('Daily News Egypt RSS failed:', e.message);
+    }
+
+    // Fallback
+    if (articles.length === 0) {
+        console.log('⚠️ DNE blocked, using Bing fallback...');
+        const bing = await fetchBingNews('Daily News Egypt business', 10);
+        bing.forEach(n => n.publisher = 'Daily News Egypt');
+        articles = bing;
+    }
+
+    return articles;
+}
+
+// SCRAPER: Egypt Today RSS - Direct Source for Egypt
+async function scrapeEgyptToday() {
+    let articles = [];
+    const parser = createParser();
+
+    try {
+        console.log('📰 Scraping Egypt Today RSS...');
+        const feed = await parser.parseURL('https://www.egypttoday.com/RSS/1');
+
+        for (const item of feed.items.slice(0, 15)) {
+            let image = item.enclosure?.url || item.media?.url || null;
+            if (!image && item['media:content']) {
+                image = item['media:content'].$?.url;
+            }
+            // Try to extract from content if available
+            if (!image && item.content) {
+                const imgMatch = item.content.match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
+                if (imgMatch) image = imgMatch[1];
+            }
+
+            articles.push({
+                id: item.link,
+                title: item.title || '',
+                publisher: 'Egypt Today',
+                link: item.link,
+                time: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                thumbnail: image || 'https://www.egypttoday.com/siteimages/Llogo.png'
+            });
+        }
+        console.log(`Egypt Today: ${articles.length} articles`);
+    } catch (e) {
+        console.error('Egypt Today RSS failed:', e.message);
+    }
+
+    // Fallback
+    if (articles.length === 0) {
+        console.log('⚠️ Egypt Today blocked, using Bing fallback...');
+        const bing = await fetchBingNews('Egypt Today business economy', 10);
+        bing.forEach(n => n.publisher = 'Egypt Today');
+        articles = bing;
     }
 
     return articles;
@@ -200,6 +599,109 @@ async function fetchGoogleNews(query, count = 5) {
 }
 
 // Helper: Fetch Bing News RSS
+// Helper: Virtual Scraper (Bing Proxy)
+// Helper: Check if URL has substantial content (Headless "Test Drive")
+async function checkUrlContent(url) {
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3500); // Increased to 3.5s
+
+        // Use Googlebot UA to bypass WAFs (matches api/content.js success)
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            },
+            timeout: 3500,
+            signal: controller.signal
+        });
+        clearTimeout(timeout);
+
+        if (!response.data) return false;
+
+        const $ = cheerio.load(response.data);
+
+        // Strategy: Look for SPECIFIC article containers first
+        // This ensures check matches api/content.js scraping capability
+        const selectors = [
+            '#articleBody', '.article-body', '.td-post-content', '.details-body',
+            '.article-text', '.WYSIWYG.articlePage', '#article', '[data-test-id="post-content"]',
+            '.caas-body', '.news-details', '.ArticleBody', '.story-text',
+            '.story-content', 'article', '.main-content', 'main'
+        ];
+
+        let hasSelector = false;
+        for (const sel of selectors) {
+            if ($(sel).length > 0 && $(sel).text().trim().length > 250) { // Found a substantial container
+                hasSelector = true;
+                break;
+            }
+        }
+
+        if (hasSelector) return true;
+
+        // Fallback: If no specific container, strip noise and check body
+        $('script, style, nav, footer, header').remove();
+        const text = $('body').text().replace(/\s+/g, ' ').trim();
+        return text.length > 600; // Stricter fallback check
+
+    } catch (e) {
+        return false;
+    }
+}
+
+// Helper: Virtual Scraper (Bing Proxy)
+async function scrapeVirtual(publisher, query, count = 10, expectedDomain = null, verifyContent = false, blacklistDomains = null) {
+    try {
+        let news = await fetchBingNews(query, count);
+
+        // Blacklist Filter (Remove known bad aggregators)
+        if (blacklistDomains && blacklistDomains.length > 0) {
+            news = news.filter(n => {
+                try {
+                    const hostname = new URL(n.link).hostname;
+                    // If hostname contains any blacklisted domain, Remove it
+                    return !blacklistDomains.some(bad => hostname.includes(bad));
+                } catch (e) {
+                    return true;
+                }
+            });
+        }
+
+        // 1. Strict Domain Filter (Fast)
+        if (expectedDomain) {
+            news = news.filter(n => {
+                try {
+                    const url = new URL(n.link);
+                    return url.hostname.includes(expectedDomain);
+                } catch (e) {
+                    return false;
+                }
+            });
+        }
+
+        // 2. Content Verification (Slow but Accurate) - "Test Drive"
+        if (verifyContent && news.length > 0) {
+            // Limit to top 5 to prevent timeouts
+            const candidates = news.slice(0, 5);
+
+            // Check all in parallel
+            const results = await Promise.allSettled(candidates.map(n => checkUrlContent(n.link)));
+
+            // Keep only those that passed verification
+            news = candidates.filter((_, index) => {
+                const result = results[index];
+                return result.status === 'fulfilled' && result.value === true;
+            });
+        }
+
+        news.forEach(n => n.publisher = publisher);
+        return news;
+    } catch (e) {
+        return [];
+    }
+}
+
 async function fetchBingNews(query, count = 5) {
     try {
         const parser = new Parser({
@@ -281,68 +783,116 @@ export default async function handler(req, res) {
     }
 
     const { market } = req.query;
+    const cacheKey = market || 'default';
+
+    // ============ CHECK CACHE FIRST ============
+    const cached = newsCache[cacheKey];
+    const now = Date.now();
+
+    if (cached && cached.data && (now - cached.timestamp) < CACHE_TTL) {
+        console.log(`📦 Serving ${cacheKey} from cache (${Math.round((now - cached.timestamp) / 1000)}s old)`);
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+        res.setHeader('X-Cache', 'HIT');
+        return res.status(200).json(cached.data);
+    }
+
+    console.log(`🔄 Fetching fresh news for ${cacheKey}`);
     let allNews = [];
 
     // Blacklist for US/Crypto noise in SA/EG
     const BLACKLIST = ['Benzinga', 'The Telegraph', 'GlobeNewswire', 'PR Newswire', 'Business Wire', 'Zacks', 'Motley Fool'];
 
     try {
-        // **UNIFIED NEWS STRATEGY - ALL REQUIRED SOURCES**
+        // **MULTI-SOURCE NEWS STRATEGY - Using Bing News RSS + Direct Scraping**
+        // Saudi: Mubasher, Argaam, Arab News, Aleqt, Reuters, Bloomberg, Investing.com
         // Egypt: Mubasher, Zawya, Egypt Today, Daily News Egypt, Arab Finance, Investing.com
-        // Saudi: Mubasher, Argaam, Bloomberg, Reuters, Investing.com, Arab News
 
         if (market === 'SA') {
-            // 1. Mubasher scraper (PRIMARY)
-            const mubasherNews = await scrapeMubasher('SA');
+            // Run ALL scrapers in PARALLEL for speed
+            const [
+                mubasherNews, argaamNews, cnbcNews, saudiGazetteNews, investingNews,
+                // maaalNews, eqtisadiahNews, asharqNews, alArabiyaNews, okazNews, 
+                riyadhNews, // Re-enabled
+                ...bingResults
+            ] = await Promise.all([
+                scrapeMubasher('SA'),
+                scrapeArgaam(),
+                scrapeCNBC(),
+                scrapeSaudiGazette(),
+                scrapeInvesting('SA'),
+                // Virtual Scrapers (Bing Proxy)
+                // scrapeVirtual('Maaal', 'Maaal newspaper Saudi finance', 10),
+                // scrapeVirtual('Al Eqtisadiah', 'Al Eqtisadiah Saudi economy', 10),
+                // scrapeVirtual('Asharq Business', 'Asharq Business Saudi economy', 10),
+                // scrapeVirtual('Al Arabiya', 'Al Arabiya Saudi economy business', 10),
+                // scrapeVirtual('Okaz', 'Okaz Saudi economy', 10),
+                scrapeVirtual('Al Riyadh', 'Al Riyadh Saudi business', 10, null, false, ['reuters.com', 'bloomberg.com', 'brecorder.com', 'msn.com', 'yahoo.com']),
+                // Fallbacks (Blacklist all unscrapable domains)
+                scrapeVirtual('Arab News', 'Arab News Saudi business', 10, null, false, ['reuters.com', 'bloomberg.com', 'msn.com', 'yahoo.com']),
+                scrapeVirtual('Aleqt', 'Aleqt Saudi economy', 10, null, false, ['reuters.com', 'bloomberg.com', 'msn.com', 'yahoo.com']),
+                scrapeVirtual('Reuters', 'Reuters Saudi Arabia business news', 10, null, false, ['reuters.com', 'bloomberg.com', 'brecorder.com', 'msn.com', 'yahoo.com']),
+                scrapeVirtual('Bloomberg', 'Bloomberg Saudi Arabia economy', 10, null, false, ['bloomberg.com', 'reuters.com', 'msn.com', 'yahoo.com'])
+            ]);
+
             allNews.push(...mubasherNews);
+            allNews.push(...argaamNews);
+            allNews.push(...cnbcNews);
+            allNews.push(...saudiGazetteNews);
+            allNews.push(...investingNews);
+            // allNews.push(...maaalNews);
+            // allNews.push(...eqtisadiahNews);
+            // allNews.push(...asharqNews);
+            // allNews.push(...alArabiyaNews);
+            // allNews.push(...okazNews);
+            allNews.push(...riyadhNews);
 
-            // 2. Google News (High Volume)
-            const googleQueries = [
-                'site:argaam.com',
-                'site:english.mubasher.info Saudi',
-                'site:reuters.com Saudi',
-                'site:bloomberg.com Saudi',
-                'site:arabnews.com stock',
-                'site:investing.com Saudi'
-            ];
-            for (const query of googleQueries) {
-                const news = await fetchGoogleNews(query, 5);
+            const publishers = ['Arab News', 'Aleqt', 'Reuters', 'Bloomberg'];
+            bingResults.forEach((news, i) => {
+                // Publisher is already set by scrapeVirtual, but we keep this for safety or remove it
+                // scrapeVirtual already sets the publisher.
+                // However, the current destructuring puts them into 'bingResults' array.
+                // 'bingResults' is an array of arrays.
+                // The current logic iterates bingResults and overrides publisher.
+                // Since scrapeVirtual sets it, this override is redundant but harmless IF the order matches.
+                // Order: Arab News, Aleqt, Reuters, Bloomberg.
+                // Variable 'publishers' matches this order.
+                // So it's safe to leave as is, or better yet, verify 'scrapeVirtual' sets it correctly.
+                // scrapeVirtual sets n.publisher = publisher.
+                // So we can remove the manual override loop if we want, but keeping it is safer for legacy structure.
+                news.forEach(n => n.publisher = publishers[i]);
                 allNews.push(...news);
-            }
-
-            // 3. Bing News (Strict - Approved Sources Only)
-            // Fallback: Query explicitly allowed domains to avoid pollution
-            const strictBingQuery = '(site:english.mubasher.info OR site:argaam.com OR site:bloomberg.com OR site:reuters.com OR site:investing.com OR site:arabnews.com) Saudi stock';
-            try {
-                const news = await fetchBingNews(strictBingQuery, 5);
-                allNews.push(...news);
-            } catch (e) { }
+            });
 
         } else if (market === 'EG') {
-            // 1. Mubasher scraper (Direct)
-            const mubasherNews = await scrapeMubasher('EG');
+            // Run ALL scrapers in PARALLEL for speed
+            const [
+                mubasherNews, egyptTodayNews, amwalNews, enterpriseNews, investingNews,
+                ...bingResults
+            ] = await Promise.all([
+                scrapeMubasher('EG'),
+                // scrapeDailyNewsEgypt(),
+                scrapeEgyptToday(),
+                scrapeAmwalAlGhad(),
+                scrapeEnterprise(),
+                scrapeInvesting('EG'),
+                // Virtual Scrapers for EG (with blacklist)
+                scrapeVirtual('Al Borsa', 'Al Borsa Egypt stock market economy', 10, null, false, ['reuters.com', 'bloomberg.com', 'msn.com', 'yahoo.com']),
+                scrapeVirtual('Ahram Online', 'Al Ahram Egypt business economy news', 10, null, false, ['reuters.com', 'bloomberg.com', 'msn.com', 'yahoo.com']),
+                scrapeVirtual('Zawya', 'Zawya Egypt business news stock', 10, null, false, ['reuters.com', 'bloomberg.com', 'msn.com', 'yahoo.com']),
+                scrapeVirtual('Arab Finance', 'Arab Finance Egypt stock market economy', 10, null, false, ['reuters.com', 'bloomberg.com', 'msn.com', 'yahoo.com'])
+            ]);
+
             allNews.push(...mubasherNews);
+            allNews.push(...egyptTodayNews);
+            allNews.push(...amwalNews);
+            allNews.push(...enterpriseNews);
+            allNews.push(...investingNews);
 
-            // 2. Google News (High Volume)
-            const googleQueries = [
-                'site:english.mubasher.info Egypt',
-                'site:zawya.com Egypt',
-                'site:egypttoday.com',
-                'site:dailynewsegypt.com',
-                'site:arabfinance.com',
-                'site:investing.com Egypt'
-            ];
-            for (const query of googleQueries) {
-                const news = await fetchGoogleNews(query, 5);
+            const publishers = ['Al Borsa', 'Ahram Online', 'Zawya', 'Arab Finance'];
+            bingResults.forEach((news, i) => {
+                news.forEach(n => n.publisher = publishers[i]);
                 allNews.push(...news);
-            }
-
-            // 3. Bing News (Strict - Approved Sources Only)
-            const strictBingQuery = '(site:english.mubasher.info OR site:zawya.com OR site:egypttoday.com OR site:dailynewsegypt.com OR site:arabfinance.com OR site:investing.com) Egypt';
-            try {
-                const news = await fetchBingNews(strictBingQuery, 5);
-                allNews.push(...news);
-            } catch (e) { }
+            });
 
         } else if (market === 'US') {
             // Yahoo Finance (PRIMARY for US)
@@ -359,35 +909,123 @@ export default async function handler(req, res) {
             allNews.push(...yahooNews);
         }
 
-        // Deduplicate and Filter
+        // Deduplicate and Filter Whitelist
         const seen = new Set();
+        const seenImages = new Set();
+
+        // STRICT WHITELIST
+        const ALLOWED_SOURCES_SA = ['Mubasher', 'معلومات مباشر', 'Argaam', 'ارقام', 'Reuters', 'Bloomberg', 'Arab News', 'Investing.com', 'aleqt', 's2.aleqt.com', 'الاقتصادية', 'aleq.com', 'Maaal', 'Al Eqtisadiah', 'Asharq', 'Al Arabiya', 'Okaz', 'Al Riyadh'];
+        const ALLOWED_SOURCES_EG = ['Mubasher', 'معلومات مباشر', 'Zawya', 'Egypt Today', 'Daily News Egypt', 'Dailynewsegypt', 'Arab Finance', 'ArabFinance', 'Investing.com', 'Al Borsa', 'Hapi Journal', 'Ahram', 'Al Mal', 'Sky News', 'Shorouk'];
+
+        // Helper: Check if text contains Arabic
+        const containsArabic = (text) => /[\u0600-\u06FF]/.test(text);
+
         const uniqueNews = allNews.filter(item => {
             if (!item || !item.title) return false;
 
-            // Strict Filter for EG/SA (Case Insensitive)
-            if ((market === 'SA' || market === 'EG')) {
+            // Strict Whitelist for EG/SA
+            if (market === 'SA') {
                 const pub = (item.publisher || '').toLowerCase();
-                const blacklistLower = BLACKLIST.map(b => b.toLowerCase());
-                if (blacklistLower.some(b => pub.includes(b))) return false;
+                const allowed = ALLOWED_SOURCES_SA.some(src => pub.includes(src) || pub.toLowerCase().includes(src.toLowerCase()));
+                if (!allowed) return false;
+            } else if (market === 'EG') {
+                const pub = (item.publisher || '').toLowerCase();
+                const allowed = ALLOWED_SOURCES_EG.some(src => pub.includes(src) || pub.toLowerCase().includes(src.toLowerCase()));
+                if (!allowed) return false;
             }
 
+            // Deduplicate by title (first 50 chars, case-insensitive)
             const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
             if (seen.has(cleanTitle)) return false;
             seen.add(cleanTitle);
+
+            // Deduplicate images
+            if (item.thumbnail && !item.thumbnail.includes('placehold')) {
+                const imgKey = item.thumbnail.split('?')[0];
+                if (seenImages.has(imgKey)) {
+                    item.thumbnail = null; // Remove duplicate image but keep article
+                } else {
+                    seenImages.add(imgKey);
+                }
+            }
+
             return true;
         });
 
-        // Add placeholder images where missing
-        const finalNews = uniqueNews.map(item => ({
-            ...item,
-            thumbnail: item.thumbnail || 'https://placehold.co/600x400/f1f5f9/475569?text=News'
-        }));
+        // Normalize publisher names (Arabic -> English, variations -> standard)
+        const normalizePublisher = (pub) => {
+            if (!pub) return 'News';
+            const p = pub.toLowerCase();
+            if (p.includes('ارقام') || p.includes('argaam')) return 'Argaam';
+            if (p.includes('معلومات مباشر') || p.includes('mubasher')) return 'Mubasher';
+            if (p.includes('الاقتصادية') || p.includes('aleqt') || p.includes('s2.aleqt')) return 'Aleqt';
+            if (p.includes('dailynewsegypt')) return 'Daily News Egypt';
+            if (p.includes('arabfinance')) return 'Arab Finance';
+            if (p.includes('bloomberg')) return 'Bloomberg';
+            return pub;
+        };
+
+        // Translate Arabic titles to English
+        const translateTitle = async (text) => {
+            if (!text || !containsArabic(text)) return text;
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+                const response = await axios.get(url, { timeout: 3000 });
+                if (response.data && response.data[0]) {
+                    return response.data[0].map(s => s[0]).join('');
+                }
+            } catch (e) { }
+            return text;
+        };
+
+        // Process and normalize all items
+        const processedNews = [];
+        for (const item of uniqueNews) {
+            const normalized = {
+                ...item,
+                publisher: normalizePublisher(item.publisher),
+                title: containsArabic(item.title) ? await translateTitle(item.title) : item.title,
+                thumbnail: item.thumbnail // Keep original for validation
+            };
+            processedNews.push(normalized);
+        }
+
+        // Helper: Get smart placeholder based on publisher
+        const getPlaceholderImage = (publisher) => {
+            const p = (publisher || '').toLowerCase();
+            if (p.includes('mubasher')) return 'https://placehold.co/600x400/0056b3/ffffff?text=Mubasher+News';
+            if (p.includes('argaam')) return 'https://placehold.co/600x400/ff6600/ffffff?text=Argaam';
+            if (p.includes('maaal')) return 'https://placehold.co/600x400/2c3e50/ffffff?text=Maaal';
+            if (p.includes('eqtisadiah')) return 'https://placehold.co/600x400/4a6fb5/ffffff?text=Al+Eqtisadiah';
+            if (p.includes('borsa')) return 'https://placehold.co/600x400/27ae60/ffffff?text=Al+Borsa';
+            if (p.includes('asharq')) return 'https://placehold.co/600x400/523d87/ffffff?text=Asharq+Business';
+            if (p.includes('reuters')) return 'https://placehold.co/600x400/ff8000/ffffff?text=Reuters';
+            if (p.includes('bloomberg')) return 'https://placehold.co/600x400/000000/ffffff?text=Bloomberg';
+            return 'https://placehold.co/600x400/f1f5f9/475569?text=Market+News';
+        };
+
+        const validatedNews = processedNews.filter(item => {
+            // Must have valid title (non-empty, min length)
+            if (!item.title || item.title.length < 10) return false;
+
+            // Must have valid link
+            if (!item.link || item.link === '#') return false;
+
+            // HYBRID STRATEGY: If no image, assign smart placeholder
+            if (!item.thumbnail || item.thumbnail.includes('placehold.co') || item.thumbnail.includes('error')) {
+                item.thumbnail = getPlaceholderImage(item.publisher);
+            }
+
+            return true;
+        });
+
+        console.log(`📰 Validated ${validatedNews.length}/${processedNews.length} articles`);
 
         // Sort by time (newest first)
-        finalNews.sort((a, b) => new Date(b.time) - new Date(a.time));
+        validatedNews.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         // Return fallback if empty
-        if (finalNews.length === 0) {
+        if (validatedNews.length === 0) {
             return res.status(200).json([{
                 id: 'fallback',
                 title: 'Market News Currently Unavailable',
@@ -398,8 +1036,16 @@ export default async function handler(req, res) {
             }]);
         }
 
-        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
-        res.status(200).json(finalNews.slice(0, 40));
+        // ============ UPDATE CACHE ============
+        const finalNews = validatedNews.slice(0, 50);
+        if (newsCache[cacheKey]) {
+            newsCache[cacheKey] = { data: finalNews, timestamp: Date.now() };
+            console.log(`💾 Cached ${finalNews.length} articles for ${cacheKey}`);
+        }
+
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+        res.setHeader('X-Cache', 'MISS');
+        res.status(200).json(finalNews);
 
     } catch (e) {
         console.error("News API Error:", e);

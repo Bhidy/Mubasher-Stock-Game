@@ -1,5 +1,17 @@
 {
+    "functions": {
+        "api/news.js": {
+            "maxDuration": 30
+        },
+        "api/x-community.js": {
+            "maxDuration": 30
+        }
+    },
     "rewrites": [
+        {
+            "source": "/api/x-community",
+            "destination": "/api/x-community.js"
+        },
         {
             "source": "/api/stocks",
             "destination": "/api/stocks.js"

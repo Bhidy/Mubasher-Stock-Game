@@ -80,7 +80,24 @@ const extractWithCheerio = (html) => {
     return content;
 };
 
-// Helper: Use a free public Reader API (12ft.io bypass or Outline.com style)
+// Helper: Translate Arabic content to English
+const translateArabic = async (content) => {
+    if (!content || !/[\u0600-\u06FF]/.test(content)) return content;
+
+    try {
+        const plainText = content.replace(/<[^>]+>/g, '\n').trim();
+        const translateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(plainText.substring(0, 4000))}`;
+        const translateRes = await axios.get(translateUrl, { timeout: 5000 });
+        if (translateRes.data && translateRes.data[0]) {
+            const translatedText = translateRes.data[0].map(s => s[0]).join('');
+            const paragraphs = translatedText.split('\n').filter(p => p.trim().length > 20);
+            return paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+        }
+    } catch (e) {
+        console.log('Translation failed, keeping original');
+    }
+    return content;
+};
 const tryReaderService = async (url) => {
     try {
         // Use the free 12ft.io service to bypass soft paywalls and get text
@@ -147,6 +164,11 @@ export default async function handler(req, res) {
             if (readerContent.length > content.length) {
                 content = readerContent;
             }
+        }
+
+        // --- Strategy 2.5: Translate Arabic content to English ---
+        if (content && content.length > 100) {
+            content = await translateArabic(content);
         }
 
         // --- Strategy 3: If still nothing, provide a graceful fallback ---

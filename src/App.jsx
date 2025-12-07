@@ -22,6 +22,7 @@ import ClanDetail from './screens/ClanDetail';
 import MarketSummary from './screens/MarketSummary';
 import NewsArticle from './screens/NewsArticle';
 import NewsFeed from './screens/NewsFeed';
+import XCommunity from './screens/XCommunity';
 
 import profileImg from './assets/profile.jpg';
 
@@ -69,6 +70,7 @@ export default function App() {
               <Route path="/market" element={<MarketSummary />} />
               <Route path="/news" element={<NewsArticle />} />
               <Route path="/news-feed" element={<NewsFeed />} />
+              <Route path="/x-community" element={<XCommunity />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
