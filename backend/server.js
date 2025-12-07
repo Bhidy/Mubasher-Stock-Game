@@ -478,9 +478,11 @@ async function fetchNewsForMarket(market) {
     const filteredNews = allNews.filter(item => {
         if (!item || !item.title) return false;
 
-        // Strict Filter for EG/SA
-        if ((market === 'SA' || market === 'EG') && BLACKLIST.some(b => item.publisher && item.publisher.includes(b))) {
-            return false;
+        // Strict Filter for EG/SA (Case Insensitive)
+        if ((market === 'SA' || market === 'EG')) {
+            const pub = (item.publisher || '').toLowerCase();
+            const blacklistLower = BLACKLIST.map(b => b.toLowerCase());
+            if (blacklistLower.some(b => pub.includes(b))) return false;
         }
 
         const cleanTitle = item.title.trim().toLowerCase().substring(0, 50);
