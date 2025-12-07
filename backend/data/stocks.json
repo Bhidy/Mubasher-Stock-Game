@@ -5,25 +5,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 24.42,
-    "price": 24.42,
-    "regularMarketChange": -0.10000038,
-    "change": -0.10000038,
-    "regularMarketChangePercent": -0.40783188,
-    "changePercent": -0.40783188,
-    "regularMarketTime": "2025-12-07T11:33:04.000Z",
+    "regularMarketPrice": 24.41,
+    "price": 24.41,
+    "regularMarketChange": -0.11000061,
+    "change": -0.11000061,
+    "regularMarketChangePercent": -0.44861585,
+    "changePercent": -0.44861585,
+    "regularMarketTime": "2025-12-07T11:36:08.000Z",
     "prevClose": 24.52,
     "high": 24.61,
     "low": 24.4,
-    "volume": 2280521,
+    "volume": 2304828,
     "open": 24.52,
     "fiftyTwoWeekHigh": 29,
     "fiftyTwoWeekLow": 23.04,
-    "marketCap": 5906091737088,
-    "peRatio": 16.172186,
+    "marketCap": 5903673196544,
+    "peRatio": 16.165564,
     "eps": 1.51,
     "dividendYield": 0.054037523,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1120.SR",
@@ -31,25 +31,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 96.1,
-    "price": 96.1,
-    "regularMarketChange": 0.099998474,
-    "change": 0.099998474,
-    "regularMarketChangePercent": 0.10416508,
-    "changePercent": 0.10416508,
-    "regularMarketTime": "2025-12-07T11:32:50.000Z",
+    "regularMarketPrice": 96.2,
+    "price": 96.2,
+    "regularMarketChange": 0.19999695,
+    "change": 0.19999695,
+    "regularMarketChangePercent": 0.20833015,
+    "changePercent": 0.20833015,
+    "regularMarketTime": "2025-12-07T11:36:05.000Z",
     "prevClose": 96,
     "high": 96.5,
     "low": 95.9,
-    "volume": 811318,
+    "volume": 819346,
     "open": 96,
     "fiftyTwoWeekHigh": 110,
     "fiftyTwoWeekLow": 87.8,
-    "marketCap": 384399998976,
-    "peRatio": 17.069271,
+    "marketCap": 384799997952,
+    "peRatio": 17.087032,
     "eps": 5.63,
     "dividendYield": 0.023020834,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2010.SR",
@@ -57,24 +57,24 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 54.85,
-    "price": 54.85,
-    "regularMarketChange": -0.10000229,
-    "change": -0.10000229,
-    "regularMarketChangePercent": -0.18198778,
-    "changePercent": -0.18198778,
-    "regularMarketTime": "2025-12-07T11:33:07.000Z",
+    "regularMarketPrice": 54.8,
+    "price": 54.8,
+    "regularMarketChange": -0.15000153,
+    "change": -0.15000153,
+    "regularMarketChangePercent": -0.27297822,
+    "changePercent": -0.27297822,
+    "regularMarketTime": "2025-12-07T11:36:01.000Z",
     "prevClose": 54.95,
     "high": 55.35,
     "low": 54.7,
-    "volume": 288758,
+    "volume": 289414,
     "open": 54.95,
     "fiftyTwoWeekHigh": 70.6,
     "fiftyTwoWeekLow": 53,
-    "marketCap": 164550000640,
+    "marketCap": 164400005120,
     "eps": -2.23,
     "dividendYield": 0.05823476,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "7010.SR",
@@ -82,25 +82,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 42.14,
-    "price": 42.14,
-    "regularMarketChange": -0.1800003,
-    "change": -0.1800003,
-    "regularMarketChangePercent": -0.42533153,
-    "changePercent": -0.42533153,
-    "regularMarketTime": "2025-12-07T11:33:11.000Z",
+    "regularMarketPrice": 42.12,
+    "price": 42.12,
+    "regularMarketChange": -0.20000076,
+    "change": -0.20000076,
+    "regularMarketChangePercent": -0.4725916,
+    "changePercent": -0.4725916,
+    "regularMarketTime": "2025-12-07T11:36:14.000Z",
     "prevClose": 42.32,
     "high": 42.48,
     "low": 42.08,
-    "volume": 2417258,
+    "volume": 2424549,
     "open": 42.36,
     "fiftyTwoWeekHigh": 48.3,
     "fiftyTwoWeekLow": 39.8,
-    "marketCap": 210269913088,
-    "peRatio": 17.855932,
+    "marketCap": 210170101760,
+    "peRatio": 17.847458,
     "eps": 2.36,
     "dividendYield": 0.05198488,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2082.SR",
@@ -108,25 +108,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 192.1,
-    "price": 192.1,
-    "regularMarketChange": 0.1000061,
-    "change": 0.1000061,
-    "regularMarketChangePercent": 0.052086513,
-    "changePercent": 0.052086513,
-    "regularMarketTime": "2025-12-07T11:33:01.000Z",
+    "regularMarketPrice": 192,
+    "price": 192,
+    "regularMarketChange": 0,
+    "change": 0,
+    "regularMarketChangePercent": 0,
+    "changePercent": 0,
+    "regularMarketTime": "2025-12-07T11:36:06.000Z",
     "prevClose": 192,
     "high": 193.5,
     "low": 191.1,
-    "volume": 90711,
+    "volume": 90863,
     "open": 192,
     "fiftyTwoWeekHigh": 438.8,
     "fiftyTwoWeekLow": 186.2,
-    "marketCap": 147167690752,
-    "peRatio": 80.041664,
+    "marketCap": 147091062784,
+    "peRatio": 80,
     "eps": 2.4,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1180.SR",
@@ -134,25 +134,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 37.12,
-    "price": 37.12,
-    "regularMarketChange": -0.10000229,
-    "change": -0.10000229,
-    "regularMarketChangePercent": -0.2686789,
-    "changePercent": -0.2686789,
-    "regularMarketTime": "2025-12-07T11:31:59.000Z",
+    "regularMarketPrice": 37.08,
+    "price": 37.08,
+    "regularMarketChange": -0.13999939,
+    "change": -0.13999939,
+    "regularMarketChangePercent": -0.3761402,
+    "changePercent": -0.3761402,
+    "regularMarketTime": "2025-12-07T11:35:52.000Z",
     "prevClose": 37.22,
     "high": 37.4,
-    "low": 37.1,
-    "volume": 2999017,
+    "low": 37.06,
+    "volume": 3011344,
     "open": 37.38,
     "fiftyTwoWeekHigh": 41,
     "fiftyTwoWeekLow": 31.55,
-    "marketCap": 220641280000,
-    "peRatio": 9.517948,
+    "marketCap": 220403531776,
+    "peRatio": 9.507692,
     "eps": 3.9,
     "dividendYield": 0.05373455,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2380.SR",
@@ -160,24 +160,24 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 7.32,
-    "price": 7.32,
-    "regularMarketChange": 0.07000017,
-    "change": 0.07000017,
-    "regularMarketChangePercent": 0.9655196,
-    "changePercent": 0.9655196,
-    "regularMarketTime": "2025-12-07T11:31:27.000Z",
+    "regularMarketPrice": 7.33,
+    "price": 7.33,
+    "regularMarketChange": 0.07999992,
+    "change": 0.07999992,
+    "regularMarketChangePercent": 1.1034472,
+    "changePercent": 1.1034472,
+    "regularMarketTime": "2025-12-07T11:33:16.000Z",
     "prevClose": 7.25,
     "high": 7.45,
     "low": 7.26,
-    "volume": 943475,
+    "volume": 943675,
     "open": 7.34,
     "fiftyTwoWeekHigh": 9.48,
     "fiftyTwoWeekLow": 6.26,
-    "marketCap": 16084712448,
+    "marketCap": 16106685440,
     "eps": -2.44,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4030.SR",
@@ -191,11 +191,11 @@
     "change": 0.15999985,
     "regularMarketChangePercent": 0.54237235,
     "changePercent": 0.54237235,
-    "regularMarketTime": "2025-12-07T11:32:31.000Z",
+    "regularMarketTime": "2025-12-07T11:36:13.000Z",
     "prevClose": 29.5,
     "high": 29.98,
     "low": 29.02,
-    "volume": 105743,
+    "volume": 108020,
     "open": 29.62,
     "fiftyTwoWeekHigh": 32.5,
     "fiftyTwoWeekLow": 20.64,
@@ -203,7 +203,7 @@
     "peRatio": 14.191388,
     "eps": 2.09,
     "dividendYield": 0.027118644,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2350.SR",
@@ -217,18 +217,18 @@
     "change": -0.03999996,
     "regularMarketChangePercent": -0.76190406,
     "changePercent": -0.76190406,
-    "regularMarketTime": "2025-12-07T11:33:09.000Z",
+    "regularMarketTime": "2025-12-07T11:35:55.000Z",
     "prevClose": 5.25,
     "high": 5.32,
     "low": 5.2,
-    "volume": 1296093,
+    "volume": 1307844,
     "open": 5.21,
     "fiftyTwoWeekHigh": 7.15,
     "fiftyTwoWeekLow": 4.46,
     "marketCap": 7815000064,
     "eps": -1.52,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4200.SR",
@@ -242,11 +242,11 @@
     "change": 0.5,
     "regularMarketChangePercent": 0.38910505,
     "changePercent": 0.38910505,
-    "regularMarketTime": "2025-12-07T11:33:05.000Z",
+    "regularMarketTime": "2025-12-07T11:35:36.000Z",
     "prevClose": 128.5,
     "high": 130,
     "low": 128.5,
-    "volume": 120150,
+    "volume": 120260,
     "open": 128.6,
     "fiftyTwoWeekHigh": 154.4,
     "fiftyTwoWeekLow": 109.6,
@@ -254,7 +254,7 @@
     "peRatio": 31.54034,
     "eps": 4.09,
     "dividendYield": 0.0116731515,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1211.SR",
@@ -268,11 +268,11 @@
     "change": -0.6499977,
     "regularMarketChangePercent": -1.0915159,
     "changePercent": -1.0915159,
-    "regularMarketTime": "2025-12-07T11:33:07.000Z",
+    "regularMarketTime": "2025-12-07T11:36:11.000Z",
     "prevClose": 59.55,
     "high": 60,
     "low": 58.8,
-    "volume": 377503,
+    "volume": 378577,
     "open": 60,
     "fiftyTwoWeekHigh": 68.45,
     "fiftyTwoWeekLow": 37.85,
@@ -280,7 +280,7 @@
     "peRatio": 38.246754,
     "eps": 1.54,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4001.SR",
@@ -288,25 +288,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 6.55,
-    "price": 6.55,
-    "regularMarketChange": -0.059999943,
-    "change": -0.059999943,
-    "regularMarketChangePercent": -0.9077147,
-    "changePercent": -0.9077147,
-    "regularMarketTime": "2025-12-07T11:32:53.000Z",
+    "regularMarketPrice": 6.56,
+    "price": 6.56,
+    "regularMarketChange": -0.05000019,
+    "change": -0.05000019,
+    "regularMarketChangePercent": -0.75643253,
+    "changePercent": -0.75643253,
+    "regularMarketTime": "2025-12-07T11:35:52.000Z",
     "prevClose": 6.61,
     "high": 6.64,
     "low": 6.5,
-    "volume": 1131555,
+    "volume": 1134938,
     "open": 6.61,
     "fiftyTwoWeekHigh": 11.02,
     "fiftyTwoWeekLow": 6.5,
-    "marketCap": 5895000064,
-    "peRatio": 13.936171,
+    "marketCap": 5904000000,
+    "peRatio": 13.957447,
     "eps": 0.47,
     "dividendYield": 0.06202723,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2310.SR",
@@ -314,24 +314,24 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 15.8,
-    "price": 15.8,
-    "regularMarketChange": -0.10999966,
-    "change": -0.10999966,
-    "regularMarketChangePercent": -0.69138694,
-    "changePercent": -0.69138694,
-    "regularMarketTime": "2025-12-07T11:33:05.000Z",
+    "regularMarketPrice": 15.84,
+    "price": 15.84,
+    "regularMarketChange": -0.069999695,
+    "change": -0.069999695,
+    "regularMarketChangePercent": -0.43997294,
+    "changePercent": -0.43997294,
+    "regularMarketTime": "2025-12-07T11:36:06.000Z",
     "prevClose": 15.91,
     "high": 15.99,
     "low": 15.79,
-    "volume": 1275685,
+    "volume": 1278538,
     "open": 15.93,
     "fiftyTwoWeekHigh": 25.7,
     "fiftyTwoWeekLow": 15.79,
-    "marketCap": 11586666496,
+    "marketCap": 11616000000,
     "eps": -0.58,
     "dividendYield": 0.06285355,
-    "lastUpdated": "2025-12-07T11:48:26.353Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4003.SR",
@@ -339,25 +339,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 88.2,
-    "price": 88.2,
-    "regularMarketChange": -0.3500061,
-    "change": -0.3500061,
-    "regularMarketChangePercent": -0.3952638,
-    "changePercent": -0.3952638,
-    "regularMarketTime": "2025-12-07T11:31:45.000Z",
+    "regularMarketPrice": 88.25,
+    "price": 88.25,
+    "regularMarketChange": -0.30000305,
+    "change": -0.30000305,
+    "regularMarketChangePercent": -0.33879507,
+    "changePercent": -0.33879507,
+    "regularMarketTime": "2025-12-07T11:35:28.000Z",
     "prevClose": 88.55,
     "high": 88.7,
     "low": 87.95,
-    "volume": 47144,
+    "volume": 47165,
     "open": 88.55,
     "fiftyTwoWeekHigh": 100,
     "fiftyTwoWeekLow": 83.4,
-    "marketCap": 6687877120,
-    "peRatio": 13.933649,
+    "marketCap": 6691668480,
+    "peRatio": 13.941548,
     "eps": 6.33,
     "dividendYield": 0.05646527,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2050.SR",
@@ -371,11 +371,11 @@
     "change": -0.27999878,
     "regularMarketChangePercent": -1.1522584,
     "changePercent": -1.1522584,
-    "regularMarketTime": "2025-12-07T11:33:05.000Z",
+    "regularMarketTime": "2025-12-07T11:33:52.000Z",
     "prevClose": 24.3,
     "high": 24.34,
     "low": 23.99,
-    "volume": 407577,
+    "volume": 407701,
     "open": 24.2,
     "fiftyTwoWeekHigh": 40.6,
     "fiftyTwoWeekLow": 22.52,
@@ -383,7 +383,7 @@
     "peRatio": 2.03732,
     "eps": 11.79,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1150.SR",
@@ -391,25 +391,25 @@
     "category": "SA",
     "country": "🇸🇦",
     "sector": null,
-    "regularMarketPrice": 24.33,
-    "price": 24.33,
-    "regularMarketChange": 0.010000229,
-    "change": 0.010000229,
-    "regularMarketChangePercent": 0.041119363,
-    "changePercent": 0.041119363,
-    "regularMarketTime": "2025-12-07T11:33:05.000Z",
+    "regularMarketPrice": 24.32,
+    "price": 24.32,
+    "regularMarketChange": 0,
+    "change": 0,
+    "regularMarketChangePercent": 0,
+    "changePercent": 0,
+    "regularMarketTime": "2025-12-07T11:36:06.000Z",
     "prevClose": 24.32,
     "high": 24.41,
     "low": 24.26,
-    "volume": 1867520,
+    "volume": 1870303,
     "open": 24.32,
     "fiftyTwoWeekHigh": 31.3,
     "fiftyTwoWeekLow": 23.94,
-    "marketCap": 60437606400,
-    "peRatio": 10.487069,
+    "marketCap": 60412764160,
+    "peRatio": 10.4827585,
     "eps": 2.32,
     "dividendYield": 0.049342107,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4190.SR",
@@ -417,25 +417,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 12.57,
-    "price": 12.57,
-    "regularMarketChange": -0.22000027,
-    "change": -0.22000027,
-    "regularMarketChangePercent": -1.7200959,
-    "changePercent": -1.7200959,
-    "regularMarketTime": "2025-12-07T11:32:55.000Z",
+    "regularMarketPrice": 12.58,
+    "price": 12.58,
+    "regularMarketChange": -0.21000004,
+    "change": -0.21000004,
+    "regularMarketChangePercent": -1.641908,
+    "changePercent": -1.641908,
+    "regularMarketTime": "2025-12-07T11:36:10.000Z",
     "prevClose": 12.79,
     "high": 12.78,
     "low": 12.54,
-    "volume": 662704,
+    "volume": 667382,
     "open": 12.78,
     "fiftyTwoWeekHigh": 14.56,
     "fiftyTwoWeekLow": 12,
-    "marketCap": 15083999232,
-    "peRatio": 14.788235,
+    "marketCap": 15095999488,
+    "peRatio": 14.799999,
     "eps": 0.85,
     "dividendYield": 0.0179828,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2290.SR",
@@ -449,11 +449,11 @@
     "change": -0.15999985,
     "regularMarketChangePercent": -0.52596927,
     "changePercent": -0.52596927,
-    "regularMarketTime": "2025-12-07T11:31:48.000Z",
+    "regularMarketTime": "2025-12-07T11:34:29.000Z",
     "prevClose": 30.42,
     "high": 30.6,
     "low": 30.14,
-    "volume": 195282,
+    "volume": 196656,
     "open": 30.42,
     "fiftyTwoWeekHigh": 39.05,
     "fiftyTwoWeekLow": 28.25,
@@ -461,7 +461,7 @@
     "peRatio": 168.1111,
     "eps": 0.18,
     "dividendYield": 0.06574622,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4002.SR",
@@ -469,25 +469,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 70.15,
-    "price": 70.15,
-    "regularMarketChange": -0.099998474,
-    "change": -0.099998474,
-    "regularMarketChangePercent": -0.14234658,
-    "changePercent": -0.14234658,
-    "regularMarketTime": "2025-12-07T11:33:13.000Z",
+    "regularMarketPrice": 70.05,
+    "price": 70.05,
+    "regularMarketChange": -0.19999695,
+    "change": -0.19999695,
+    "regularMarketChangePercent": -0.28469315,
+    "changePercent": -0.28469315,
+    "regularMarketTime": "2025-12-07T11:35:56.000Z",
     "prevClose": 70.25,
     "high": 70.35,
     "low": 69.55,
-    "volume": 175510,
+    "volume": 179056,
     "open": 69.9,
     "fiftyTwoWeekHigh": 95.4,
     "fiftyTwoWeekLow": 65.6,
-    "marketCap": 14030000128,
-    "peRatio": 18.5582,
+    "marketCap": 14010000384,
+    "peRatio": 18.531748,
     "eps": 3.78,
     "dividendYield": 0.042704627,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1010.SR",
@@ -501,11 +501,11 @@
     "change": 0.6800003,
     "regularMarketChangePercent": 2.63158,
     "changePercent": 2.63158,
-    "regularMarketTime": "2025-12-07T11:31:19.000Z",
+    "regularMarketTime": "2025-12-07T11:35:09.000Z",
     "prevClose": 25.84,
     "high": 26.6,
     "low": 25.84,
-    "volume": 2213564,
+    "volume": 2214164,
     "open": 25.84,
     "fiftyTwoWeekHigh": 33.2,
     "fiftyTwoWeekLow": 25.3,
@@ -513,7 +513,7 @@
     "peRatio": 8.2875,
     "eps": 3.2,
     "dividendYield": 0.06772446,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2020.SR",
@@ -521,25 +521,25 @@
     "category": "SA",
     "country": "🇸🇦",
     "sector": null,
-    "regularMarketPrice": 115.2,
-    "price": 115.2,
-    "regularMarketChange": -0.80000305,
-    "change": -0.80000305,
-    "regularMarketChangePercent": -0.6896578,
-    "changePercent": -0.6896578,
-    "regularMarketTime": "2025-12-07T11:30:45.000Z",
+    "regularMarketPrice": 115.3,
+    "price": 115.3,
+    "regularMarketChange": -0.69999695,
+    "change": -0.69999695,
+    "regularMarketChangePercent": -0.60344565,
+    "changePercent": -0.60344565,
+    "regularMarketTime": "2025-12-07T11:36:01.000Z",
     "prevClose": 116,
     "high": 116.2,
     "low": 115,
-    "volume": 89510,
+    "volume": 89616,
     "open": 116,
     "fiftyTwoWeekHigh": 125.7,
     "fiftyTwoWeekLow": 94.7,
-    "marketCap": 54839275520,
-    "peRatio": 12.785793,
+    "marketCap": 54886883328,
+    "peRatio": 12.796892,
     "eps": 9.01,
     "dividendYield": 0.056034483,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "2280.SR",
@@ -553,11 +553,11 @@
     "change": -0.26000214,
     "regularMarketChangePercent": -0.58824015,
     "changePercent": -0.58824015,
-    "regularMarketTime": "2025-12-07T11:33:07.000Z",
+    "regularMarketTime": "2025-12-07T11:33:59.000Z",
     "prevClose": 44.2,
     "high": 44.2,
     "low": 43.82,
-    "volume": 120969,
+    "volume": 120970,
     "open": 44.16,
     "fiftyTwoWeekHigh": 61.5,
     "fiftyTwoWeekLow": 43.5,
@@ -565,7 +565,7 @@
     "peRatio": 18.157024,
     "eps": 2.42,
     "dividendYield": 0.022624435,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "5110.SR",
@@ -573,24 +573,24 @@
     "category": "SA",
     "country": "🇸🇦",
     "sector": null,
-    "regularMarketPrice": 14.15,
-    "price": 14.15,
-    "regularMarketChange": 0.009999275,
-    "change": 0.009999275,
-    "regularMarketChangePercent": 0.07071623,
-    "changePercent": 0.07071623,
-    "regularMarketTime": "2025-12-07T11:32:36.000Z",
+    "regularMarketPrice": 14.16,
+    "price": 14.16,
+    "regularMarketChange": 0.019999504,
+    "change": 0.019999504,
+    "regularMarketChangePercent": 0.1414392,
+    "changePercent": 0.1414392,
+    "regularMarketTime": "2025-12-07T11:35:43.000Z",
     "prevClose": 14.14,
     "high": 14.22,
     "low": 14.12,
-    "volume": 270058,
+    "volume": 271185,
     "open": 14.14,
     "fiftyTwoWeekHigh": 17.36,
     "fiftyTwoWeekLow": 13.72,
-    "marketCap": 58957299712,
+    "marketCap": 58998968320,
     "eps": -0.61,
     "dividendYield": 0.049504947,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1140.SR",
@@ -598,25 +598,25 @@
     "category": "SA",
     "country": "🇸🇦",
     "sector": null,
-    "regularMarketPrice": 25.48,
-    "price": 25.48,
-    "regularMarketChange": -0.42000008,
-    "change": -0.42000008,
-    "regularMarketChangePercent": -1.621622,
-    "changePercent": -1.621622,
-    "regularMarketTime": "2025-12-07T11:31:46.000Z",
+    "regularMarketPrice": 25.52,
+    "price": 25.52,
+    "regularMarketChange": -0.37999916,
+    "change": -0.37999916,
+    "regularMarketChangePercent": -1.4671782,
+    "changePercent": -1.4671782,
+    "regularMarketTime": "2025-12-07T11:36:02.000Z",
     "prevClose": 25.9,
     "high": 25.98,
     "low": 25.46,
-    "volume": 518533,
+    "volume": 521853,
     "open": 25.9,
     "fiftyTwoWeekHigh": 33.875,
     "fiftyTwoWeekLow": 23.38,
-    "marketCap": 38220001280,
-    "peRatio": 12.551724,
+    "marketCap": 38279999488,
+    "peRatio": 12.571429,
     "eps": 2.03,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "1060.SR",
@@ -624,25 +624,25 @@
     "category": "SA",
     "country": "🇸🇦",
     "sector": null,
-    "regularMarketPrice": 31.46,
-    "price": 31.46,
-    "regularMarketChange": 0.65999985,
-    "change": 0.65999985,
-    "regularMarketChangePercent": 2.1428566,
-    "changePercent": 2.1428566,
-    "regularMarketTime": "2025-12-07T11:32:55.000Z",
+    "regularMarketPrice": 31.44,
+    "price": 31.44,
+    "regularMarketChange": 0.6400013,
+    "change": 0.6400013,
+    "regularMarketChangePercent": 2.0779264,
+    "changePercent": 2.0779264,
+    "regularMarketTime": "2025-12-07T11:34:25.000Z",
     "prevClose": 30.8,
     "high": 31.76,
     "low": 30.96,
-    "volume": 1687365,
+    "volume": 1687796,
     "open": 31,
     "fiftyTwoWeekHigh": 38,
     "fiftyTwoWeekLow": 29.9,
-    "marketCap": 64643833856,
-    "peRatio": 8.005089,
+    "marketCap": 64602738688,
+    "peRatio": 8,
     "eps": 3.93,
     "dividendYield": 0.064935066,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "7200.SR",
@@ -656,11 +656,11 @@
     "change": 0.69999695,
     "regularMarketChangePercent": 0.4450076,
     "changePercent": 0.4450076,
-    "regularMarketTime": "2025-12-07T11:31:59.000Z",
+    "regularMarketTime": "2025-12-07T11:34:39.000Z",
     "prevClose": 157.3,
     "high": 159.6,
     "low": 157,
-    "volume": 18506,
+    "volume": 18526,
     "open": 157,
     "fiftyTwoWeekHigh": 174.8,
     "fiftyTwoWeekLow": 118,
@@ -668,7 +668,7 @@
     "peRatio": 50.15873,
     "eps": 3.15,
     "dividendYield": 0.035600763,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4220.SR",
@@ -676,24 +676,24 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 11.21,
-    "price": 11.21,
-    "regularMarketChange": -0.1800003,
-    "change": -0.1800003,
-    "regularMarketChangePercent": -1.5803362,
-    "changePercent": -1.5803362,
-    "regularMarketTime": "2025-12-07T11:30:33.000Z",
+    "regularMarketPrice": 11.23,
+    "price": 11.23,
+    "regularMarketChange": -0.1600008,
+    "change": -0.1600008,
+    "regularMarketChangePercent": -1.404748,
+    "changePercent": -1.404748,
+    "regularMarketTime": "2025-12-07T11:35:28.000Z",
     "prevClose": 11.39,
     "high": 11.43,
     "low": 11.2,
-    "volume": 50527,
+    "volume": 50538,
     "open": 11.35,
     "fiftyTwoWeekHigh": 19.7,
     "fiftyTwoWeekLow": 10.72,
-    "marketCap": 5865743360,
+    "marketCap": 5876208640,
     "eps": -3.08,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4090.SR",
@@ -707,11 +707,11 @@
     "change": 0.019996643,
     "regularMarketChangePercent": 0.05782719,
     "changePercent": 0.05782719,
-    "regularMarketTime": "2025-12-07T11:32:34.000Z",
+    "regularMarketTime": "2025-12-07T11:33:57.000Z",
     "prevClose": 34.58,
     "high": 34.7,
     "low": 34.36,
-    "volume": 24883,
+    "volume": 25498,
     "open": 34.58,
     "fiftyTwoWeekHigh": 51.5,
     "fiftyTwoWeekLow": 32.85,
@@ -719,7 +719,7 @@
     "peRatio": 23.221476,
     "eps": 1.49,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "4040.SR",
@@ -727,25 +727,25 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 10.33,
-    "price": 10.33,
-    "regularMarketChange": 0.019999504,
-    "change": 0.019999504,
-    "regularMarketChangePercent": 0.1939816,
-    "changePercent": 0.1939816,
-    "regularMarketTime": "2025-12-07T11:29:12.000Z",
+    "regularMarketPrice": 10.3,
+    "price": 10.3,
+    "regularMarketChange": -0.010000229,
+    "change": -0.010000229,
+    "regularMarketChangePercent": -0.09699543,
+    "changePercent": -0.09699543,
+    "regularMarketTime": "2025-12-07T11:35:16.000Z",
     "prevClose": 10.31,
     "high": 10.41,
     "low": 10.26,
-    "volume": 134700,
+    "volume": 134924,
     "open": 10.29,
     "fiftyTwoWeekHigh": 22.2,
     "fiftyTwoWeekLow": 10.09,
-    "marketCap": 1291250048,
-    "peRatio": 1033,
+    "marketCap": 1287500032,
+    "peRatio": 1030,
     "eps": 0.01,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^TASI.SR",
@@ -753,21 +753,21 @@
     "category": "SA",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 10620.71,
-    "price": 10620.71,
-    "regularMarketChange": -5.4404297,
-    "change": -5.4404297,
-    "regularMarketChangePercent": -0.0511985,
-    "changePercent": -0.0511985,
-    "regularMarketTime": "2025-12-07T11:33:16.000Z",
+    "regularMarketPrice": 10621.39,
+    "price": 10621.39,
+    "regularMarketChange": -4.760742,
+    "change": -4.760742,
+    "regularMarketChangePercent": -0.044802133,
+    "changePercent": -0.044802133,
+    "regularMarketTime": "2025-12-07T11:36:18.000Z",
     "prevClose": 10626.15,
     "high": 10666.53,
     "low": 10612.2,
-    "volume": 99400355,
+    "volume": 104336921,
     "open": 10640.01,
     "fiftyTwoWeekHigh": 13949.13,
     "fiftyTwoWeekLow": 9930.86,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^GSPC",
@@ -789,7 +789,7 @@
     "open": 6866.32,
     "fiftyTwoWeekHigh": 6920.34,
     "fiftyTwoWeekLow": 4835.04,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^DJI",
@@ -811,7 +811,7 @@
     "open": 47879.6,
     "fiftyTwoWeekHigh": 48431.57,
     "fiftyTwoWeekLow": 36611.78,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^IXIC",
@@ -833,7 +833,7 @@
     "open": 23567.77,
     "fiftyTwoWeekHigh": 24019.99,
     "fiftyTwoWeekLow": 14784.03,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^FTSE",
@@ -855,7 +855,7 @@
     "open": 9710.87,
     "fiftyTwoWeekHigh": 9930.1,
     "fiftyTwoWeekLow": 7544.8,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^GDAXI",
@@ -877,7 +877,7 @@
     "open": 23942.73,
     "fiftyTwoWeekHigh": 24771.34,
     "fiftyTwoWeekLow": 18489.91,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "^N225",
@@ -899,7 +899,7 @@
     "open": 50530.34,
     "fiftyTwoWeekHigh": 52636.87,
     "fiftyTwoWeekLow": 30792.74,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "BZ=F",
@@ -921,7 +921,7 @@
     "open": 62.8,
     "fiftyTwoWeekHigh": 82.63,
     "fiftyTwoWeekLow": 58.39,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "GC=F",
@@ -943,7 +943,7 @@
     "open": 4204.1,
     "fiftyTwoWeekHigh": 4358,
     "fiftyTwoWeekLow": 2582.1,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.246Z"
   },
   {
     "symbol": "AAPL",
@@ -969,7 +969,7 @@
     "peRatio": 37.319946,
     "eps": 7.47,
     "dividendYield": 0.0036337725,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "MSFT",
@@ -995,7 +995,7 @@
     "peRatio": 34.36415,
     "eps": 14.06,
     "dividendYield": 0.0070709595,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "GOOG",
@@ -1021,7 +1021,7 @@
     "peRatio": 31.733006,
     "eps": 10.15,
     "dividendYield": 0.003203618,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "AMZN",
@@ -1047,7 +1047,7 @@
     "peRatio": 32.465347,
     "eps": 7.07,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "TSLA",
@@ -1073,7 +1073,7 @@
     "peRatio": 311.64383,
     "eps": 1.46,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "NVDA",
@@ -1099,7 +1099,7 @@
     "peRatio": 45.263027,
     "eps": 4.03,
     "dividendYield": 0.00021812628,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "META",
@@ -1125,7 +1125,7 @@
     "peRatio": 29.757843,
     "eps": 22.63,
     "dividendYield": 0.003136668,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "NFLX",
@@ -1151,7 +1151,7 @@
     "peRatio": 41.766663,
     "eps": 2.4,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "AMD",
@@ -1177,7 +1177,7 @@
     "peRatio": 113.52605,
     "eps": 1.92,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "INTC",
@@ -1203,7 +1203,7 @@
     "peRatio": 690.1667,
     "eps": 0.06,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "JPM",
@@ -1229,7 +1229,7 @@
     "peRatio": 15.603765,
     "eps": 20.19,
     "dividendYield": 0.017557735,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "V",
@@ -1255,7 +1255,7 @@
     "peRatio": 32.47451,
     "eps": 10.2,
     "dividendYield": 0.0074594924,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "MA",
@@ -1281,7 +1281,7 @@
     "peRatio": 34.83525,
     "eps": 15.66,
     "dividendYield": 0.0056056497,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "WMT",
@@ -1307,7 +1307,7 @@
     "peRatio": 40.389477,
     "eps": 2.85,
     "dividendYield": 0.007950191,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "HD",
@@ -1333,7 +1333,7 @@
     "peRatio": 24.20546,
     "eps": 14.65,
     "dividendYield": 0.026198136,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "PG",
@@ -1359,7 +1359,7 @@
     "peRatio": 20.911077,
     "eps": 6.86,
     "dividendYield": 0.02839158,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "KO",
@@ -1385,7 +1385,7 @@
     "peRatio": 23.178808,
     "eps": 3.02,
     "dividendYield": 0.028601848,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "PEP",
@@ -1411,7 +1411,7 @@
     "peRatio": 27.570341,
     "eps": 5.26,
     "dividendYield": 0.03818197,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "DIS",
@@ -1437,7 +1437,7 @@
     "peRatio": 15.349854,
     "eps": 6.86,
     "dividendYield": 0.014222054,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "NKE",
@@ -1463,7 +1463,7 @@
     "peRatio": 33.774357,
     "eps": 1.95,
     "dividendYield": 0.024356827,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "COMI.CA",
@@ -1489,7 +1489,7 @@
     "peRatio": 3.662607,
     "eps": 22.17,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "EAST.CA",
@@ -1515,7 +1515,7 @@
     "peRatio": 6.728395,
     "eps": 3.24,
     "dividendYield": 0.13418078,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "HRHO.CA",
@@ -1541,7 +1541,7 @@
     "peRatio": 8.132075,
     "eps": 2.65,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "TMGH.CA",
@@ -1567,7 +1567,7 @@
     "peRatio": 7.7540107,
     "eps": 7.48,
     "dividendYield": 0.004260395,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "SWDY.CA",
@@ -1593,7 +1593,7 @@
     "peRatio": 6.962044,
     "eps": 6.85,
     "dividendYield": 0.0210615,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "ETEL.CA",
@@ -1619,7 +1619,7 @@
     "peRatio": 3.3853304,
     "eps": 9.68,
     "dividendYield": 0.04622496,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "AMOC.CA",
@@ -1645,7 +1645,7 @@
     "peRatio": 7.8956523,
     "eps": 1.15,
     "dividendYield": 0.08791208,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "EKHO.CA",
@@ -1671,7 +1671,7 @@
     "peRatio": 6.5,
     "eps": 0.12,
     "dividendYield": 0.04177215,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "HELI.CA",
@@ -1697,7 +1697,7 @@
     "peRatio": 4.327731,
     "eps": 2.38,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.354Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "ORAS.CA",
@@ -1723,7 +1723,7 @@
     "peRatio": 5.1937137,
     "eps": 13.68,
     "dividendYield": 0.0035186487,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "ESRS.CA",
@@ -1749,7 +1749,7 @@
     "peRatio": 21.11675,
     "eps": 3.94,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "ABUK.CA",
@@ -1775,7 +1775,7 @@
     "peRatio": 9.227848,
     "eps": 6.32,
     "dividendYield": 0.101608805,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "MFPC.CA",
@@ -1801,7 +1801,7 @@
     "peRatio": 11.711229,
     "eps": 3.74,
     "dividendYield": 0.059109975,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "ISPH.CA",
@@ -1827,7 +1827,7 @@
     "peRatio": 4.362319,
     "eps": 0.69,
     "dividendYield": 0.05333333,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "PHDC.CA",
@@ -1853,7 +1853,7 @@
     "peRatio": 3.0849671,
     "eps": 1.53,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "CIEB.CA",
@@ -1879,7 +1879,7 @@
     "peRatio": 3.5269566,
     "eps": 5.75,
     "dividendYield": 0.16145308,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "FWRY.CA",
@@ -1905,7 +1905,7 @@
     "peRatio": 9.884058,
     "eps": 0.69,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "ADIB.CA",
@@ -1931,7 +1931,7 @@
     "peRatio": 8.130901,
     "eps": 4.66,
     "dividendYield": 0,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "^EGX30.CA",
@@ -1953,7 +1953,7 @@
     "open": 7182.8,
     "fiftyTwoWeekHigh": 0,
     "fiftyTwoWeekLow": 0,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   },
   {
     "symbol": "^CASE30",
@@ -1961,20 +1961,20 @@
     "category": "EG",
     "country": "🇪🇬",
     "sector": "Index",
-    "regularMarketPrice": 41783.8,
-    "price": 41783.8,
-    "regularMarketChange": 441.80078,
-    "change": 441.80078,
-    "regularMarketChangePercent": 1.0686488,
-    "changePercent": 1.0686488,
-    "regularMarketTime": "2025-12-07T11:33:16.000Z",
+    "regularMarketPrice": 41817.2,
+    "price": 41817.2,
+    "regularMarketChange": 475.19922,
+    "change": 475.19922,
+    "regularMarketChangePercent": 1.1494346,
+    "changePercent": 1.1494346,
+    "regularMarketTime": "2025-12-07T11:36:24.000Z",
     "prevClose": 41342,
-    "high": 41809.9,
+    "high": 41817.2,
     "low": 41499.1,
-    "volume": 376561000,
+    "volume": 378350000,
     "open": 41557.4,
-    "fiftyTwoWeekHigh": 41809.9,
+    "fiftyTwoWeekHigh": 41817.2,
     "fiftyTwoWeekLow": 41499.1,
-    "lastUpdated": "2025-12-07T11:48:26.355Z"
+    "lastUpdated": "2025-12-07T11:51:29.247Z"
   }
 ]
