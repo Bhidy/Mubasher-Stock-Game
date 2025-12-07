@@ -96,17 +96,17 @@ export default async function handler(req, res) {
     const tasks = [];
 
     if (market === 'SA') {
-        // Saudi Sources
-        tasks.push(fetchBingNews('site:argaam.com Saudi', 3));
-        tasks.push(fetchBingNews('site:aleqt.com Saudi', 3));
-        tasks.push(fetchBingNews('site:zawya.com Saudi', 3));
-        tasks.push(fetchBingNews('Saudi Stock Market Tadawul', 3));
+        // Saudi Sources: Mix of English (Broad) and Arabic (Fresh) + Translation
+        tasks.push(fetchBingNews('Saudi Stock Market', 3));
+        tasks.push(fetchBingNews('سوق الأسهم السعودية', 5)); // Fresh Arabic News
+        tasks.push(fetchBingNews('Tadawul All Share Index', 3));
+        tasks.push(fetchBingNews('site:argaam.com Saudi', 2));
     } else if (market === 'EG') {
-        // Egypt Sources
-        tasks.push(fetchBingNews('site:mubasher.info Egypt', 3));
-        tasks.push(fetchBingNews('site:zawya.com Egypt', 3));
-        tasks.push(fetchBingNews('site:arabfinance.com', 3));
-        tasks.push(fetchBingNews('Egyptian Exchange EGX', 3));
+        // Egypt Sources: Arabic is much fresher for EGX
+        tasks.push(fetchBingNews('Egyptian Stock Exchange', 3));
+        tasks.push(fetchBingNews('أخبار البورصة المصرية', 5)); // Fresh Arabic News
+        tasks.push(fetchBingNews('site:mubasher.info Egypt', 2)); // Keep just in case
+        tasks.push(fetchBingNews('اقتصاد مصر', 3)); // Egypt Economy (Arabic)
     } else if (market === 'US') {
         tasks.push(fetchBingNews('S&P 500 Market', 5));
         tasks.push(fetchBingNews('WSJ Markets', 3));
@@ -178,8 +178,8 @@ export default async function handler(req, res) {
             ]);
         }
 
-        // Cache for 5 minutes (Vercel Edge Cache)
-        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+        // Cache for 1 minute (Fresh content priority)
+        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
         res.status(200).json(uniqueNews);
 
     } catch (error) {

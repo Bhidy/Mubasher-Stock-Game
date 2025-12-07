@@ -1,26 +1,40 @@
 const Parser = require('rss-parser');
 const parser = new Parser();
 
-async function checkFeeds() {
-    const feeds = [
-        'http://feeds.mubasher.info/en/EGX/news',
-        'https://english.mubasher.info/rss/countries/eg',
-        'https://english.mubasher.info/rss/news.xml',
-        'http://feeds.mubasher.info/en/news'
+async function checkRSS() {
+    const queries = [
+        'site:mubasher.info Egypt',
+        'site:zawya.com Egypt',
+        'Egyptian Exchange',
+        'Egypt Stock Market'
     ];
 
-    for (const url of feeds) {
+    for (const q of queries) {
+        console.log(`\nTesting Query: "${q}"`);
+        // Test with and without sortbydate
+        const urlStd = `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&mkt=en-us`;
+        const urlSort = `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&mkt=en-us&qft=sortbydate="1"`;
+
         try {
-            console.log(`Checking ${url}...`);
-            const feed = await parser.parseURL(url);
-            console.log(`✅ Success! Found ${feed.items.length} items.`);
-            console.log('Sample title:', feed.items[0].title);
-            console.log('Sample date:', feed.items[0].pubDate);
-            console.log('Sample link:', feed.items[0].link);
+            console.log('  Fetching Standard...');
+            const feedStd = await parser.parseURL(urlStd);
+            if (feedStd.items.length > 0) {
+                console.log(`    Top Result: ${feedStd.items[0].title} (${feedStd.items[0].pubDate})`);
+            } else {
+                console.log('    No results.');
+            }
+
+            console.log('  Fetching Sorted (Date)...');
+            const feedSort = await parser.parseURL(urlSort);
+            if (feedSort.items.length > 0) {
+                console.log(`    Top Result: ${feedSort.items[0].title} (${feedSort.items[0].pubDate})`);
+            } else {
+                console.log('    No results.');
+            }
         } catch (e) {
-            console.log(`❌ Failed: ${e.message}`);
+            console.error('    Error:', e.message);
         }
     }
 }
 
-checkFeeds();
+checkRSS();
