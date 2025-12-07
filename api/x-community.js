@@ -29,6 +29,57 @@ const PER_USER_CACHE_TTL = 3 * 60 * 1000; // 3 minutes per user
 
 // ============ HELPER FUNCTIONS ============
 
+// Check if text contains Arabic characters
+function isArabic(text) {
+    const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+    return arabicPattern.test(text);
+}
+
+// Translate text using Google Translate (free method)
+async function translateText(text, targetLang = 'en') {
+    if (!text || text.length < 3) return text;
+
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await axios.get(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            timeout: 5000
+        });
+
+        if (response.data && response.data[0]) {
+            const translated = response.data[0]
+                .map(part => part[0])
+                .filter(Boolean)
+                .join('');
+            return translated || text;
+        }
+        return text;
+    } catch (error) {
+        console.log(`⚠️ Translation failed: ${error.message}`);
+        return text; // Return original on error
+    }
+}
+
+// Translate Arabic content to English
+async function translateTweetContent(tweet) {
+    if (!isArabic(tweet.content)) {
+        return { ...tweet, originalLang: 'en', isTranslated: false };
+    }
+
+    try {
+        const translatedContent = await translateText(tweet.content, 'en');
+        return {
+            ...tweet,
+            content: translatedContent,
+            originalContent: tweet.content, // Keep original for reference
+            originalLang: 'ar',
+            isTranslated: true
+        };
+    } catch (error) {
+        return { ...tweet, originalLang: 'ar', isTranslated: false };
+    }
+}
+
 // Calculate relative time
 function getRelativeTime(dateString) {
     const now = new Date();
@@ -196,8 +247,26 @@ async function fetchAllTweets() {
     // Sort by timestamp (newest first)
     allTweets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    console.log(`✅ Total: ${allTweets.length} tweets from X Community`);
-    return allTweets;
+    // Translate Arabic tweets to English (in batches to avoid rate limits)
+    console.log('🌐 Translating Arabic content to English...');
+    const translatedTweets = [];
+    const translateBatchSize = 3;
+
+    for (let i = 0; i < allTweets.length; i += translateBatchSize) {
+        const batch = allTweets.slice(i, i + translateBatchSize);
+        const translated = await Promise.all(
+            batch.map(tweet => translateTweetContent(tweet))
+        );
+        translatedTweets.push(...translated);
+
+        // Small delay between translation batches
+        if (i + translateBatchSize < allTweets.length) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+    }
+
+    console.log(`✅ Total: ${translatedTweets.length} tweets from X Community (translated)`);
+    return translatedTweets;
 }
 
 // ============ API HANDLER ============

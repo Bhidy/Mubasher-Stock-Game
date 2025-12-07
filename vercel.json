@@ -45,6 +45,10 @@
             "destination": "/api/ai-insight.js"
         },
         {
+            "source": "/api/stock-profile",
+            "destination": "/api/stock-profile.js"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

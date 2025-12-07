@@ -195,55 +195,20 @@ const TweetImageGallery = ({ images }) => {
     );
 };
 
-// Tweet Card Component with Translation & RTL Support
+// Tweet Card Component - Uses pre-translated content from API
 const TweetCard = ({ tweet, index, onLike }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [showFullContent, setShowFullContent] = useState(false);
-    const [translatedContent, setTranslatedContent] = useState(null);
-    const [isTranslating, setIsTranslating] = useState(false);
 
-    // Detect if text contains Arabic characters
-    const isArabic = (text) => {
-        const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
-        return arabicPattern.test(text);
-    };
-
-    const originalIsArabic = isArabic(tweet.content);
-
-    // Auto-translate Arabic content on mount
-    useEffect(() => {
-        const translateContent = async () => {
-            if (originalIsArabic && !translatedContent) {
-                setIsTranslating(true);
-                try {
-                    const response = await fetch('/api/translate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            text: tweet.content,
-                            targetLang: 'en'
-                        })
-                    });
-                    const data = await response.json();
-                    if (data.translatedText) {
-                        setTranslatedContent(data.translatedText);
-                    }
-                } catch (err) {
-                    console.error('Translation failed:', err);
-                }
-                setIsTranslating(false);
-            }
-        };
-        translateContent();
-    }, [tweet.content, originalIsArabic, translatedContent]);
-
-    // Use translated content if available
-    const contentToDisplay = translatedContent || tweet.content;
+    // Content is already translated by the backend API
     const maxLength = 280;
-    const isLongContent = contentToDisplay.length > maxLength;
+    const isLongContent = tweet.content.length > maxLength;
     const displayContent = isLongContent && !showFullContent
-        ? contentToDisplay.slice(0, maxLength) + '...'
-        : contentToDisplay;
+        ? tweet.content.slice(0, maxLength) + '...'
+        : tweet.content;
+
+    // Check if this was originally Arabic (from API)
+    const wasArabic = tweet.originalLang === 'ar' || tweet.isTranslated;
 
     const handleLike = () => {
         setIsLiked(!isLiked);
@@ -255,7 +220,7 @@ const TweetCard = ({ tweet, index, onLike }) => {
             if (navigator.share) {
                 await navigator.share({
                     title: `Tweet by @${tweet.username}`,
-                    text: contentToDisplay.slice(0, 100),
+                    text: tweet.content.slice(0, 100),
                     url: tweet.url
                 });
             } else {
@@ -325,7 +290,7 @@ const TweetCard = ({ tweet, index, onLike }) => {
                             {tweet.category}
                         </Badge>
                         {/* Arabic Language Indicator */}
-                        {originalIsArabic && (
+                        {wasArabic && (
                             <span
                                 title="Translated from Arabic"
                                 style={{
@@ -373,35 +338,20 @@ const TweetCard = ({ tweet, index, onLike }) => {
                 </button>
             </div>
 
-            {/* Content */}
+            {/* Content - Already translated by API */}
             <div style={{ padding: '0 1rem' }}>
-                {isTranslating ? (
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        color: '#64748b',
-                        fontSize: '0.875rem',
-                        padding: '8px 0'
-                    }}>
-                        <RefreshCw size={14} className="spin" />
-                        Translating...
-                    </div>
-                ) : (
-                    <p style={{
-                        fontSize: '0.95rem',
-                        lineHeight: 1.6,
-                        color: '#1e293b',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        // Text always LTR for translated/English content
-                        direction: 'ltr',
-                        textAlign: 'left'
-                    }}>
-                        {displayContent}
-                    </p>
-                )}
-                {isLongContent && !isTranslating && (
+                <p style={{
+                    fontSize: '0.95rem',
+                    lineHeight: 1.6,
+                    color: '#1e293b',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    direction: 'ltr',
+                    textAlign: 'left'
+                }}>
+                    {displayContent}
+                </p>
+                {isLongContent && (
                     <button
                         onClick={() => setShowFullContent(!showFullContent)}
                         style={{

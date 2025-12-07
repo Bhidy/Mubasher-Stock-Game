@@ -1,27 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Target, Building2, Globe, ChevronRight, Bot } from 'lucide-react';
-import { usePrices } from '../context/PriceContext';
+import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Target, Building2, Globe, ChevronRight, RefreshCw } from 'lucide-react';
 import StockMovementCard from '../components/StockMovementCard';
 
 export default function StockAnalysis() {
     const { symbol } = useParams();
     const navigate = useNavigate();
-    const { prices, loading } = usePrices();
+    const [stock, setStock] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
+    const [lastUpdated, setLastUpdated] = useState(null);
 
-    // Get stock data - focus on Aramco (2222.SR)
-    const stockKey = Object.keys(prices).find(k => k.includes(symbol)) || symbol;
-    const stock = prices[stockKey] || {};
+    // Determine full symbol
+    const getFullSymbol = () => {
+        if (symbol.includes('.')) return symbol;
+        // Add suffix based on symbol pattern
+        if (/^\d{4}$/.test(symbol)) return `${symbol}.SR`; // Saudi stocks
+        if (/^[A-Z]{4}$/.test(symbol) && symbol.length === 4) return `${symbol}.CA`; // Egypt stocks
+        return symbol; // US stocks or already complete
+    };
 
-    // Check if this is Aramco
-    const isAramco = symbol === '2222' || stockKey === '2222.SR';
+    const fullSymbol = getFullSymbol();
+
+    // Fetch complete stock profile
+    const fetchStockProfile = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            console.log(`📊 Fetching stock profile for ${fullSymbol}...`);
+            const response = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(fullSymbol)}`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch stock data (${response.status})`);
+            }
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            setStock(data);
+            setLastUpdated(new Date());
+            console.log(`✅ Stock profile loaded for ${fullSymbol}`);
+        } catch (err) {
+            console.error('Stock profile fetch error:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch on mount and set up auto-refresh
+    useEffect(() => {
+        fetchStockProfile();
+
+        // Auto-refresh every 60 seconds
+        const interval = setInterval(() => {
+            console.log('🔄 Auto-refreshing stock profile...');
+            fetchStockProfile();
+        }, 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [fullSymbol]);
 
     const isPositive = (stock.change || 0) >= 0;
 
-    // Format helpers - 2 decimal places for percentages
+    // Format helpers
     const formatNumber = (val) => {
-        if (!val || val === 'N/A') return 'N/A';
+        if (val === undefined || val === null || val === 'N/A' || val === 0) return 'N/A';
         if (typeof val === 'string') return val;
         if (val >= 1e12) return (val / 1e12).toFixed(2) + 'T';
         if (val >= 1e9) return (val / 1e9).toFixed(2) + 'B';
@@ -31,18 +80,20 @@ export default function StockAnalysis() {
     };
 
     const formatPercent = (val) => {
-        if (!val || val === 'N/A') return 'N/A';
+        if (val === undefined || val === null || val === 'N/A' || val === 0) return 'N/A';
         return (val * 100).toFixed(2) + '%';
     };
 
     const formatCurrency = (val) => {
-        if (!val || val === 'N/A') return 'N/A';
-        return formatNumber(val) + ' SAR';
+        if (val === undefined || val === null || val === 'N/A' || val === 0) return 'N/A';
+        const currency = stock.currency || 'SAR';
+        return formatNumber(val) + ' ' + currency;
     };
 
-    const formatChange = (val) => {
-        if (!val && val !== 0) return 'N/A';
+    const formatValue = (val) => {
+        if (val === undefined || val === null || val === 0) return 'N/A';
         const num = Number(val);
+        if (isNaN(num)) return 'N/A';
         return num.toFixed(2);
     };
 
@@ -54,8 +105,21 @@ export default function StockAnalysis() {
         { id: 'about', label: 'About', icon: Building2 },
     ];
 
-    // Show loading or not available for non-Aramco stocks
-    if (!isAramco) {
+    // Loading State
+    if (loading && !stock.price) {
+        return (
+            <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: '#1f2937', textAlign: 'center' }}>
+                    <RefreshCw size={40} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem', color: '#10b981' }} />
+                    <p style={{ fontWeight: 600 }}>Loading {symbol} Analysis...</p>
+                    <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Fetching real-time data from Yahoo Finance</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error State
+    if (error && !stock.price) {
         return (
             <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
                 <div style={{
@@ -65,36 +129,39 @@ export default function StockAnalysis() {
                     textAlign: 'center',
                     boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
                 }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚧</div>
-                    <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Coming Soon</h2>
-                    <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-                        Detailed analysis for this stock will be available in Phase 2
-                    </p>
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{
-                            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '1rem 2rem',
-                            borderRadius: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Go Back
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    if (loading && !stock.price) {
-        return (
-            <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ color: '#1f2937', textAlign: 'center' }}>
-                    <div className="loader" style={{ width: '50px', height: '50px', border: '4px solid #e2e8f0', borderTop: '4px solid #10b981', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
-                    <p>Loading Aramco Analysis...</p>
+                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚠️</div>
+                    <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Unable to Load Data</h2>
+                    <p style={{ color: '#6b7280', marginBottom: '1rem' }}>{error}</p>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <button
+                            onClick={fetchStockProfile}
+                            style={{
+                                background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '1rem 2rem',
+                                borderRadius: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Retry
+                        </button>
+                        <button
+                            onClick={() => navigate(-1)}
+                            style={{
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                                border: 'none',
+                                padding: '1rem 2rem',
+                                borderRadius: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Go Back
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -149,21 +216,19 @@ export default function StockAnalysis() {
                             background: 'white',
                             borderRadius: '16px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                            fontSize: '1.5rem',
+                            fontWeight: 800,
+                            color: '#10b981'
                         }}>
-                            <img
-                                src="https://logo.clearbit.com/aramco.com"
-                                alt="Aramco"
-                                style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-                                onError={(e) => { e.target.style.display = 'none'; }}
-                            />
+                            {(stock.shortName || symbol).charAt(0)}
                         </div>
                         <div>
                             <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', fontWeight: 600 }}>
-                                {stock.symbol || '2222.SR'}
+                                {stock.symbol || fullSymbol}
                             </div>
                             <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>
-                                {stock.longName || stock.name || 'Saudi Aramco'}
+                                {stock.longName || stock.shortName || symbol}
                             </h1>
                         </div>
                     </div>
@@ -171,7 +236,7 @@ export default function StockAnalysis() {
                     {/* Price Section */}
                     <div style={{ marginTop: '1.5rem' }}>
                         <div style={{ fontSize: '3rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                            {formatChange(stock.price)} <span style={{ fontSize: '1.25rem', opacity: 0.8 }}>SAR</span>
+                            {formatValue(stock.price)} <span style={{ fontSize: '1.25rem', opacity: 0.8 }}>{stock.currency || 'SAR'}</span>
                         </div>
                         <div style={{
                             display: 'inline-flex',
@@ -185,8 +250,13 @@ export default function StockAnalysis() {
                             fontWeight: 700
                         }}>
                             {isPositive ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                            {isPositive ? '+' : ''}{formatChange(stock.change)} ({isPositive ? '+' : ''}{formatChange(stock.changePercent)}%)
+                            {isPositive ? '+' : ''}{formatValue(stock.change)} ({isPositive ? '+' : ''}{formatValue(stock.changePercent)}%)
                         </div>
+                        {lastUpdated && (
+                            <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                                Last updated: {lastUpdated.toLocaleTimeString()}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -244,15 +314,15 @@ export default function StockAnalysis() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
                         {/* AI Insights Card */}
-                        <StockMovementCard symbol={stockKey} />
+                        <StockMovementCard symbol={fullSymbol} />
 
                         {/* Trading Info Card */}
                         <Card title="Trading Information" icon={<BarChart3 size={20} />}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Open" value={formatChange(stock.open || stock.regularMarketOpen)} />
-                                <DataCell label="Previous Close" value={formatChange(stock.prevClose)} />
-                                <DataCell label="Day High" value={formatChange(stock.high)} />
-                                <DataCell label="Day Low" value={formatChange(stock.low)} />
+                                <DataCell label="Open" value={formatValue(stock.open) + ' ' + (stock.currency || 'SAR')} />
+                                <DataCell label="Previous Close" value={formatValue(stock.prevClose) + ' ' + (stock.currency || 'SAR')} />
+                                <DataCell label="Day High" value={formatValue(stock.high) + ' ' + (stock.currency || 'SAR')} />
+                                <DataCell label="Day Low" value={formatValue(stock.low) + ' ' + (stock.currency || 'SAR')} />
                                 <DataCell label="Volume" value={formatNumber(stock.volume)} />
                                 <DataCell label="Avg Volume" value={formatNumber(stock.averageVolume)} />
                             </div>
@@ -262,22 +332,22 @@ export default function StockAnalysis() {
                         <Card title="52-Week Range">
                             <div style={{ marginBottom: '1rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '0.875rem' }}>{formatChange(stock.fiftyTwoWeekLow)}</span>
-                                    <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.875rem' }}>{formatChange(stock.fiftyTwoWeekHigh)}</span>
+                                    <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '0.875rem' }}>{formatValue(stock.fiftyTwoWeekLow)}</span>
+                                    <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.875rem' }}>{formatValue(stock.fiftyTwoWeekHigh)}</span>
                                 </div>
                                 <div style={{ height: '10px', background: '#e2e8f0', borderRadius: '10px', position: 'relative', overflow: 'hidden' }}>
                                     <div style={{
                                         height: '100%',
                                         background: 'linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%)',
                                         borderRadius: '10px',
-                                        width: stock.fiftyTwoWeekLow && stock.fiftyTwoWeekHigh
-                                            ? `${((stock.price - stock.fiftyTwoWeekLow) / (stock.fiftyTwoWeekHigh - stock.fiftyTwoWeekLow)) * 100}%`
+                                        width: stock.fiftyTwoWeekLow && stock.fiftyTwoWeekHigh && stock.price
+                                            ? `${Math.min(100, Math.max(0, ((stock.price - stock.fiftyTwoWeekLow) / (stock.fiftyTwoWeekHigh - stock.fiftyTwoWeekLow)) * 100))}%`
                                             : '50%'
                                     }} />
                                     <div style={{
                                         position: 'absolute',
-                                        left: stock.fiftyTwoWeekLow && stock.fiftyTwoWeekHigh
-                                            ? `${((stock.price - stock.fiftyTwoWeekLow) / (stock.fiftyTwoWeekHigh - stock.fiftyTwoWeekLow)) * 100}%`
+                                        left: stock.fiftyTwoWeekLow && stock.fiftyTwoWeekHigh && stock.price
+                                            ? `${Math.min(100, Math.max(0, ((stock.price - stock.fiftyTwoWeekLow) / (stock.fiftyTwoWeekHigh - stock.fiftyTwoWeekLow)) * 100))}%`
                                             : '50%',
                                         top: '-2px',
                                         width: '14px', height: '14px',
@@ -290,10 +360,10 @@ export default function StockAnalysis() {
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="50-Day MA" value={formatChange(stock.fiftyDayAverage)} />
-                                <DataCell label="200-Day MA" value={formatChange(stock.twoHundredDayAverage)} />
+                                <DataCell label="50-Day MA" value={formatValue(stock.fiftyDayAverage)} />
+                                <DataCell label="200-Day MA" value={formatValue(stock.twoHundredDayAverage)} />
                                 <DataCell label="52-Week Change" value={formatPercent(stock.fiftyTwoWeekChange)} highlight />
-                                <DataCell label="Beta" value={formatChange(stock.beta)} />
+                                <DataCell label="Beta" value={formatValue(stock.beta)} />
                             </div>
                         </Card>
                     </div>
@@ -306,7 +376,7 @@ export default function StockAnalysis() {
                         <Card title="Revenue & Profitability" icon={<DollarSign size={20} />}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <DataCell label="Total Revenue" value={formatCurrency(stock.totalRevenue)} highlight />
-                                <DataCell label="Revenue Per Share" value={formatChange(stock.revenuePerShare) + ' SAR'} />
+                                <DataCell label="Revenue Per Share" value={formatValue(stock.revenuePerShare)} />
                                 <DataCell label="Revenue Growth" value={formatPercent(stock.revenueGrowth)} />
                                 <DataCell label="Gross Profits" value={formatCurrency(stock.grossProfits)} />
                                 <DataCell label="EBITDA" value={formatCurrency(stock.ebitda)} highlight />
@@ -328,16 +398,16 @@ export default function StockAnalysis() {
                                 <DataCell label="Operating Cash Flow" value={formatCurrency(stock.operatingCashflow)} />
                                 <DataCell label="Free Cash Flow" value={formatCurrency(stock.freeCashflow)} highlight />
                                 <DataCell label="Total Cash" value={formatCurrency(stock.totalCash)} />
-                                <DataCell label="Cash Per Share" value={formatChange(stock.totalCashPerShare) + ' SAR'} />
+                                <DataCell label="Cash Per Share" value={formatValue(stock.totalCashPerShare)} />
                             </div>
                         </Card>
 
                         <Card title="Balance Sheet">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <DataCell label="Total Debt" value={formatCurrency(stock.totalDebt)} />
-                                <DataCell label="Debt to Equity" value={formatChange(stock.debtToEquity) + '%'} />
-                                <DataCell label="Current Ratio" value={formatChange(stock.currentRatio)} />
-                                <DataCell label="Book Value" value={formatChange(stock.bookValue) + ' SAR'} />
+                                <DataCell label="Debt to Equity" value={formatValue(stock.debtToEquity) + '%'} />
+                                <DataCell label="Current Ratio" value={formatValue(stock.currentRatio)} />
+                                <DataCell label="Book Value" value={formatValue(stock.bookValue)} />
                             </div>
                         </Card>
                     </div>
@@ -351,17 +421,17 @@ export default function StockAnalysis() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <DataCell label="Market Cap" value={formatCurrency(stock.marketCap)} highlight />
                                 <DataCell label="Enterprise Value" value={formatCurrency(stock.enterpriseValue)} />
-                                <DataCell label="Trailing P/E" value={formatChange(stock.trailingPE)} />
-                                <DataCell label="Forward P/E" value={formatChange(stock.forwardPE)} highlight />
-                                <DataCell label="Price to Book" value={formatChange(stock.priceToBook)} />
-                                <DataCell label="EV/EBITDA" value={formatChange(stock.enterpriseToEbitda)} />
+                                <DataCell label="Trailing P/E" value={formatValue(stock.trailingPE)} />
+                                <DataCell label="Forward P/E" value={formatValue(stock.forwardPE)} highlight />
+                                <DataCell label="Price to Book" value={formatValue(stock.priceToBook)} />
+                                <DataCell label="EV/EBITDA" value={formatValue(stock.enterpriseToEbitda)} />
                             </div>
                         </Card>
 
                         <Card title="Earnings Per Share">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Trailing EPS" value={formatChange(stock.trailingEps) + ' SAR'} highlight />
-                                <DataCell label="Forward EPS" value={formatChange(stock.forwardEps) + ' SAR'} />
+                                <DataCell label="Trailing EPS" value={formatValue(stock.trailingEps)} highlight />
+                                <DataCell label="Forward EPS" value={formatValue(stock.forwardEps)} />
                                 <DataCell label="Earnings Growth" value={formatPercent(stock.earningsGrowth)} />
                                 <DataCell label="ROE" value={formatPercent(stock.returnOnEquity)} highlight />
                             </div>
@@ -369,10 +439,10 @@ export default function StockAnalysis() {
 
                         <Card title="Dividends">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Dividend Rate" value={formatChange(stock.trailingAnnualDividendRate) + ' SAR'} />
+                                <DataCell label="Dividend Rate" value={formatValue(stock.trailingAnnualDividendRate)} />
                                 <DataCell label="Dividend Yield" value={formatPercent(stock.trailingAnnualDividendYield)} highlight />
                                 <DataCell label="Payout Ratio" value={formatPercent(stock.payoutRatio)} />
-                                <DataCell label="Last Dividend" value={formatChange(stock.lastDividendValue) + ' SAR'} />
+                                <DataCell label="Last Dividend" value={formatValue(stock.lastDividendValue)} />
                             </div>
                         </Card>
                     </div>
@@ -437,10 +507,10 @@ export default function StockAnalysis() {
                         {/* Price Targets */}
                         <Card title="Price Targets" icon={<Target size={20} />}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Current Price" value={formatChange(stock.currentPrice || stock.price) + ' SAR'} />
-                                <DataCell label="Target Mean" value={formatChange(stock.targetMeanPrice) + ' SAR'} highlight />
-                                <DataCell label="Target High" value={formatChange(stock.targetHighPrice) + ' SAR'} />
-                                <DataCell label="Target Low" value={formatChange(stock.targetLowPrice) + ' SAR'} />
+                                <DataCell label="Current Price" value={formatValue(stock.price) + ' ' + (stock.currency || 'SAR')} />
+                                <DataCell label="Target Mean" value={formatValue(stock.targetMeanPrice) + ' ' + (stock.currency || 'SAR')} highlight />
+                                <DataCell label="Target High" value={formatValue(stock.targetHighPrice) + ' ' + (stock.currency || 'SAR')} />
+                                <DataCell label="Target Low" value={formatValue(stock.targetLowPrice) + ' ' + (stock.currency || 'SAR')} />
                                 <DataCell
                                     label="Upside Potential"
                                     value={stock.targetMeanPrice && stock.price
@@ -465,19 +535,19 @@ export default function StockAnalysis() {
                                 lineHeight: 1.7,
                                 marginBottom: '1.5rem'
                             }}>
-                                {stock.description || 'Saudi Arabian Oil Company, doing business as Saudi Aramco, is a petroleum and natural gas company and is one of the largest companies in the world.'}
+                                {stock.description || 'Company description not available.'}
                             </p>
 
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                                <InfoBadge label="Sector" value={stock.sector || 'Energy'} />
-                                <InfoBadge label="Industry" value={stock.industry || 'Oil & Gas'} />
-                                <InfoBadge label="Country" value={stock.country || 'Saudi Arabia'} />
+                                <InfoBadge label="Sector" value={stock.sector || 'Unknown'} />
+                                <InfoBadge label="Industry" value={stock.industry || 'Unknown'} />
+                                <InfoBadge label="Country" value={stock.country || 'Unknown'} />
                             </div>
                         </Card>
 
                         <Card title="Key Facts">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Exchange" value={stock.exchange || 'TADAWUL'} />
+                                <DataCell label="Exchange" value={stock.exchange || 'Unknown'} />
                                 <DataCell label="Currency" value={stock.currency || 'SAR'} />
                                 <DataCell label="Employees" value={formatNumber(stock.fullTimeEmployees) || 'N/A'} />
                                 <DataCell label="Shares Outstanding" value={formatNumber(stock.sharesOutstanding)} />
@@ -522,7 +592,7 @@ export default function StockAnalysis() {
     );
 }
 
-// Card Component - White Background
+// Card Component
 function Card({ title, icon, children }) {
     return (
         <div style={{
@@ -551,7 +621,7 @@ function Card({ title, icon, children }) {
     );
 }
 
-// Data Cell Component - Light Theme
+// Data Cell Component
 function DataCell({ label, value, highlight }) {
     return (
         <div style={{
@@ -583,7 +653,7 @@ function DataCell({ label, value, highlight }) {
     );
 }
 
-// Info Badge Component - Light Theme
+// Info Badge Component
 function InfoBadge({ label, value }) {
     return (
         <div style={{

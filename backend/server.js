@@ -123,6 +123,146 @@ app.get('/api/chart', async (req, res) => {
     }
 });
 
+// ============ STOCK PROFILE ENDPOINT - Full Fundamentals ============
+app.get('/api/stock-profile', async (req, res) => {
+    const { symbol } = req.query;
+    if (!symbol) return res.status(400).json({ error: 'Symbol required' });
+
+    try {
+        const yahooFinance = require('yahoo-finance2').default;
+
+        console.log(`📊 Fetching full profile for ${symbol}...`);
+
+        // Fetch comprehensive data using quoteSummary
+        const modules = [
+            'price', 'summaryDetail', 'summaryProfile', 'financialData',
+            'defaultKeyStatistics', 'recommendationTrend'
+        ];
+
+        const [quoteSummary, quote] = await Promise.all([
+            yahooFinance.quoteSummary(symbol, { modules }).catch(() => null),
+            yahooFinance.quote(symbol).catch(() => null)
+        ]);
+
+        if (!quoteSummary && !quote) {
+            return res.status(404).json({ error: 'Stock not found', symbol });
+        }
+
+        // Extract all data
+        const price = quoteSummary?.price || {};
+        const summaryDetail = quoteSummary?.summaryDetail || {};
+        const summaryProfile = quoteSummary?.summaryProfile || {};
+        const financialData = quoteSummary?.financialData || {};
+        const keyStats = quoteSummary?.defaultKeyStatistics || {};
+        const recommendation = quoteSummary?.recommendationTrend?.trend || [];
+
+        // Build comprehensive response
+        const stockData = {
+            symbol,
+            shortName: quote?.shortName || price?.shortName || symbol,
+            longName: quote?.longName || price?.longName || symbol,
+            exchange: quote?.exchange || price?.exchange || 'Unknown',
+            currency: quote?.currency || price?.currency || 'SAR',
+
+            // Price Data
+            price: quote?.regularMarketPrice || price?.regularMarketPrice || 0,
+            change: quote?.regularMarketChange || price?.regularMarketChange || 0,
+            changePercent: quote?.regularMarketChangePercent || price?.regularMarketChangePercent || 0,
+            prevClose: quote?.regularMarketPreviousClose || summaryDetail?.previousClose || 0,
+            open: quote?.regularMarketOpen || summaryDetail?.open || 0,
+            high: quote?.regularMarketDayHigh || summaryDetail?.dayHigh || 0,
+            low: quote?.regularMarketDayLow || summaryDetail?.dayLow || 0,
+            volume: quote?.regularMarketVolume || summaryDetail?.volume || 0,
+            averageVolume: summaryDetail?.averageVolume || 0,
+
+            // 52-Week Range
+            fiftyTwoWeekHigh: summaryDetail?.fiftyTwoWeekHigh || keyStats?.fiftyTwoWeekHigh || 0,
+            fiftyTwoWeekLow: summaryDetail?.fiftyTwoWeekLow || keyStats?.fiftyTwoWeekLow || 0,
+            fiftyTwoWeekChange: keyStats?.['52WeekChange'] || 0,
+
+            // Moving Averages
+            fiftyDayAverage: summaryDetail?.fiftyDayAverage || keyStats?.fiftyDayAverage || 0,
+            twoHundredDayAverage: summaryDetail?.twoHundredDayAverage || keyStats?.twoHundredDayAverage || 0,
+
+            // Risk & Valuation
+            beta: summaryDetail?.beta || keyStats?.beta || 0,
+            marketCap: quote?.marketCap || summaryDetail?.marketCap || 0,
+            enterpriseValue: keyStats?.enterpriseValue || 0,
+            trailingPE: summaryDetail?.trailingPE || keyStats?.trailingPE || 0,
+            forwardPE: summaryDetail?.forwardPE || keyStats?.forwardPE || 0,
+            priceToBook: keyStats?.priceToBook || 0,
+            enterpriseToEbitda: keyStats?.enterpriseToEbitda || 0,
+
+            // Earnings
+            trailingEps: keyStats?.trailingEps || 0,
+            forwardEps: keyStats?.forwardEps || 0,
+            earningsGrowth: financialData?.earningsGrowth || 0,
+
+            // Profitability
+            profitMargins: financialData?.profitMargins || 0,
+            grossMargins: financialData?.grossMargins || 0,
+            operatingMargins: financialData?.operatingMargins || 0,
+            ebitdaMargins: financialData?.ebitdaMargins || 0,
+            returnOnEquity: financialData?.returnOnEquity || 0,
+
+            // Revenue & Income
+            totalRevenue: financialData?.totalRevenue || 0,
+            revenuePerShare: financialData?.revenuePerShare || 0,
+            revenueGrowth: financialData?.revenueGrowth || 0,
+            grossProfits: financialData?.grossProfits || 0,
+            ebitda: financialData?.ebitda || 0,
+            netIncomeToCommon: keyStats?.netIncomeToCommon || 0,
+
+            // Cash Flow
+            operatingCashflow: financialData?.operatingCashflow || 0,
+            freeCashflow: financialData?.freeCashflow || 0,
+            totalCash: financialData?.totalCash || 0,
+            totalCashPerShare: financialData?.totalCashPerShare || 0,
+
+            // Debt
+            totalDebt: financialData?.totalDebt || 0,
+            debtToEquity: financialData?.debtToEquity || 0,
+            currentRatio: financialData?.currentRatio || 0,
+            bookValue: keyStats?.bookValue || 0,
+
+            // Dividends
+            trailingAnnualDividendRate: summaryDetail?.trailingAnnualDividendRate || 0,
+            trailingAnnualDividendYield: summaryDetail?.trailingAnnualDividendYield || 0,
+            payoutRatio: summaryDetail?.payoutRatio || 0,
+            lastDividendValue: keyStats?.lastDividendValue || 0,
+
+            // Shares
+            sharesOutstanding: keyStats?.sharesOutstanding || 0,
+
+            // Analyst Targets
+            targetHighPrice: financialData?.targetHighPrice || 0,
+            targetLowPrice: financialData?.targetLowPrice || 0,
+            targetMeanPrice: financialData?.targetMeanPrice || 0,
+            numberOfAnalystOpinions: financialData?.numberOfAnalystOpinions || 0,
+            recommendationKey: financialData?.recommendationKey || 'none',
+            recommendationTrend: recommendation,
+
+            // Company Profile
+            sector: summaryProfile?.sector || quote?.sector || 'Unknown',
+            industry: summaryProfile?.industry || 'Unknown',
+            country: summaryProfile?.country || 'Unknown',
+            website: summaryProfile?.website || '',
+            description: summaryProfile?.longBusinessSummary || '',
+            fullTimeEmployees: summaryProfile?.fullTimeEmployees || 0,
+
+            lastUpdated: new Date().toISOString()
+        };
+
+        res.set('Cache-Control', 'public, max-age=60');
+        console.log(`✅ Stock profile fetched for ${symbol}`);
+        res.json(stockData);
+
+    } catch (error) {
+        console.error(`Stock Profile error for ${symbol}:`, error.message);
+        res.status(500).json({ error: 'Failed to fetch stock profile', symbol });
+    }
+});
+
 // Translate text using Google Translate (free API)
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang = 'ar' } = req.body;
