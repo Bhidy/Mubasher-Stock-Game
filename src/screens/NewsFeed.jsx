@@ -1,6 +1,7 @@
+```javascript
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Clock, Filter, Newspaper, Search, ChevronDown } from 'lucide-react';
+import { Clock, Filter, Newspaper, Search, ChevronDown, Calendar } from 'lucide-react';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
@@ -14,11 +15,15 @@ const timeAgo = (dateString) => {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    if (minutes > 0) return `${minutes}m ago`;
+    if (days > 0) return `${ days }d ago`;
+    if (hours > 0) return `${ hours }h ago`;
+    if (minutes > 0) return `${ minutes }m ago`;
     return 'Just now';
 };
+
+const NEWS_API_URL = import.meta.env.PROD 
+    ? '/api/news' 
+    : 'http://localhost:5001/api/news';
 
 export default function NewsFeed() {
     const navigate = useNavigate();
@@ -28,44 +33,48 @@ export default function NewsFeed() {
     const [market, setMarket] = useState(location.state?.market || 'EG');
     const [newsItems, setNewsItems] = useState([]);
     const [filteredNews, setFilteredNews] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const [sources, setSources] = useState(['All']);
-    const [selectedSource, setSelectedSource] = useState(location.state?.source || 'All');
+    const [selectedSource, setSelectedSource] = useState('All');
+    const [dateFilter, setDateFilter] = useState('All'); // '1D', '7D', '30D', 'All'
+    const [showDateMenu, setShowDateMenu] = useState(false);
 
-    // Use relative path for production (Vercel) to let proxy or same-origin handle it
-    const API_URL = import.meta.env.VITE_API_BASE_URL || '';
+    // Helper: Check date range
+    const isWithinDateRange = (itemDateStr, filter) => {
+        if (!itemDateStr) return false;
+        if (filter === 'All') return true;
+        
+        const date = new Date(itemDateStr);
+        const now = new Date();
+        const diffTime = now - date; // millis
+        const diffHours = diffTime / (1000 * 60 * 60);
+        
+        if (filter === '1D') return diffHours <= 24;
+        if (filter === '7D') return diffHours <= (24 * 7);
+        if (filter === '30D') return diffHours <= (24 * 30);
+        return true;
+    };
+
+    // Reuse fetch logic from original file...
+    const fetchNews = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${ NEWS_API_URL }?market = ${ market } `);
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setNewsItems(data);
+                // Initial filter will trigger via useEffect
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Fetch News when market changes + auto-refresh every 60s
     useEffect(() => {
-        const fetchNews = async () => {
-            setLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/news?market=${market}`);
-                const data = await res.json();
-
-                // Sort by time desc
-                const sorted = (data || []).sort((a, b) => new Date(b.time) - new Date(a.time));
-                setNewsItems(sorted);
-
-                // Extract unique sources
-                const uniqueSources = ['All', ...new Set(sorted.map(item => item.publisher).filter(Boolean))];
-                setSources(uniqueSources);
-
-                // Only reset filter if the selected source is invalid for this market, 
-                // OR if it wasn't restored from state.
-                if (!uniqueSources.includes(selectedSource)) {
-                    setSelectedSource('All');
-                }
-
-            } catch (err) {
-                console.error('Failed to fetch news', err);
-                setNewsItems([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchNews();
 
         // Auto-refresh news every 60 seconds
@@ -73,14 +82,42 @@ export default function NewsFeed() {
         return () => clearInterval(interval);
     }, [market]);
 
-    // Filter news when Source changes
+    // Calculate source counts based on CURRENT Date Filter
+    const sourceCounts = React.useMemo(() => {
+        const dateFiltered = newsItems.filter(item => isWithinDateRange(item.time, dateFilter));
+        const counts = { 'All': dateFiltered.length };
+        dateFiltered.forEach(item => {
+            const pub = item.publisher || 'Unknown';
+            counts[pub] = (counts[pub] || 0) + 1;
+        });
+        return counts;
+    }, [newsItems, dateFilter]);
+
     useEffect(() => {
-        if (selectedSource === 'All') {
-            setFilteredNews(newsItems);
+        let filtered = newsItems;
+
+        // 1. Date Filter
+        filtered = filtered.filter(item => isWithinDateRange(item.time, dateFilter));
+
+        // 2. Source Filter
+        if (selectedSource !== 'All') {
+            filtered = filtered.filter(item => item.publisher === selectedSource);
         } else {
-            setFilteredNews(newsItems.filter(item => item.publisher === selectedSource));
+             // For 'All' source, we just show date filtered
         }
-    }, [selectedSource, newsItems]);
+        
+        setFilteredNews(filtered);
+        
+        // Update available sources list based on date-filtered items
+        // We only show sources that have at least 1 article in the selected date range
+        const uniqueSources = ['All', ...new Set(filtered.map(item => item.publisher).filter(Boolean))];
+        // But wait, if we filter by source, we lose other sources.
+        // The sources list should be based on date-filtered items ONLY, not double filtered.
+        const dateFilteredOnly = newsItems.filter(item => isWithinDateRange(item.time, dateFilter));
+        const availableSources = ['All', ...new Set(dateFilteredOnly.map(item => item.publisher).filter(Boolean))];
+        setSources(availableSources.sort());
+
+    }, [selectedSource, dateFilter, newsItems]);
 
     return (
         <div className="screen-container" style={{ paddingBottom: '6rem' }}>
@@ -91,6 +128,70 @@ export default function NewsFeed() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800, background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                         Market News
                     </h1>
+                </div>
+                
+                {/* Date Filter Icon */}
+                <div style={{ position: 'relative' }}>
+                    <button 
+                        onClick={() => setShowDateMenu(!showDateMenu)}
+                        style={{
+                            padding: '0.6rem',
+                            borderRadius: '12px',
+                            background: '#f1f5f9',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            color: '#334155',
+                            fontWeight: 600,
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        <Calendar size={18} />
+                        <span>{dateFilter === 'All' ? 'Hist' : dateFilter}</span>
+                        <ChevronDown size={14} />
+                    </button>
+                    
+                    {/* Date Dropdown */}
+                    {showDateMenu && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '120%',
+                            right: 0,
+                            background: 'white',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                            padding: '0.5rem',
+                            zIndex: 100,
+                            minWidth: '120px',
+                            border: '1px solid #f1f5f9'
+                        }}>
+                            {['1D', '7D', '30D', 'All'].map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => {
+                                        setDateFilter(d);
+                                        setShowDateMenu(false);
+                                    }}
+                                    style={{
+                                        display: 'block',
+                                        width: '100%',
+                                        textAlign: 'left',
+                                        padding: '0.6rem 1rem',
+                                        borderRadius: '8px',
+                                        background: dateFilter === d ? '#f1f5f9' : 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        color: dateFilter === d ? '#0D85D8' : '#334155',
+                                        fontWeight: dateFilter === d ? 700 : 500
+                                    }}
+                                >
+                                    {d === 'All' ? 'All History' : `${ d } days`}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -107,7 +208,7 @@ export default function NewsFeed() {
                             setMarket(m.id);
                             setSelectedSource('All'); // Reset filter on market switch
                         }}
-                        className={`flex-center animate-scale`}
+                        className={`flex - center animate - scale`}
                         style={{
                             flex: 1,
                             padding: '0.6rem',
@@ -127,7 +228,7 @@ export default function NewsFeed() {
                 ))}
             </div>
 
-            {/* Source Filter */}
+            {/* Source Filter with Counts */}
             <div style={{ padding: '0 1.5rem 0.5rem 1.5rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }} className="no-scrollbar">
                     {sources.map(source => (
@@ -147,7 +248,8 @@ export default function NewsFeed() {
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            {source}
+                            {/* Display Count next to Source Name */}
+                            {source} {sourceCounts[source] ? `(${ sourceCounts[source]})` : ''}
                         </button>
                     ))}
                 </div>
@@ -176,7 +278,7 @@ export default function NewsFeed() {
                                 {news.thumbnail && (
                                     <div style={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative' }}>
                                         <img
-                                            src={news.thumbnail.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(news.thumbnail)}` : news.thumbnail}
+                                            src={news.thumbnail.startsWith('http') ? `/ api / proxy - image ? url = ${ encodeURIComponent(news.thumbnail) } ` : news.thumbnail}
                                             referrerPolicy="no-referrer"
                                             onError={(e) => {
                                                 e.target.onerror = null;
