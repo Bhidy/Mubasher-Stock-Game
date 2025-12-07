@@ -1,5 +1,8 @@
 import yahooFinance from 'yahoo-finance2';
 
+// Version: 2.0.0 - No fallback data, real data only with retry logic
+// Deployed: 2025-12-07
+
 // Fully expanded lists matching backend/jobs/updateStockPrices.js
 const SAUDI_STOCKS = [
     '2222.SR', '1120.SR', '2010.SR', '7010.SR', '2082.SR', '1180.SR',

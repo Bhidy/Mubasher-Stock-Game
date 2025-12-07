@@ -1,5 +1,8 @@
 import yahooFinance from 'yahoo-finance2';
 
+// Version: 2.0.0 - No simulated charts, real data only with 3x retry
+// Deployed: 2025-12-07
+
 export default async function handler(req, res) {
     // CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
