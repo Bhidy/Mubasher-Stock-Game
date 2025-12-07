@@ -287,6 +287,10 @@ export default function MarketSummary() {
             }
         };
         fetchNews();
+
+        // Auto-refresh news every 60 seconds
+        const interval = setInterval(fetchNews, 60000);
+        return () => clearInterval(interval);
     }, [activeMarket]);
 
     const sources = ['All', ...new Set(newsItems.map(item => item.publisher).filter(Boolean))];

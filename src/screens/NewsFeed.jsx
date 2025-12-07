@@ -36,7 +36,7 @@ export default function NewsFeed() {
     // Use relative path for production (Vercel) to let proxy or same-origin handle it
     const API_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-    // Fetch News when market changes
+    // Fetch News when market changes + auto-refresh every 60s
     useEffect(() => {
         const fetchNews = async () => {
             setLoading(true);
@@ -67,6 +67,10 @@ export default function NewsFeed() {
         };
 
         fetchNews();
+
+        // Auto-refresh news every 60 seconds
+        const interval = setInterval(fetchNews, 60000);
+        return () => clearInterval(interval);
     }, [market]);
 
     // Filter news when Source changes
