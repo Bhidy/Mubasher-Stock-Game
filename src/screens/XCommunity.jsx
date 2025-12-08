@@ -82,6 +82,20 @@ const CategoryBadge = ({ category }) => {
 };
 
 // ============ MARKET INTELLIGENCE LOGIC ============
+
+// Ticker to Name Mapping (Top 40 Saudi Stocks)
+const TICKER_MAP = {
+    '1120': 'Al Rajhi', '2222': 'Aramco', '2010': 'SABIC', '1180': 'SNB', '7010': 'STC',
+    '2082': 'ACWA Power', '1211': 'Maaden', '1150': 'Alinma', '1140': 'Albilad', '1010': 'Riyad Bank',
+    '2380': 'Petro Rabigh', '2280': 'Almarai', '4030': 'Bahri', '2290': 'Yansab', '2020': 'SABIC Agri',
+    '4190': 'Jarir', '4200': 'Aldrees', '4002': 'Mouwasat', '2060': 'Tasnee', '2310': 'Sipchem',
+    '4164': 'Nahdi', '1831': 'Maharah', '1810': 'Seera', '1830': 'Fitness Time', '1302': 'Bawan',
+    '6001': 'Americana', '7202': 'Solutions', '7203': 'Elm', '7204': 'Al Masane', '7200': 'Moammar',
+    '1060': 'SABB', '1030': 'SAIB', '1020': 'Jazira', '1080': 'ANB', '1050': 'BSF',
+    '5110': 'Saudi Elec', '2190': 'SISCO', '3030': 'Cement Saudi', '3040': 'Qassim Cement',
+    'TASI': 'TASI Index', '^TASI': 'TASI Index'
+};
+
 const processMarketIntelligence = (tweets) => {
     const tickers = {};
     const sentiment = { bullish: 0, bearish: 0, neutral: 0, score: 50 };
@@ -90,8 +104,6 @@ const processMarketIntelligence = (tweets) => {
     const BULLISH_TERMS = ['breakout', 'bull', 'buy', 'long', 'support', 'profit', 'target', 'green', 'up', 'bounce', 'accumulate', 'moon', 'rocket', 'call', 'entry', 'اختراق', 'شراء', 'صعود', 'هدف', 'ايجابي', 'دعم', 'ارباح', 'تجميع'];
     const BEARISH_TERMS = ['breakdown', 'bear', 'sell', 'short', 'resistance', 'loss', 'drop', 'red', 'down', 'crash', 'put', 'exit', 'dump', 'كسر', 'بيع', 'هبوط', 'سلبي', 'مقاومة', 'خسارة', 'تصريف', 'انهيار'];
 
-    // Ticker Regex: 4-digit codes (Saudi) or $TICKER
-    // Filter out common years like 2023, 2024, 2025, 2030 to avoid confusion
     const tickerRegex = /\b\d{4}\b|\$[A-Z]{2,5}/g;
 
     tweets.forEach(t => {
@@ -111,101 +123,150 @@ const processMarketIntelligence = (tweets) => {
         if (matches) {
             matches.forEach(m => {
                 const s = m.replace('$', '');
-                // Exclude years
                 if (s.match(/^\d{4}$/) && (parseInt(s) >= 2020 && parseInt(s) <= 2035)) return;
                 tickers[s] = (tickers[s] || 0) + 1;
             });
         }
     });
 
-    // Calculate overall Sentiment Score (0-100)
+    // Score Calculation
     const total = sentiment.bullish + sentiment.bearish + sentiment.neutral;
     if (total > 0) {
-        // Simple weighted: Bullish counts double in positive direction, Bearish in negative 
-        // 50 is neutral. 
-        const rawScore = 50 + ((sentiment.bullish - sentiment.bearish) / total * 50);
-        sentiment.score = Math.min(100, Math.max(0, rawScore));
+        // Weighted score: 0-100. Start at 50. 
+        // Bullish adds to score, Bearish subtracts.
+        const netSentiment = (sentiment.bullish - sentiment.bearish);
+        // Normalize: if 100% bullish -> 100, 100% bearish -> 0
+        const ratio = (sentiment.bullish + 0.5 * sentiment.neutral) / total;
+        sentiment.score = Math.round(ratio * 100);
     }
 
-    // Sort tickers
+    // Sort tickers & Map Names
     const sortedTickers = Object.entries(tickers)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([symbol, count]) => ({ symbol, count }));
+        .map(([symbol, count]) => ({
+            symbol,
+            name: TICKER_MAP[symbol] || symbol,
+            count
+        }));
 
     return { sentiment, tickers: sortedTickers };
 };
 
-// ============ SENTIMENT DASHBOARD COMPONENT ============
+// ============ RE-DESIGNED LIGHT DASHBOARD ============
 const SentimentDashboard = ({ sentiment, tickers }) => {
     // Determine Market Mood
     let mood = "Neutral";
-    let moodColor = "#94a3b8"; // Gray
-    if (sentiment.score >= 60) { mood = "Greed"; moodColor = "#22c55e"; } // Green
-    else if (sentiment.score >= 75) { mood = "Euphoria"; moodColor = "#10b981"; } // Emerald
-    else if (sentiment.score <= 40) { mood = "Fear"; moodColor = "#f59e0b"; } // Orange
-    else if (sentiment.score <= 25) { mood = "Panic"; moodColor = "#ef4444"; } // Red
+    let moodColor = "#64748b"; // Slate 500
+    let bgGradient = "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)";
+    let icon = <TrendingUp size={24} color="#64748b" />;
+
+    if (sentiment.score >= 65) {
+        mood = "Greed"; moodColor = "#10b981"; // Emerald
+        bgGradient = "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)";
+        icon = <TrendingUp size={24} color="#10b981" />;
+    } else if (sentiment.score >= 80) {
+        mood = "Euphoria"; moodColor = "#059669";
+        bgGradient = "linear-gradient(135deg, #d1fae5 0%, #10b981 100%)";
+        icon = <Zap size={24} color="white" fill="white" />;
+    } else if (sentiment.score <= 35) {
+        mood = "Fear"; moodColor = "#f59e0b"; // Amber
+        bgGradient = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)";
+        icon = <TrendingUp size={24} color="#f59e0b" style={{ transform: 'scaleY(-1)' }} />;
+    } else if (sentiment.score <= 20) {
+        mood = "Panic"; moodColor = "#ef4444"; // Red
+        bgGradient = "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)";
+        icon = <Target size={24} color="#ef4444" />;
+    }
 
     return (
         <div className="animate-fade-in" style={{
-            background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
-            borderRadius: '24px', padding: '1.5rem', marginBottom: '2rem',
-            border: '1px solid rgba(255,255,255,0.05)',
-            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)'
+            background: 'white',
+            borderRadius: '24px', padding: '1.25rem', marginBottom: '2rem',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+            border: '1px solid #f1f5f9'
         }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Zap size={20} color="#fbbf24" fill="#fbbf24" />
-                        Market Intelligence
-                    </h3>
-                    <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>AI-Powered Analysis of {sentiment.bullish + sentiment.bearish + sentiment.neutral} recent insights</p>
-                </div>
-                <div style={{
-                    padding: '8px 16px', borderRadius: '100px',
-                    background: `${moodColor}20`, border: `1px solid ${moodColor}40`,
-                    display: 'flex', alignItems: 'center', gap: '8px'
-                }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: moodColor, boxShadow: `0 0 10px ${moodColor}` }} />
-                    <span style={{ color: moodColor, fontWeight: 700, fontSize: '0.9rem' }}>{mood} ({sentiment.score.toFixed(0)})</span>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={20} color="#6366f1" fill="#6366f1" />
+                    Market Pulse
+                </h3>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                    Based on {sentiment.bullish + sentiment.bearish + sentiment.neutral} recent insights
+                </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                {/* Sentiment Gauge */}
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
-                        <span style={{ color: '#ef4444' }}>Bearish ({sentiment.bearish})</span>
-                        <span style={{ color: '#22c55e' }}>Bullish ({sentiment.bullish})</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1fr) 2fr', gap: '1.5rem', alignItems: 'center' }}>
+
+                {/* 1. Sentiment Gauge (Left) */}
+                <div style={{
+                    background: bgGradient,
+                    borderRadius: '20px', padding: '1.25rem', textAlign: 'center',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    minHeight: '120px', position: 'relative', overflow: 'hidden'
+                }}>
+                    <div style={{
+                        width: '50px', height: '50px', background: 'white', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: '8px'
+                    }}>
+                        {icon}
                     </div>
-                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', display: 'flex' }}>
-                        <div style={{ width: `${sentiment.score}%`, background: 'linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%)', height: '100%', transition: 'width 1s ease-out' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' }}>
+                        {sentiment.score}
                     </div>
-                    <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
-                        <span>Extreme Fear</span>
-                        <span>Neutral</span>
-                        <span>Extreme Greed</span>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: moodColor, marginTop: '-2px' }}>
+                        {mood}
                     </div>
                 </div>
 
-                {/* Hot Tickers */}
+                {/* 2. Trending Chips (Right) */}
                 <div>
-                    <h4 style={{ fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Flame size={14} color="#f97316" /> Trending Tickers
-                    </h4>
+                    <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Flame size={16} color="#f97316" fill="#f97316" />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>Top Talked About</span>
+                    </div>
+
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {tickers.slice(0, 6).map((t, i) => (
-                            <div key={i} style={{
-                                display: 'flex', alignItems: 'center', gap: '6px',
-                                background: 'rgba(255,255,255,0.05)', padding: '6px 12px',
-                                borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)',
+                        {tickers.length > 0 ? tickers.slice(0, 5).map((t, i) => (
+                            <div key={i} className="hover-scale" style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                background: 'white', padding: '8px 14px',
+                                borderRadius: '100px', border: '1px solid #e2e8f0',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
                                 cursor: 'default', transition: 'all 0.2s'
                             }}>
-                                <span style={{ color: '#white', fontWeight: 700, fontSize: '0.85rem' }}>{t.symbol}</span>
-                                <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>{t.count}</span>
+                                <span style={{
+                                    background: i === 0 ? '#3b82f6' : '#f1f5f9',
+                                    color: i === 0 ? 'white' : '#64748b',
+                                    fontWeight: 700, fontSize: '0.75rem',
+                                    width: '20px', height: '20px', borderRadius: '50%',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}>{i + 1}</span>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+                                    <span style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.85rem' }}>
+                                        {t.name}
+                                    </span>
+                                    {t.name !== t.symbol && (
+                                        <span style={{ color: '#94a3b8', fontSize: '0.65rem', fontWeight: 500 }}>
+                                            {t.symbol}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <span style={{
+                                    marginLeft: '4px', fontSize: '0.75rem', fontWeight: 600,
+                                    color: '#6366f1', background: '#e0e7ff', padding: '2px 6px', borderRadius: '6px'
+                                }}>
+                                    {t.count}
+                                </span>
                             </div>
-                        ))}
-                        {tickers.length === 0 && <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Analyzing mentions...</span>}
+                        )) : (
+                            <div style={{ color: '#94a3b8', fontSize: '0.9rem', padding: '10px' }}>
+                                Listening to market chatter...
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
