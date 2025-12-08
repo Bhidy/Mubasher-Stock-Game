@@ -333,6 +333,31 @@ async function fetchFromSyndication(username) {
         const account = uniqueAccounts.find(a => a.username.toLowerCase() === username.toLowerCase());
         const tweets = [];
 
+        // FINANCIAL CONTENT FILTER
+        const isValidTweet = (text, hasMedia) => {
+            // 1. Always allow tweets with images (likely charts)
+            if (hasMedia) return true;
+
+            // 2. Filter out very short text (spam/emojis)
+            if (text.length < 15) return false;
+
+            // 3. Keyword Check (Arabic & English)
+            const KEYWORDS = [
+                'tasi', 'stock', 'market', 'price', 'sar', 'profit', 'chart', 'analy', 'invest', 'trade', 'fund', 'dividend',
+                'sector', 'company', 'bull', 'bear', 'support', 'resist', 'target', 'entry', 'exit', 'stop', 'loss', 'long', 'short',
+                'سوق', 'اسهم', 'تاسي', 'سهم', 'تداول', 'تحليل', 'فني', 'مالي', 'ارباح', 'توزيعات', 'نمو', 'اكتتاب', 'محفظة',
+                'استثمار', 'مضاربة', 'صفقة', 'توصية', 'دعم', 'مقاومة', 'هدف', 'وقف', 'سيولة', 'مؤشر', 'بنوك', 'طاقة', 'تأمين',
+                'book', 'lesson', 'learn', 'education', 'strategy', 'درس', 'تعلم', 'استراتيجية', 'كتاب' // Educator keywords
+            ];
+
+            // 4. Stock Code Check (4 digits)
+            if (/\b\d{4}\b/.test(text)) return true;
+
+            // 5. Check Keywords
+            const lowerText = text.toLowerCase();
+            return KEYWORDS.some(k => lowerText.includes(k));
+        };
+
         for (const entry of timeline.entries) {
             if (entry.type !== 'tweet') continue;
             const tweet = entry.content?.tweet;
@@ -347,7 +372,20 @@ async function fetchFromSyndication(username) {
             }
 
             const text = tweet.full_text || tweet.text || '';
+            // Skip retweets
             if (text.startsWith('RT @')) continue;
+
+            // Clean text
+            const cleanText = text.replace(/https:\/\/t\.co\/\w+$/g, '').trim();
+
+            // APPLY FILTER
+            // If it's an Elite Analyst, we trust them more (skip filter or lenient). 
+            // For "Influencer", we apply strict filter.
+            const isElite = account?.category === 'Elite Analyst' || account?.category === 'Chart Master';
+            const hasFinancialContent = isValidTweet(cleanText, images.length > 0);
+
+            // If not elite and no financial content, skip (unless it's an Educator with relevant words)
+            if (!isElite && !hasFinancialContent) continue;
 
             const createdAt = tweet.created_at ? new Date(tweet.created_at) : new Date();
             const tweetObj = {
@@ -357,7 +395,7 @@ async function fetchFromSyndication(username) {
                 category: account?.category || 'Influencer',
                 tier: account?.tier || 3,
                 profileImage: tweet.user?.profile_image_url_https?.replace('_normal', '_400x400') || null,
-                content: text.replace(/https:\/\/t\.co\/\w+$/g, '').trim(),
+                content: cleanText,
                 images,
                 timestamp: createdAt.toISOString(),
                 relativeTime: getRelativeTime(createdAt),
@@ -414,8 +452,8 @@ async function fetchAllTweets(options = {}) {
         [filteredAccounts[i], filteredAccounts[j]] = [filteredAccounts[j], filteredAccounts[i]];
     }
 
-    // Limit to 80 random accounts per request for optimal performance/coverage balance
-    const accountsToFetch = filteredAccounts.slice(0, 80);
+    // Limit to 110 random accounts per request (Increased for better volume after filtering)
+    const accountsToFetch = filteredAccounts.slice(0, 110);
 
     const allTweets = [];
     const batchSize = 10; // Parallel batch size
@@ -453,10 +491,10 @@ async function fetchAllTweets(options = {}) {
         }
     }
 
-    // Translate content (limit to top 50 to save time)
-    console.log(`🌐 Translating ${Math.min(uniqueTweets.length, 50)} tweets...`);
+    // Translate content (limit to top 60 to ensure enough fresh content)
+    console.log(`🌐 Translating ${Math.min(uniqueTweets.length, 60)} tweets...`);
     const translatedTweets = [];
-    for (let i = 0; i < Math.min(uniqueTweets.length, 50); i += 10) {
+    for (let i = 0; i < Math.min(uniqueTweets.length, 60); i += 10) {
         const batch = uniqueTweets.slice(i, i + 10);
         const translated = await Promise.all(batch.map(t => translateTweetContent(t)));
         translatedTweets.push(...translated);
