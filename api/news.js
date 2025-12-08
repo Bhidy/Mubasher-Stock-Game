@@ -533,16 +533,21 @@ async function fetchYahooNews(queries, count = 5) {
             ]);
 
             if (result && result.news && result.news.length > 0) {
-                for (const n of result.news) {
-                    allNews.push({
+                // Scrape content for top items
+                const topItems = result.news.slice(0, 5);
+                const scrapedItems = await Promise.all(topItems.map(async n => {
+                    const content = await scrapeContent(n.link);
+                    return {
                         id: n.uuid || n.link,
                         title: n.title,
                         publisher: n.publisher || 'Yahoo Finance',
                         link: n.link,
                         time: new Date(n.providerPublishTime).toISOString(),
-                        thumbnail: n.thumbnail?.resolutions?.[0]?.url || null
-                    });
-                }
+                        thumbnail: n.thumbnail?.resolutions?.[0]?.url || null,
+                        content: content // Add scraped content
+                    };
+                }));
+                allNews.push(...scrapedItems);
             }
         } catch (e) {
             console.error(`Yahoo Fetch Error (${query}):`, e.message);
@@ -612,28 +617,26 @@ async function fetchGoogleNews(query, count = 5) {
 // Helper: Fetch Bing News RSS
 // Helper: Virtual Scraper (Bing Proxy)
 // Helper: Check if URL has substantial content (Headless "Test Drive")
-async function checkUrlContent(url) {
+async function scrapeContent(url) {
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3500); // Increased to 3.5s
+        const timeout = setTimeout(() => controller.abort(), 4000);
 
-        // Use Googlebot UA to bypass WAFs (matches api/content.js success)
         const response = await axios.get(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
             },
-            timeout: 3500,
+            timeout: 4000,
             signal: controller.signal
         });
         clearTimeout(timeout);
 
-        if (!response.data) return false;
+        if (!response.data) return null;
 
         const $ = cheerio.load(response.data);
+        $('script, style, nav, footer, header, aside, .ad, .advertisement').remove();
 
-        // Strategy: Look for SPECIFIC article containers first
-        // This ensures check matches api/content.js scraping capability
         const selectors = [
             '#articleBody', '.article-body', '.td-post-content', '.details-body',
             '.article-text', '.WYSIWYG.articlePage', '#article', '[data-test-id="post-content"]',
@@ -641,23 +644,19 @@ async function checkUrlContent(url) {
             '.story-content', 'article', '.main-content', 'main'
         ];
 
-        let hasSelector = false;
         for (const sel of selectors) {
-            if ($(sel).length > 0 && $(sel).text().trim().length > 250) { // Found a substantial container
-                hasSelector = true;
-                break;
+            if ($(sel).length > 0) {
+                const text = $(sel).text().replace(/\s+/g, ' ').trim();
+                if (text.length > 250) return text; // Found substantial content
             }
         }
 
-        if (hasSelector) return true;
-
-        // Fallback: If no specific container, strip noise and check body
-        $('script, style, nav, footer, header').remove();
+        // Fallback
         const text = $('body').text().replace(/\s+/g, ' ').trim();
-        return text.length > 600; // Stricter fallback check
+        return text.length > 500 ? text : null;
 
     } catch (e) {
-        return false;
+        return null;
     }
 }
 
@@ -691,19 +690,19 @@ async function scrapeVirtual(publisher, query, count = 10, expectedDomain = null
             });
         }
 
-        // 2. Content Verification (Slow but Accurate) - "Test Drive"
+        // 2. Content Verification & Extraction
         if (verifyContent && news.length > 0) {
-            // Limit to top 5 to prevent timeouts
             const candidates = news.slice(0, 5);
-
             // Check all in parallel
-            const results = await Promise.allSettled(candidates.map(n => checkUrlContent(n.link)));
+            const results = await Promise.allSettled(candidates.map(async n => {
+                const content = await scrapeContent(n.link);
+                return { ...n, content };
+            }));
 
             // Keep only those that passed verification
-            news = candidates.filter((_, index) => {
-                const result = results[index];
-                return result.status === 'fulfilled' && result.value === true;
-            });
+            news = results
+                .filter(r => r.status === 'fulfilled' && r.value.content)
+                .map(r => r.value);
         }
 
         news.forEach(n => n.publisher = publisher);
@@ -775,6 +774,8 @@ async function fetchBingNews(query, count = 5) {
                 link: finalUrl,
                 time: new Date(item.pubDate).toISOString(),
                 thumbnail: image
+                // Note: We don't scrape here to avoid slowing down fallback. 
+                // Only scrapeVirtual or explicit scrapeContent usage should populate content.
             };
         });
     } catch (e) {
