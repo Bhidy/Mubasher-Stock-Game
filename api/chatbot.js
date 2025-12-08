@@ -274,7 +274,7 @@ export default async function handler(req, res) {
             model: 'llama-3.1-70b-versatile',
             provider: 'Groq',
             stocksAnalyzed: symbols,
-            hasRealData: stockContext.length > 0,
+            hasRealData: contextData.length > 0,
             timestamp: new Date().toISOString()
         });
 

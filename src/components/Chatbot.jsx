@@ -21,6 +21,58 @@ const TypingIndicator = () => (
     </div>
 );
 
+// Mini Stock Widget for Chat
+const StockWidget = ({ symbol }) => {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        const fetchStock = async () => {
+            try {
+                const res = await fetch(`/api/stock-profile?symbol=${symbol}`);
+                if (res.ok) setData(await res.json());
+            } catch (e) { console.error(e); }
+        };
+        fetchStock();
+    }, [symbol]);
+
+    if (!data) return null;
+
+    const isPositive = (data.change || 0) >= 0;
+
+    return (
+        <div style={{
+            marginTop: '10px',
+            padding: '12px',
+            background: 'rgba(255,255,255,0.9)',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+            <img
+                src={data.logoUrl || `https://ui-avatars.com/api/?name=${data.symbol}&background=random`}
+                alt={data.symbol}
+                style={{ width: 40, height: 40, borderRadius: '10px', objectFit: 'cover' }}
+            />
+            <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', color: '#1e293b' }}>{data.symbol}</span>
+                    <span style={{ fontWeight: 'bold', color: '#1e293b' }}>{data.price?.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#64748b' }}>{data.shortName || data.longName}</span>
+                    <span style={{ color: isPositive ? '#22c55e' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        {data.change?.toFixed(2)} ({data.changePercent?.toFixed(2)}%)
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Message component with markdown-like formatting
 const MessageBubble = ({ message }) => {
     const isUser = message.sender === 'user';
@@ -32,8 +84,6 @@ const MessageBubble = ({ message }) => {
         let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         // Line breaks
         formatted = formatted.replace(/\n/g, '<br/>');
-        // Bullet points
-        formatted = formatted.replace(/^- /gm, '• ');
         return formatted;
     };
 
@@ -43,35 +93,57 @@ const MessageBubble = ({ message }) => {
             maxWidth: '85%',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: isUser ? 'flex-end' : 'flex-start'
+            alignItems: isUser ? 'flex-end' : 'flex-start',
+            animation: 'fadeIn 0.3s ease-out'
         }}>
+            {/* Sender Name */}
+            <div style={{
+                fontSize: '0.75rem',
+                color: '#64748b',
+                marginBottom: '4px',
+                marginLeft: !isUser ? '4px' : '0',
+                marginRight: !isUser ? '0' : '4px',
+                textAlign: !isUser ? 'left' : 'right',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: !isUser ? 'flex-start' : 'flex-end',
+                gap: '6px'
+            }}>
+                {!isUser && <Sparkles size={12} color="#10b981" />}
+                {!isUser ? 'Hero Ai' : 'You'}
+                <span style={{ opacity: 0.6 }}>• {message.time}</span>
+            </div>
+
             <div style={{
                 padding: '0.875rem 1.125rem',
                 borderRadius: isUser ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                background: isUser
-                    ? 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)'
-                    : 'white',
+                background: isUser ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'white',
                 color: isUser ? 'white' : '#1e293b',
-                boxShadow: isUser
-                    ? '0 4px 15px rgba(16, 185, 129, 0.25)'
-                    : '0 2px 10px rgba(0,0,0,0.06)',
-                fontSize: '0.9375rem',
-                lineHeight: 1.6,
-                border: isUser ? 'none' : '1px solid #f1f5f9'
+                boxShadow: isUser ? '0 4px 12px rgba(37, 99, 235, 0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
+                lineHeight: '1.6',
+                border: isUser ? 'none' : '1px solid #e2e8f0',
+                position: 'relative'
             }}>
                 <div dangerouslySetInnerHTML={{ __html: formatText(message.text) }} />
-            </div>
-            <div style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                marginTop: '4px', marginLeft: '8px', marginRight: '8px'
-            }}>
+
+                {/* Live Data Badge */}
                 {!isUser && message.hasRealData && (
-                    <span style={{
-                        background: '#dcfce7', color: '#16a34a', fontSize: '0.625rem',
-                        padding: '2px 6px', borderRadius: '4px', fontWeight: 600
+                    <div style={{
+                        marginTop: '12px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 8px',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: '6px',
+                        fontSize: '0.7rem',
+                        color: '#059669',
+                        fontWeight: 600,
+                        border: '1px solid rgba(16, 185, 129, 0.2)'
                     }}>
-                        📊 Live Data
-                    </span>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669', animation: 'pulse 2s infinite' }} />
+                        Live Market Context
+                    </div>
                 )}
                 <span style={{ fontSize: '0.625rem', color: '#94a3b8' }}>
                     {isUser ? 'You' : 'Mubasher AI'} • {message.time || 'Just now'}
