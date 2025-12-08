@@ -49,6 +49,10 @@
             "destination": "/api/stock-profile.js"
         },
         {
+            "source": "/api/chatbot",
+            "destination": "/api/chatbot.js"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

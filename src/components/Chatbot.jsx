@@ -1,20 +1,106 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, HelpCircle, BarChart2 } from 'lucide-react';
 import { UserContext } from '../App';
+
+// Typing indicator component
+const TypingIndicator = () => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '4px',
+        padding: '12px 16px', background: 'white', borderRadius: '18px 18px 18px 4px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)', width: 'fit-content'
+    }}>
+        <div style={{ display: 'flex', gap: '4px' }}>
+            {[0, 1, 2].map(i => (
+                <div key={i} style={{
+                    width: '8px', height: '8px', borderRadius: '50%',
+                    background: '#10b981', animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite`
+                }} />
+            ))}
+        </div>
+        <span style={{ marginLeft: '8px', color: '#64748b', fontSize: '0.75rem' }}>AI is thinking...</span>
+    </div>
+);
+
+// Message component with markdown-like formatting
+const MessageBubble = ({ message }) => {
+    const isUser = message.sender === 'user';
+
+    // Simple markdown-like formatting
+    const formatText = (text) => {
+        if (!text) return '';
+        // Bold text: **text**
+        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Line breaks
+        formatted = formatted.replace(/\n/g, '<br/>');
+        // Bullet points
+        formatted = formatted.replace(/^- /gm, '• ');
+        return formatted;
+    };
+
+    return (
+        <div style={{
+            alignSelf: isUser ? 'flex-end' : 'flex-start',
+            maxWidth: '85%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: isUser ? 'flex-end' : 'flex-start'
+        }}>
+            <div style={{
+                padding: '0.875rem 1.125rem',
+                borderRadius: isUser ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                background: isUser
+                    ? 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)'
+                    : 'white',
+                color: isUser ? 'white' : '#1e293b',
+                boxShadow: isUser
+                    ? '0 4px 15px rgba(16, 185, 129, 0.25)'
+                    : '0 2px 10px rgba(0,0,0,0.06)',
+                fontSize: '0.9375rem',
+                lineHeight: 1.6,
+                border: isUser ? 'none' : '1px solid #f1f5f9'
+            }}>
+                <div dangerouslySetInnerHTML={{ __html: formatText(message.text) }} />
+            </div>
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                marginTop: '4px', marginLeft: '8px', marginRight: '8px'
+            }}>
+                {!isUser && message.hasRealData && (
+                    <span style={{
+                        background: '#dcfce7', color: '#16a34a', fontSize: '0.625rem',
+                        padding: '2px 6px', borderRadius: '4px', fontWeight: 600
+                    }}>
+                        📊 Live Data
+                    </span>
+                )}
+                <span style={{ fontSize: '0.625rem', color: '#94a3b8' }}>
+                    {isUser ? 'You' : 'Mubasher AI'} • {message.time || 'Just now'}
+                </span>
+            </div>
+        </div>
+    );
+};
 
 export default function Chatbot() {
     const { showChat, setShowChat } = useContext(UserContext);
     const [messages, setMessages] = useState([
-        { id: 1, text: "Hello Mohamed! I'm your AI assistant. How can I help you with Saudi stocks today?", sender: 'bot' }
+        {
+            id: 1,
+            text: "Hello! 👋 I'm **Mubasher AI**, your intelligent stock market assistant.\n\nI can help you with:\n• Real-time stock analysis\n• Market trends & news\n• Investment advice\n• Portfolio strategies\n\nWhat would you like to know?",
+            sender: 'bot',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            hasRealData: false
+        }
     ]);
     const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
-    const predefinedQuestions = [
-        "What are the top safe stocks?",
-        "Analyze Saudi Aramco",
-        "Is Al Rajhi a good buy?",
-        "Show me trending stocks"
+    const suggestedQuestions = [
+        { text: "Analyze Aramco", icon: BarChart2 },
+        { text: "What's trending today?", icon: TrendingUp },
+        { text: "Best dividend stocks?", icon: Sparkles },
+        { text: "Market outlook 2024", icon: HelpCircle }
     ];
 
     const scrollToBottom = () => {
@@ -23,73 +109,121 @@ export default function Chatbot() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, isLoading]);
 
-    const handleSend = (text) => {
-        if (!text.trim()) return;
+    const sendMessage = async (text) => {
+        if (!text.trim() || isLoading) return;
 
-        const userMessage = { id: Date.now(), text, sender: 'user' };
+        const userMessage = {
+            id: Date.now(),
+            text,
+            sender: 'user',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
         setMessages(prev => [...prev, userMessage]);
         setInput('');
+        setIsLoading(true);
 
-        // Simulate AI response
-        setTimeout(() => {
-            let responseText = "That's an interesting question about the Saudi market. Based on current trends, ";
-            if (text.toLowerCase().includes('safe')) {
-                responseText += "blue-chip stocks like Saudi Aramco and Al Rajhi Bank are considered safe bets due to their stability and dividends.";
-            } else if (text.toLowerCase().includes('aramco')) {
-                responseText += "Saudi Aramco (2222) is showing strong fundamentals with stable oil prices. It's a solid long-term hold.";
-            } else if (text.toLowerCase().includes('rajhi')) {
-                responseText += "Al Rajhi Bank (1120) is leading the banking sector. Technical indicators suggest a bullish trend.";
-            } else if (text.toLowerCase().includes('trending')) {
-                responseText += "Currently, ACWA Power and STC are trending due to recent project announcements.";
+        try {
+            // Prepare conversation history (last 10 messages)
+            const conversationHistory = messages.slice(-10).map(m => ({
+                text: m.text,
+                sender: m.sender
+            }));
+
+            // Call AI API
+            const baseUrl = import.meta.env.DEV ? 'http://localhost:5001' : '';
+            const response = await fetch(`${baseUrl}/api/chatbot`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: text,
+                    conversationHistory
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.response) {
+                const botMessage = {
+                    id: Date.now() + 1,
+                    text: data.response,
+                    sender: 'bot',
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    hasRealData: data.hasRealData,
+                    stocksAnalyzed: data.stocksAnalyzed
+                };
+                setMessages(prev => [...prev, botMessage]);
             } else {
-                responseText += "I recommend diversifying your portfolio across banking and energy sectors for balanced growth.";
+                throw new Error(data.error || 'Failed to get response');
             }
 
-            const botMessage = { id: Date.now() + 1, text: responseText, sender: 'bot' };
-            setMessages(prev => [...prev, botMessage]);
-        }, 1000);
+        } catch (error) {
+            console.error('Chatbot error:', error);
+            const errorMessage = {
+                id: Date.now() + 1,
+                text: "I apologize, I'm having trouble connecting. Please try again in a moment. In the meantime, check the Market Summary for live data! 📊",
+                sender: 'bot',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                hasRealData: false
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(input);
+        }
     };
 
     return (
         <>
+            <style>{`
+                @keyframes bounce {
+                    0%, 80%, 100% { transform: scale(0); }
+                    40% { transform: scale(1); }
+                }
+            `}</style>
+
             {/* Floating Icon */}
             <button
                 onClick={() => setShowChat(!showChat)}
                 style={{
                     position: 'fixed',
-                    bottom: 'calc(var(--nav-height) + 1.5rem)', // Above bottom nav
+                    bottom: 'calc(var(--nav-height) + 1.5rem)',
                     right: '1.5rem',
-                    width: '50px',
-                    height: '50px',
+                    width: '56px',
+                    height: '56px',
                     borderRadius: '50%',
-                    background: 'var(--gradient-primary)',
+                    background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
                     border: 'none',
-                    boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+                    boxShadow: '0 6px 24px rgba(16, 185, 129, 0.4)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 100,
                     cursor: 'pointer',
-                    transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                     transform: showChat ? 'scale(0)' : 'scale(1)'
                 }}
-                className="animate-bounce-subtle"
             >
-                <Bot size={24} color="white" />
+                <Sparkles size={24} color="white" />
             </button>
 
-            {/* Chat Popup */}
+            {/* Chat Window */}
             <div style={{
                 position: 'fixed',
-                bottom: 'calc(var(--nav-height) + 1.5rem)',
-                right: '1.5rem',
-                width: '350px',
-                height: '500px',
+                bottom: 'calc(var(--nav-height) + 1rem)',
+                right: '1rem',
+                width: 'min(380px, calc(100vw - 2rem))',
+                height: 'min(560px, calc(100vh - var(--nav-height) - 3rem))',
                 background: 'white',
                 borderRadius: '24px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+                boxShadow: '0 25px 80px rgba(0,0,0,0.25)',
                 display: 'flex',
                 flexDirection: 'column',
                 zIndex: 100,
@@ -98,162 +232,184 @@ export default function Chatbot() {
                 transform: showChat ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(20px)',
                 opacity: showChat ? 1 : 0,
                 pointerEvents: showChat ? 'auto' : 'none',
-                border: '1px solid #e2e8f0'
+                border: '1px solid rgba(0,0,0,0.08)'
             }}>
                 {/* Header */}
                 <div style={{
-                    padding: '1rem 1.5rem',
-                    background: 'var(--gradient-primary)',
+                    padding: '1rem 1.25rem',
+                    background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    color: 'white'
+                    color: 'white',
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}>
-                    <div className="flex-center" style={{ gap: '0.75rem' }}>
+                    <div style={{
+                        position: 'absolute', right: -20, top: -20,
+                        width: 100, height: 100, borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(16,185,129,0.3) 0%, transparent 70%)'
+                    }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 1 }}>
                         <div style={{
-                            background: 'rgba(255,255,255,0.2)',
-                            padding: '0.5rem',
-                            borderRadius: '12px'
+                            width: 44, height: 44, borderRadius: '14px',
+                            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                         }}>
-                            <Bot size={24} color="white" />
+                            <Sparkles size={22} color="white" />
                         </div>
                         <div>
-                            <h3 style={{ fontWeight: 800, fontSize: '1.125rem', marginBottom: '0.125rem' }}>Mubasher AI</h3>
-                            <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>Online & Ready to Help</p>
+                            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Mubasher AI</h3>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div style={{
+                                    width: 8, height: 8, borderRadius: '50%',
+                                    background: '#22c55e', boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)'
+                                }} />
+                                <p style={{ fontSize: '0.7rem', opacity: 0.9 }}>Online • Powered by AI</p>
+                            </div>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowChat(false)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', opacity: 0.8 }}
+                        style={{
+                            background: 'rgba(255,255,255,0.1)', border: 'none',
+                            width: 36, height: 36, borderRadius: '10px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', color: 'white', zIndex: 1
+                        }}
                     >
-                        <X size={24} />
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* Messages */}
                 <div style={{
                     flex: 1,
-                    padding: '1.5rem',
+                    padding: '1.25rem',
                     overflowY: 'auto',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '1rem',
-                    background: '#f8fafc'
+                    background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
                 }}>
                     {messages.map(msg => (
-                        <div key={msg.id} style={{
-                            alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                            maxWidth: '80%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start'
-                        }}>
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                                background: msg.sender === 'user' ? 'var(--primary)' : 'white',
-                                color: msg.sender === 'user' ? 'white' : 'var(--text-primary)',
-                                boxShadow: msg.sender === 'user' ? '0 4px 12px rgba(16, 185, 129, 0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
-                                fontSize: '0.9375rem',
-                                lineHeight: 1.5
-                            }}>
-                                {msg.text}
-                            </div>
-                            <span style={{
-                                fontSize: '0.625rem',
-                                color: '#94a3b8',
-                                marginTop: '0.25rem',
-                                marginLeft: '0.5rem',
-                                marginRight: '0.5rem'
-                            }}>
-                                {msg.sender === 'user' ? 'You' : 'AI Assistant'}
-                            </span>
-                        </div>
+                        <MessageBubble key={msg.id} message={msg} />
                     ))}
+                    {isLoading && <TypingIndicator />}
                     <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input Area */}
-                <div style={{ padding: '1rem', background: 'white', borderTop: '1px solid #e2e8f0' }}>
-                    {/* Predefined Questions */}
-                    <div style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        overflowX: 'auto',
-                        paddingBottom: '0.75rem',
-                        marginBottom: '0.5rem',
-                        scrollbarWidth: 'none'
-                    }}>
-                        {predefinedQuestions.map((q, i) => (
-                            <button
-                                key={i}
-                                onClick={() => handleSend(q)}
-                                style={{
-                                    padding: '0.375rem 0.75rem',
-                                    borderRadius: '9999px',
-                                    border: '1px solid #e2e8f0',
-                                    background: 'white',
-                                    color: 'var(--text-secondary)',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    whiteSpace: 'nowrap',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={e => {
-                                    e.target.style.borderColor = 'var(--primary)';
-                                    e.target.style.color = 'var(--primary)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.target.style.borderColor = '#e2e8f0';
-                                    e.target.style.color = 'var(--text-secondary)';
-                                }}
-                            >
-                                {q}
-                            </button>
-                        ))}
-                    </div>
+                <div style={{
+                    padding: '1rem',
+                    background: 'white',
+                    borderTop: '1px solid #e2e8f0'
+                }}>
+                    {/* Suggested Questions */}
+                    {messages.length <= 2 && !isLoading && (
+                        <div style={{
+                            display: 'flex',
+                            gap: '8px',
+                            overflowX: 'auto',
+                            paddingBottom: '12px',
+                            scrollbarWidth: 'none'
+                        }}>
+                            {suggestedQuestions.map((q, i) => {
+                                const Icon = q.icon;
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => sendMessage(q.text)}
+                                        style={{
+                                            padding: '8px 14px',
+                                            borderRadius: '12px',
+                                            border: '1px solid #e2e8f0',
+                                            background: 'white',
+                                            color: '#475569',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 600,
+                                            whiteSpace: 'nowrap',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.borderColor = '#10b981';
+                                            e.currentTarget.style.background = '#f0fdf4';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.borderColor = '#e2e8f0';
+                                            e.currentTarget.style.background = 'white';
+                                        }}
+                                    >
+                                        <Icon size={14} color="#10b981" />
+                                        {q.text}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSend(input)}
-                            placeholder="Ask about any stock..."
+                            onKeyDown={handleKeyPress}
+                            placeholder={isLoading ? "AI is thinking..." : "Ask about any stock..."}
+                            disabled={isLoading}
                             style={{
                                 flex: 1,
-                                padding: '0.75rem 1rem',
-                                borderRadius: '9999px',
+                                padding: '14px 18px',
+                                borderRadius: '16px',
                                 border: '2px solid #e2e8f0',
                                 fontSize: '0.9375rem',
                                 outline: 'none',
-                                transition: 'border-color 0.2s'
+                                transition: 'all 0.2s',
+                                background: isLoading ? '#f8fafc' : 'white'
                             }}
-                            onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+                            onFocus={e => e.target.style.borderColor = '#10b981'}
                             onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                         />
                         <button
-                            onClick={() => handleSend(input)}
+                            onClick={() => sendMessage(input)}
+                            disabled={isLoading || !input.trim()}
                             style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '50%',
-                                background: 'var(--primary)',
+                                width: '52px',
+                                height: '52px',
+                                borderRadius: '16px',
+                                background: isLoading || !input.trim()
+                                    ? '#e2e8f0'
+                                    : 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
                                 border: 'none',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                cursor: 'pointer',
+                                cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
                                 color: 'white',
-                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                                boxShadow: isLoading || !input.trim() ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.3)',
+                                transition: 'all 0.2s'
                             }}
                         >
-                            <Send size={20} />
+                            {isLoading ? (
+                                <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
+                            ) : (
+                                <Send size={22} />
+                            )}
                         </button>
                     </div>
                 </div>
             </div>
+
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
         </>
     );
 }
