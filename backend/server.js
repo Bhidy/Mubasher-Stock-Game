@@ -1447,18 +1447,51 @@ app.get('/api/proxy-image', async (req, res) => {
 });
 
 // ============ X COMMUNITY API ============
-// Target accounts for X Community
+// Account Categories
+const X_CATEGORIES = {
+    ELITE_ANALYST: 'Elite Analyst',
+    TECHNICAL: 'Technical',
+    FUNDAMENTAL: 'Fundamental',
+    NEWS: 'News',
+    SIGNALS: 'Signals',
+    INFLUENCER: 'Influencer',
+    CHARTS: 'Charts'
+};
+
+// Target accounts for X Community (30+ elite accounts)
 const X_COMMUNITY_ACCOUNTS = [
-    { username: 'THEWOLFOFTASI', displayName: 'The Wolf of TASI', category: 'Trading' },
-    { username: 'Anas_S_Alrajhi', displayName: 'Anas Al-Rajhi', category: 'Finance' },
-    { username: 'RiadhAlhumaidan', displayName: 'Riyadh Al-Humaidan', category: 'Markets' },
-    { username: 'ahmadammar1993', displayName: 'Ahmad Ammar', category: 'Trading' },
-    { username: 'FutrueGlimpse', displayName: 'Future Glimpse', category: 'Insights' },
-    { username: 'AlsagriCapital', displayName: 'Alsagri Capital', category: 'Capital' },
-    { username: 'Reda_Alidarous', displayName: 'Reda Alidarous', category: 'Analysis' },
-    { username: 'Ezzo_Khrais', displayName: 'Ezzo Khrais', category: 'Markets' },
-    { username: 'King_night90', displayName: 'King Night', category: 'Trading' },
-    { username: 'ABU_KHALED2021', displayName: 'Abu Khaled', category: 'Investing' }
+    // Tier 1 - Elite Analysts
+    { username: 'THEWOLFOFTASI', displayName: 'The Wolf of TASI', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'Anas_S_Alrajhi', displayName: 'Anas Al-Rajhi', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'RiadhAlhumaidan', displayName: 'Riyadh Al-Humaidan', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'Reda_Alidarous', displayName: 'Reda Alidarous', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'Ezzo_Khrais', displayName: 'Ezzo Khrais', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'malmuqti', displayName: 'M. Al-Muqti', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'SenseiFund', displayName: 'Sensei Fund', category: X_CATEGORIES.FUNDAMENTAL, tier: 1 },
+    { username: 'fahadmutadawul', displayName: 'Fahad Mutadawul', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'Drfaresalotaibi', displayName: 'Dr. Fares Al-Otaibi', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'TasiElite', displayName: 'TASI Elite', category: X_CATEGORIES.ELITE_ANALYST, tier: 1 },
+    { username: 'pro_chart', displayName: 'Pro Chart', category: X_CATEGORIES.CHARTS, tier: 1 },
+    { username: 'Joker_Chart', displayName: 'Joker Chart', category: X_CATEGORIES.CHARTS, tier: 1 },
+    { username: 'Equity_Data', displayName: 'Equity Data', category: X_CATEGORIES.FUNDAMENTAL, tier: 1 },
+    // Tier 2 - Technical Traders & Charts
+    { username: 'ahmadammar1993', displayName: 'Ahmad Ammar', category: X_CATEGORIES.INFLUENCER, tier: 2 },
+    { username: 'FutrueGlimpse', displayName: 'Future Glimpse', category: X_CATEGORIES.NEWS, tier: 2 },
+    { username: 'AlsagriCapital', displayName: 'Alsagri Capital', category: X_CATEGORIES.FUNDAMENTAL, tier: 2 },
+    { username: 'King_night90', displayName: 'King Night', category: X_CATEGORIES.TECHNICAL, tier: 2 },
+    { username: 'ABU_KHALED2021', displayName: 'Abu Khaled', category: X_CATEGORIES.SIGNALS, tier: 2 },
+    { username: 'oqo888', displayName: 'OQO', category: X_CATEGORIES.TECHNICAL, tier: 2 },
+    { username: 'Saad1100110', displayName: 'Saad', category: X_CATEGORIES.TECHNICAL, tier: 2 },
+    { username: '29_shg', displayName: '29 SHG', category: X_CATEGORIES.CHARTS, tier: 2 },
+    { username: 'Analysis2020', displayName: 'Analysis 2020', category: X_CATEGORIES.CHARTS, tier: 2 },
+    { username: 'chartsniper666', displayName: 'Chart Sniper', category: X_CATEGORIES.CHARTS, tier: 2 },
+    { username: 'boholaiga', displayName: 'Boholaiga', category: X_CATEGORIES.ELITE_ANALYST, tier: 2 },
+    { username: 'ammarshata', displayName: 'Ammar Shata', category: X_CATEGORIES.ELITE_ANALYST, tier: 2 },
+    { username: 'telmisany', displayName: 'Telmisany', category: X_CATEGORIES.ELITE_ANALYST, tier: 2 },
+    { username: 'FahdAlbogami', displayName: 'Fahd Al-Bogami', category: X_CATEGORIES.ELITE_ANALYST, tier: 2 },
+    { username: 'alfarhan', displayName: 'Al-Farhan', category: X_CATEGORIES.ELITE_ANALYST, tier: 2 },
+    { username: 'MR_Stock10', displayName: 'MR Stock', category: X_CATEGORIES.SIGNALS, tier: 2 },
+    { username: 'THEONEKSA', displayName: 'The One KSA', category: X_CATEGORIES.ELITE_ANALYST, tier: 2 }
 ];
 
 // Nitter instances for fetching
@@ -1820,59 +1853,126 @@ async function fetchAllXCommunityTweets() {
     return allTweets;
 }
 
-// X Community API Endpoint
+// Calculate engagement score
+function calculateEngagementScore(tweet) {
+    return (tweet.likes || 0) + ((tweet.retweets || 0) * 2) + ((tweet.replies || 0) * 1.5);
+}
+
+// Generate leaderboard stats
+function generateLeaderboard(tweets) {
+    const userStats = {};
+    tweets.forEach(tweet => {
+        if (!userStats[tweet.username]) {
+            userStats[tweet.username] = {
+                username: tweet.username,
+                displayName: tweet.displayName,
+                profileImage: tweet.profileImage,
+                category: tweet.category,
+                tier: tweet.tier || 3,
+                totalPosts: 0,
+                totalEngagement: 0
+            };
+        }
+        userStats[tweet.username].totalPosts++;
+        userStats[tweet.username].totalEngagement += calculateEngagementScore(tweet);
+    });
+    return Object.values(userStats)
+        .sort((a, b) => b.totalEngagement - a.totalEngagement)
+        .slice(0, 10);
+}
+
+// X Community API Endpoint with Tab Support
 app.get('/api/x-community', async (req, res) => {
-    const { username, refresh } = req.query;
+    const { tab = 'fresh', refresh } = req.query;
     const now = Date.now();
 
     try {
-        // Single user request
-        if (username) {
-            const account = X_COMMUNITY_ACCOUNTS.find(a =>
-                a.username.toLowerCase() === username.toLowerCase()
-            );
-
-            if (!account) {
-                return res.status(404).json({
-                    error: 'User not found',
-                    availableUsers: X_COMMUNITY_ACCOUNTS.map(a => a.username)
-                });
-            }
-
-            const tweets = await fetchXUserTweets(account);
-            return res.json({
-                success: true,
-                user: account,
-                tweets: tweets,
-                count: tweets.length,
-                cached: false,
-                fetchedAt: new Date().toISOString()
-            });
-        }
-
         // Full community feed - check cache
         if (!refresh && xCommunityCache.data && (now - xCommunityCache.timestamp) < X_CACHE_TTL) {
+            let tweets = xCommunityCache.data.map(t => ({
+                ...t,
+                tier: X_COMMUNITY_ACCOUNTS.find(a => a.username.toLowerCase() === t.username.toLowerCase())?.tier || 3,
+                engagementScore: calculateEngagementScore(t)
+            }));
+
+            // Filter by tab
+            switch (tab) {
+                case 'trending':
+                    const oneDayAgo = now - (24 * 60 * 60 * 1000);
+                    tweets = tweets
+                        .filter(t => new Date(t.timestamp).getTime() > oneDayAgo)
+                        .sort((a, b) => b.engagementScore - a.engagementScore)
+                        .slice(0, 20);
+                    break;
+                case 'top-analysts':
+                    tweets = tweets
+                        .filter(t => t.tier === 1 || t.category === 'Elite Analyst')
+                        .slice(0, 20);
+                    break;
+                case 'most-engaged':
+                    tweets = [...tweets].sort((a, b) => b.engagementScore - a.engagementScore).slice(0, 20);
+                    break;
+                default: // fresh
+                    tweets = tweets.slice(0, 30);
+            }
+
             return res.json({
                 success: true,
-                tweets: xCommunityCache.data,
-                accounts: X_COMMUNITY_ACCOUNTS,
-                count: xCommunityCache.data.length,
+                tab,
+                tweets,
+                leaderboard: generateLeaderboard(xCommunityCache.data),
+                accounts: X_COMMUNITY_ACCOUNTS.length,
+                totalTweets: xCommunityCache.data.length,
                 cached: true,
-                cacheAge: Math.round((now - xCommunityCache.timestamp) / 1000),
                 fetchedAt: new Date(xCommunityCache.timestamp).toISOString()
             });
         }
 
         // Fetch fresh data
-        const tweets = await fetchAllXCommunityTweets();
+        let tweets = await fetchAllXCommunityTweets();
+
+        // Add tier and engagement score
+        tweets = tweets.map(t => {
+            const account = X_COMMUNITY_ACCOUNTS.find(a => a.username.toLowerCase() === t.username.toLowerCase());
+            return {
+                ...t,
+                tier: account?.tier || 3,
+                engagementScore: calculateEngagementScore(t)
+            };
+        });
+
         xCommunityCache.data = tweets;
         xCommunityCache.timestamp = now;
 
+        // Filter by tab
+        let filteredTweets = tweets;
+        switch (tab) {
+            case 'trending':
+                const oneDayAgo = now - (24 * 60 * 60 * 1000);
+                filteredTweets = tweets
+                    .filter(t => new Date(t.timestamp).getTime() > oneDayAgo)
+                    .sort((a, b) => b.engagementScore - a.engagementScore)
+                    .slice(0, 20);
+                break;
+            case 'top-analysts':
+                filteredTweets = tweets
+                    .filter(t => t.tier === 1 || t.category === 'Elite Analyst')
+                    .slice(0, 20);
+                break;
+            case 'most-engaged':
+                filteredTweets = [...tweets].sort((a, b) => b.engagementScore - a.engagementScore).slice(0, 20);
+                break;
+            default:
+                filteredTweets = tweets.slice(0, 30);
+        }
+
         res.json({
             success: true,
-            tweets: tweets,
-            accounts: X_COMMUNITY_ACCOUNTS,
-            count: tweets.length,
+            tab,
+            tweets: filteredTweets,
+            leaderboard: generateLeaderboard(tweets),
+            accounts: X_COMMUNITY_ACCOUNTS.length,
+            totalTweets: tweets.length,
             cached: false,
             fetchedAt: new Date().toISOString()
         });
@@ -1883,9 +1983,11 @@ app.get('/api/x-community', async (req, res) => {
         if (xCommunityCache.data) {
             return res.json({
                 success: true,
-                tweets: xCommunityCache.data,
-                accounts: X_COMMUNITY_ACCOUNTS,
-                count: xCommunityCache.data.length,
+                tab,
+                tweets: xCommunityCache.data.slice(0, 20),
+                leaderboard: generateLeaderboard(xCommunityCache.data),
+                accounts: X_COMMUNITY_ACCOUNTS.length,
+                totalTweets: xCommunityCache.data.length,
                 cached: true,
                 stale: true,
                 error: error.message
@@ -1896,7 +1998,8 @@ app.get('/api/x-community', async (req, res) => {
             success: false,
             error: error.message,
             tweets: [],
-            accounts: X_COMMUNITY_ACCOUNTS
+            leaderboard: [],
+            accounts: X_COMMUNITY_ACCOUNTS.length
         });
     }
 });
