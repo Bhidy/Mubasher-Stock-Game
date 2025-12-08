@@ -267,7 +267,7 @@ app.get('/api/stock-profile', async (req, res) => {
 // Powered by Groq (Llama 3.1) with Real-Time Stock Data
 
 const Groq = require('groq-sdk');
-const GROQ_API_KEY = process.env.GROQ_API_KEY || 'gsk_placeholder_get_from_groq';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 
 const CHATBOT_SYSTEM_PROMPT = `You are "Mubasher AI", an expert financial assistant specializing in the Saudi Arabian stock market (TASI/Tadawul), Egyptian stock market (EGX), and global markets.
@@ -367,10 +367,10 @@ app.post('/api/chatbot', async (req, res) => {
         }
         messages.push({ role: 'user', content: userMessage });
 
-        // Call Groq Llama 3.1
+        // Call Groq Llama 3.3
         const completion = await groq.chat.completions.create({
             messages: messages,
-            model: 'llama-3.1-70b-versatile',
+            model: 'llama-3.3-70b-versatile',
             temperature: 0.7,
             max_tokens: 1024,
         });

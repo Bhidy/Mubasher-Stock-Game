@@ -5,9 +5,8 @@
 import Groq from 'groq-sdk';
 
 // ============ GROQ CONFIGURATION ============
-// Using Groq's free API with Llama 3.1 70B model
-// Get your free API key at: https://console.groq.com/
-const GROQ_API_KEY = process.env.GROQ_API_KEY || 'gsk_placeholder_get_from_groq';
+// Using Groq's free API with Llama 3.3 70B model
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 
@@ -167,10 +166,10 @@ export default async function handler(req, res) {
         }
         messages.push({ role: 'user', content: userMessage });
 
-        // Call Groq API with Llama 3.1 70B
+        // Call Groq API with Llama 3.3 70B
         const completion = await groq.chat.completions.create({
             messages: messages,
-            model: 'llama-3.1-70b-versatile',
+            model: 'llama-3.3-70b-versatile',
             temperature: 0.7,
             max_tokens: 1024,
             top_p: 0.9,
