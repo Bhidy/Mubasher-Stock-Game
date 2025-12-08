@@ -11,7 +11,18 @@ const yahooFinance = new YahooFinance();
 const newsCache = {
     SA: { data: null, timestamp: 0 },
     EG: { data: null, timestamp: 0 },
-    US: { data: null, timestamp: 0 }
+    US: { data: null, timestamp: 0 },
+    // New markets
+    IN: { data: null, timestamp: 0 },
+    UK: { data: null, timestamp: 0 },
+    CA: { data: null, timestamp: 0 },
+    AU: { data: null, timestamp: 0 },
+    HK: { data: null, timestamp: 0 },
+    DE: { data: null, timestamp: 0 },
+    JP: { data: null, timestamp: 0 },
+    AE: { data: null, timestamp: 0 },
+    ZA: { data: null, timestamp: 0 },
+    QA: { data: null, timestamp: 0 }
 };
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
@@ -902,6 +913,131 @@ export default async function handler(req, res) {
             // Bing RSS (SECONDARY)
             const bingNews = await fetchBingNews('Wall Street stocks NASDAQ', 5);
             allNews.push(...bingNews);
+
+            // ===== NEW MARKETS - Added 2025-12-08 =====
+            // Using Bing News RSS + Yahoo Finance for reliable global coverage
+
+        } else if (market === 'IN') {
+            // India - NSE/BSE
+            console.log('📰 Fetching India market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['Nifty 50', 'Sensex', 'NSE India'], 8),
+                fetchBingNews('India stock market NSE BSE', 8),
+                fetchBingNews('Reliance TCS Infosys stock news', 6),
+                fetchBingNews('Economic Times India business', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'UK') {
+            // UK - LSE
+            console.log('📰 Fetching UK market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['FTSE 100', 'London Stock Exchange'], 8),
+                fetchBingNews('UK stock market FTSE 100', 8),
+                fetchBingNews('Financial Times UK markets', 6),
+                fetchBingNews('BBC business UK economy', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'CA') {
+            // Canada - TSX
+            console.log('📰 Fetching Canada market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['TSX', 'Toronto Stock Exchange'], 8),
+                fetchBingNews('Canada stock market TSX', 8),
+                fetchBingNews('Shopify RBC TD Bank stock', 6),
+                fetchBingNews('Globe and Mail business Canada', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'AU') {
+            // Australia - ASX
+            console.log('📰 Fetching Australia market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['ASX 200', 'Australia Stock Exchange'], 8),
+                fetchBingNews('Australia stock market ASX', 8),
+                fetchBingNews('BHP CBA CSL stock news', 6),
+                fetchBingNews('Australian Financial Review', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'HK') {
+            // Hong Kong - HKEX
+            console.log('📰 Fetching Hong Kong market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['Hang Seng Index', 'Hong Kong Stock'], 8),
+                fetchBingNews('Hong Kong stock market Hang Seng', 8),
+                fetchBingNews('Tencent Alibaba HSBC Hong Kong', 6),
+                fetchBingNews('SCMP business Hong Kong', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'DE') {
+            // Germany - XETRA/Frankfurt
+            console.log('📰 Fetching Germany market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['DAX', 'German Stock Market'], 8),
+                fetchBingNews('Germany stock market DAX', 8),
+                fetchBingNews('SAP Siemens BMW stock news', 6),
+                fetchBingNews('Handelsblatt German economy', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'JP') {
+            // Japan - TSE
+            console.log('📰 Fetching Japan market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['Nikkei 225', 'Tokyo Stock Exchange'], 8),
+                fetchBingNews('Japan stock market Nikkei', 8),
+                fetchBingNews('Toyota Sony Nintendo stock', 6),
+                fetchBingNews('Nikkei Asia Japan economy', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'AE') {
+            // UAE - ADX/DFM
+            console.log('📰 Fetching UAE market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['Abu Dhabi Stock', 'Dubai Stock Market'], 8),
+                fetchBingNews('UAE stock market ADX DFM', 8),
+                fetchBingNews('Emaar FAB Etisalat stock Dubai', 6),
+                fetchBingNews('Gulf News business UAE', 5),
+                fetchBingNews('Khaleej Times economy Dubai', 4)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'ZA') {
+            // South Africa - JSE
+            console.log('📰 Fetching South Africa market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['JSE', 'Johannesburg Stock Exchange'], 8),
+                fetchBingNews('South Africa stock market JSE', 8),
+                fetchBingNews('Naspers Sasol MTN stock', 6),
+                fetchBingNews('Business Day South Africa', 5)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
+
+        } else if (market === 'QA') {
+            // Qatar - QSE
+            console.log('📰 Fetching Qatar market news...');
+            const [yahooNews, ...bingResults] = await Promise.all([
+                fetchYahooNews(['Qatar Stock Exchange'], 6),
+                fetchBingNews('Qatar stock market QSE', 8),
+                fetchBingNews('QNB Ooredoo Qatar economy', 6),
+                fetchBingNews('Gulf Times Qatar business', 5),
+                fetchBingNews('The Peninsula Qatar economy', 4)
+            ]);
+            allNews.push(...yahooNews);
+            bingResults.forEach(news => allNews.push(...news));
 
         } else {
             // Default: Global markets
