@@ -263,6 +263,147 @@ app.get('/api/stock-profile', async (req, res) => {
     }
 });
 
+// ============ AI CHATBOT ENDPOINT ============
+// Powered by Groq (Llama 3.1) with Real-Time Stock Data
+
+const Groq = require('groq-sdk');
+const GROQ_API_KEY = process.env.GROQ_API_KEY || 'gsk_placeholder_get_from_groq';
+const groq = new Groq({ apiKey: GROQ_API_KEY });
+
+const CHATBOT_SYSTEM_PROMPT = `You are "Mubasher AI", an expert financial assistant specializing in the Saudi Arabian stock market (TASI/Tadawul), Egyptian stock market (EGX), and global markets.
+
+Your expertise includes:
+- Stock analysis (fundamental & technical)
+- Market trends and predictions
+- Investment strategies and portfolio advice
+- Company financial analysis
+- Trading recommendations
+
+Guidelines:
+1. Be concise but informative (2-4 paragraphs max)
+2. When stock data is provided, reference specific numbers
+3. Always mention risks with recommendations
+4. Be helpful and encouraging to investors
+5. Use emojis sparingly for key points (📈 📉 💡 ⚠️ 🎯)
+6. Format responses clearly with **bold** for emphasis
+7. If you don't have specific data, provide general guidance
+
+Key Saudi Stocks: 2222 (Aramco), 1120 (Al Rajhi), 2010 (SABIC), 7010 (STC), 2082 (ACWA Power)`;
+
+// Extract stock symbols
+function extractStockSymbolsFromChat(message) {
+    const symbols = [];
+    const msg = message.toLowerCase();
+
+    // Saudi stocks
+    if (msg.includes('aramco') || msg.includes('2222')) symbols.push('2222.SR');
+    if (msg.includes('rajhi') || msg.includes('1120')) symbols.push('1120.SR');
+    if (msg.includes('sabic') || msg.includes('2010')) symbols.push('2010.SR');
+    if (msg.includes('stc') || msg.includes('7010')) symbols.push('7010.SR');
+    if (msg.includes('acwa') || msg.includes('2082')) symbols.push('2082.SR');
+    if (msg.includes('maaden') || msg.includes('1211')) symbols.push('1211.SR');
+    if (msg.includes('snb') || msg.includes('1180')) symbols.push('1180.SR');
+    if (msg.includes('alinma') || msg.includes('1150')) symbols.push('1150.SR');
+
+    // US stocks
+    if (msg.includes('apple') || msg.includes('aapl')) symbols.push('AAPL');
+    if (msg.includes('tesla') || msg.includes('tsla')) symbols.push('TSLA');
+
+    return symbols;
+}
+
+function formatStockContext(stockData) {
+    return `
+REAL-TIME STOCK DATA for ${stockData.longName || stockData.symbol}:
+- Symbol: ${stockData.symbol}
+- Current Price: ${stockData.regularMarketPrice?.toFixed(2)} ${stockData.currency}
+- Change: ${stockData.regularMarketChange?.toFixed(2)} (${stockData.regularMarketChangePercent?.toFixed(2)}%)
+- 52-Week Range: ${stockData.fiftyTwoWeekLow?.toFixed(2)} - ${stockData.fiftyTwoWeekHigh?.toFixed(2)}
+- P/E Ratio: ${stockData.trailingPE?.toFixed(2) || 'N/A'}
+- Market Cap: ${(stockData.marketCap / 1e9)?.toFixed(2)}B ${stockData.currency}
+- Dividend Yield: ${((stockData.dividendYield || 0) * 100).toFixed(2)}%
+- Target Price: ${stockData.targetMeanPrice?.toFixed(2) || 'N/A'}
+`;
+}
+
+app.post('/api/chatbot', async (req, res) => {
+    const { message, conversationHistory = [] } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message required' });
+
+    try {
+        console.log(`🤖 AI Chatbot processing: "${message.slice(0, 50)}..."`);
+
+        const yahooFinance = require('yahoo-finance2').default;
+        let stockContext = '';
+        const symbols = extractStockSymbolsFromChat(message);
+
+        // Fetch real stock data
+        for (const symbol of symbols.slice(0, 2)) {
+            try {
+                const quote = await yahooFinance.quote(symbol);
+                if (quote) {
+                    stockContext += formatStockContext(quote);
+                }
+            } catch (e) { console.log(`Could not fetch ${symbol}: ${e.message}`); }
+        }
+
+        // Prepare messages for Groq
+        const messages = [
+            { role: 'system', content: CHATBOT_SYSTEM_PROMPT }
+        ];
+
+        // Add history
+        for (const msg of conversationHistory.slice(-6)) {
+            messages.push({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
+            });
+        }
+
+        // Add current message with data
+        let userMessage = message;
+        if (stockContext) {
+            userMessage = `${message}\n\n[CONTEXT - Use this real-time data:]\n${stockContext}`;
+        }
+        messages.push({ role: 'user', content: userMessage });
+
+        // Call Groq Llama 3.1
+        const completion = await groq.chat.completions.create({
+            messages: messages,
+            model: 'llama-3.1-70b-versatile',
+            temperature: 0.7,
+            max_tokens: 1024,
+        });
+
+        const aiResponse = completion.choices[0]?.message?.content ||
+            "I apologize, I couldn't generate a response. Please try again.";
+
+        console.log(`✅ Groq response generated (${aiResponse.length} chars)`);
+
+        return res.json({
+            success: true,
+            response: aiResponse,
+            stocksAnalyzed: symbols,
+            hasRealData: stockContext.length > 0,
+            provider: 'Groq',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ AI Chatbot error:', error.message);
+
+        // Fallback response
+        return res.json({
+            success: true,
+            response: "I apologize, but I'm having trouble connecting to the AI brain right now. Please check the **Market Summary** page for immediate real-time data!",
+            stocksAnalyzed: [],
+            hasRealData: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Translate text using Google Translate (free API)
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang = 'ar' } = req.body;
