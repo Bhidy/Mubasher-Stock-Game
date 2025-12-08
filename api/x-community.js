@@ -398,24 +398,35 @@ async function fetchAllTweets(options = {}) {
     console.log('🐦 Fetching X Community tweets...');
 
     // Filter accounts by tier if specified
-    let accountsToFetch = uniqueAccounts;
+    let filteredAccounts = uniqueAccounts;
     if (tier) {
-        accountsToFetch = uniqueAccounts.filter(a => a.tier <= tier);
+        filteredAccounts = uniqueAccounts.filter(a => a.tier <= tier);
     }
 
-    // Limit to top 60 accounts to balance coverage and performance
-    accountsToFetch = accountsToFetch.slice(0, 60);
+    // SMART SAMPLING STRATEGY:
+    // We have 200+ accounts. Fetching all at once causes Vercel timeouts.
+    // Instead, we shuffle the list and pick 80 random accounts each time.
+    // This ensures that over a few refreshes, we cover the entire community.
+
+    // Fisher-Yates Shuffle
+    for (let i = filteredAccounts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filteredAccounts[i], filteredAccounts[j]] = [filteredAccounts[j], filteredAccounts[i]];
+    }
+
+    // Limit to 80 random accounts per request for optimal performance/coverage balance
+    const accountsToFetch = filteredAccounts.slice(0, 80);
 
     const allTweets = [];
-    const batchSize = 10; // Increased batch size for speed
+    const batchSize = 10; // Parallel batch size
 
     for (let i = 0; i < accountsToFetch.length; i += batchSize) {
         const batch = accountsToFetch.slice(i, i + batchSize);
-        // Fire requests in parallel
+        // Fire requests in parallel with jitter
         const results = await Promise.allSettled(batch.map(async (account) => {
             try {
-                // Add jitter to prevent burst detection
-                await new Promise(r => setTimeout(r, Math.random() * 500));
+                // Add slight random delay to avoid burst detection
+                await new Promise(r => setTimeout(r, Math.random() * 800));
                 return await fetchUserTweets(account);
             } catch (e) {
                 return [];
@@ -442,10 +453,10 @@ async function fetchAllTweets(options = {}) {
         }
     }
 
-    // Translate content (limit to top 40 to save time)
-    console.log(`🌐 Translating ${Math.min(uniqueTweets.length, 40)} tweets...`);
+    // Translate content (limit to top 50 to save time)
+    console.log(`🌐 Translating ${Math.min(uniqueTweets.length, 50)} tweets...`);
     const translatedTweets = [];
-    for (let i = 0; i < Math.min(uniqueTweets.length, 40); i += 10) {
+    for (let i = 0; i < Math.min(uniqueTweets.length, 50); i += 10) {
         const batch = uniqueTweets.slice(i, i + 10);
         const translated = await Promise.all(batch.map(t => translateTweetContent(t)));
         translatedTweets.push(...translated);
