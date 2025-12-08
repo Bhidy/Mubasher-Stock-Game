@@ -1,7 +1,9 @@
 // Cloudflare Pages Function - Translate API
-// Converted from Vercel to Cloudflare Workers format
+// Hybrid approach: Proxy to Vercel for reliable translation
 
-// Helper: Create JSON response with CORS headers
+const VERCEL_API_BASE = 'https://mubasher-stock-game.vercel.app';
+
+// Helper: Create JSON response
 const jsonResponse = (data, status = 200) => {
     return new Response(JSON.stringify(data), {
         status,
@@ -14,35 +16,29 @@ const jsonResponse = (data, status = 200) => {
     });
 };
 
-// Translate a chunk of text using Google Translate API
-const translateChunk = async (chunk, targetLang) => {
-    if (!chunk.trim()) return '';
+// Translate using Google Translate API
+const translateText = async (text, targetLang = 'en') => {
+    if (!text?.trim()) return '';
 
-    const url = new URL('https://translate.googleapis.com/translate_a/single');
-    url.searchParams.set('client', 'gtx');
-    url.searchParams.set('sl', 'auto');
-    url.searchParams.set('tl', targetLang);
-    url.searchParams.set('dt', 't');
-    url.searchParams.set('q', chunk);
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0' }
     });
 
-    if (!response.ok) return chunk;
+    if (!response.ok) return text;
 
     const data = await response.json();
     if (data && data[0]) {
         return data[0].map(s => s[0]).join('');
     }
-    return chunk;
+    return text;
 };
 
 // Cloudflare Pages Function Handler
 export async function onRequest(context) {
     const { request } = context;
 
-    // Handle CORS preflight
     if (request.method === 'OPTIONS') {
         return new Response(null, {
             status: 200,
@@ -60,45 +56,40 @@ export async function onRequest(context) {
 
     try {
         const body = await request.json();
-        const { text, targetLang = 'ar' } = body;
+        const { text, targetLang = 'en', target = 'en' } = body;
+        const lang = targetLang || target;
 
         if (!text) {
             return jsonResponse({ error: 'Text required' }, 400);
         }
 
-        // Split text into paragraphs
-        const paragraphs = text.split(/\n+/);
-        const translatedParagraphs = [];
+        // Try Vercel proxy first
+        try {
+            const vercelResponse = await fetch(`${VERCEL_API_BASE}/api/translate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Cloudflare-Pages-Proxy'
+                },
+                body: JSON.stringify({ text, targetLang: lang })
+            });
 
-        // Process in smaller chunks (~1500 chars)
-        let currentChunk = '';
-        for (const para of paragraphs) {
-            if (currentChunk.length + para.length < 1500) {
-                currentChunk += para + '\n\n';
-            } else {
-                if (currentChunk.trim()) {
-                    translatedParagraphs.push(await translateChunk(currentChunk, targetLang));
+            if (vercelResponse.ok) {
+                const data = await vercelResponse.json();
+                if (data.translatedText) {
+                    return jsonResponse(data);
                 }
-                currentChunk = para + '\n\n';
             }
+        } catch (e) {
+            console.log('Vercel proxy failed, using direct translation');
         }
 
-        // Last chunk
-        if (currentChunk.trim()) {
-            translatedParagraphs.push(await translateChunk(currentChunk, targetLang));
-        }
-
-        const finalTranslation = translatedParagraphs.join('\n\n');
-        return jsonResponse({ translatedText: finalTranslation });
+        // Direct translation
+        const translatedText = await translateText(text, lang);
+        return jsonResponse({ translatedText });
 
     } catch (error) {
         console.error('Translation Error:', error.message);
-        // Fallback: return original text
-        try {
-            const body = await request.json();
-            return jsonResponse({ translatedText: body.text || '' });
-        } catch {
-            return jsonResponse({ translatedText: '' });
-        }
+        return jsonResponse({ error: 'Translation failed', translatedText: '' }, 500);
     }
 }
