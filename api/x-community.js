@@ -302,15 +302,24 @@ function calculateEngagementScore(tweet) {
 
 // Fetch from Twitter Syndication API
 async function fetchFromSyndication(username) {
+    const USER_AGENTS = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15'
+    ];
+    const randomUA = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+
     try {
         const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`;
         const response = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'User-Agent': randomUA,
                 'Accept': 'text/html,application/xhtml+xml',
                 'Accept-Language': 'en-US,en;q=0.9'
             },
-            timeout: 15000
+            timeout: 10000 // Reduced timeout to fail faster
         });
 
         const $ = cheerio.load(response.data);
@@ -394,38 +403,52 @@ async function fetchAllTweets(options = {}) {
         accountsToFetch = uniqueAccounts.filter(a => a.tier <= tier);
     }
 
-    // Limit to first 30 accounts for performance
-    accountsToFetch = accountsToFetch.slice(0, 30);
+    // Limit to top 60 accounts to balance coverage and performance
+    accountsToFetch = accountsToFetch.slice(0, 60);
 
     const allTweets = [];
-    const batchSize = 3;
+    const batchSize = 10; // Increased batch size for speed
 
     for (let i = 0; i < accountsToFetch.length; i += batchSize) {
         const batch = accountsToFetch.slice(i, i + batchSize);
-        const results = await Promise.allSettled(batch.map(account => fetchUserTweets(account)));
+        // Fire requests in parallel
+        const results = await Promise.allSettled(batch.map(async (account) => {
+            try {
+                // Add jitter to prevent burst detection
+                await new Promise(r => setTimeout(r, Math.random() * 500));
+                return await fetchUserTweets(account);
+            } catch (e) {
+                return [];
+            }
+        }));
+
         results.forEach(result => {
             if (result.status === 'fulfilled' && result.value) {
                 allTweets.push(...result.value);
             }
         });
-        if (i + batchSize < accountsToFetch.length) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
     }
 
     // Sort by timestamp
     allTweets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    // Translate Arabic tweets
-    console.log('🌐 Translating content...');
+    // Unique tweets only
+    const uniqueTweetIds = new Set();
+    const uniqueTweets = [];
+    for (const t of allTweets) {
+        if (!uniqueTweetIds.has(t.id)) {
+            uniqueTweetIds.add(t.id);
+            uniqueTweets.push(t);
+        }
+    }
+
+    // Translate content (limit to top 40 to save time)
+    console.log(`🌐 Translating ${Math.min(uniqueTweets.length, 40)} tweets...`);
     const translatedTweets = [];
-    for (let i = 0; i < Math.min(allTweets.length, limit); i += 5) {
-        const batch = allTweets.slice(i, i + 5);
+    for (let i = 0; i < Math.min(uniqueTweets.length, 40); i += 10) {
+        const batch = uniqueTweets.slice(i, i + 10);
         const translated = await Promise.all(batch.map(t => translateTweetContent(t)));
         translatedTweets.push(...translated);
-        if (i + 5 < allTweets.length) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
     }
 
     console.log(`✅ Total: ${translatedTweets.length} tweets`);

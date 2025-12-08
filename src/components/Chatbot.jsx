@@ -86,7 +86,7 @@ export default function Chatbot() {
     const [messages, setMessages] = useState([
         {
             id: 1,
-            text: "Hello! 👋 I'm **Mubasher AI**, your intelligent stock market assistant.\n\nI can help you with:\n• Real-time stock analysis\n• Market trends & news\n• Investment advice\n• Portfolio strategies\n\nWhat would you like to know?",
+            text: "Hello! 👋 I'm **Hero Ai**, your intelligent stock market assistant.\n\nI can help you with:\n• Real-time stock analysis\n• Market trends & news\n• Investment advice\n• Portfolio strategies\n\nWhat would you like to know?",
             sender: 'bot',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             hasRealData: false
@@ -260,13 +260,13 @@ export default function Chatbot() {
                             <Sparkles size={22} color="white" />
                         </div>
                         <div>
-                            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Mubasher AI</h3>
+                            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Hero Ai</h3>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <div style={{
                                     width: 8, height: 8, borderRadius: '50%',
                                     background: '#22c55e', boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)'
                                 }} />
-                                <p style={{ fontSize: '0.7rem', opacity: 0.9 }}>Online • Powered by AI</p>
+                                <p style={{ fontSize: '0.7rem', opacity: 0.9 }}>Online • Powered by Groq</p>
                             </div>
                         </div>
                     </div>
