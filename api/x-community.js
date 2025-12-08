@@ -414,19 +414,44 @@ async function fetchFromSyndication(username) {
     }
 }
 
-// Fetch user tweets with cache
+// Fetch user tweets with Cumulative Cache (Memory Engine)
 async function fetchUserTweets(account) {
     const { username } = account;
     const cached = tweetsCache.perUser[username];
-    if (cached && (Date.now() - cached.timestamp) < PER_USER_CACHE_TTL) {
+
+    // If we have recent data (less than 10 mins old), return it to save requests
+    if (cached && (Date.now() - cached.timestamp) < (10 * 60 * 1000)) {
         return cached.data;
     }
 
-    const tweets = await fetchFromSyndication(username);
-    if (tweets?.length) {
-        tweetsCache.perUser[username] = { data: tweets, timestamp: Date.now() };
-        return tweets;
+    try {
+        const newTweets = await fetchFromSyndication(username);
+
+        if (newTweets?.length) {
+            // MERGE STRATEGY:
+            // Combine new tweets with existing cached tweets
+            // Filter duplicates by ID
+            const existingTweets = cached?.data || [];
+            const existingIds = new Set(existingTweets.map(t => t.id));
+
+            const uniqueNewTweets = newTweets.filter(t => !existingIds.has(t.id));
+            const mergedTweets = [...uniqueNewTweets, ...existingTweets];
+
+            // Limit history to last 100 tweets per user to prevent memory overflow
+            // This builds a "Long History" while keeping memory safe.
+            const keptTweets = mergedTweets.slice(0, 100);
+
+            tweetsCache.perUser[username] = {
+                data: keptTweets,
+                timestamp: Date.now()
+            };
+            return keptTweets;
+        }
+    } catch (e) {
+        console.error(`Failed to refresh ${username}`);
     }
+
+    // Fallback to cache if fetch fails
     return cached?.data || [];
 }
 
