@@ -1,4 +1,4 @@
-
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
@@ -268,7 +268,7 @@ app.get('/api/stock-profile', async (req, res) => {
 
 const Groq = require('groq-sdk');
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const groq = new Groq({ apiKey: GROQ_API_KEY });
+const groq = new Groq({ apiKey: GROQ_API_KEY || 'gsk_dummy' });
 
 const CHATBOT_SYSTEM_PROMPT = `You are "Mubasher AI", an expert financial assistant specializing in the Saudi Arabian stock market (TASI/Tadawul), Egyptian stock market (EGX), and global markets.
 
@@ -1587,7 +1587,10 @@ app.get('/api/proxy-image', async (req, res) => {
     }
 });
 
-// ============ X COMMUNITY API ============
+// ============ X COMMUNITY API V2 ============
+app.use('/api/x-community', require('./x-engine'));
+
+// ============ X COMMUNITY API (LEGACY) ============
 // Account Categories
 const X_CATEGORIES = {
     ELITE_ANALYST: 'Elite Analyst',
@@ -2022,8 +2025,8 @@ function generateLeaderboard(tweets) {
         .slice(0, 10);
 }
 
-// X Community API Endpoint with Tab Support
-app.get('/api/x-community', async (req, res) => {
+// X Community API Endpoint with Tab Support (LEGACY)
+app.get('/api/x-community-legacy', async (req, res) => {
     const { tab = 'fresh', refresh } = req.query;
     const now = Date.now();
 

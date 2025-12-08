@@ -93,19 +93,19 @@ export default async function handler(req, res) {
             stockName = EGYPT_STOCKS[base]?.name || symbol;
         }
 
-        // Simplify name for searching (e.g. "Saudi Aramco" -> "Aramco")
-        const searchName = stockName.split(' ')[0].length > 3 ? stockName.split(' ')[0] : stockName;
+        // SMART QUERY: Use Name for SA/EG, Symbol for US
+        const query = (market === 'US') ? symbol : stockName;
 
-        // Parallel fetch: Yahoo Quote + Yahoo News
+        // Parallel fetch: Yahoo Quote + Yahoo News (Fetch more to allow filtering)
         const [quote, searchRes] = await Promise.all([
             yahooFinance.quote(symbol),
-            yahooFinance.search(symbol, { newsCount: 5 })
+            yahooFinance.search(query, { newsCount: 15 })
         ]);
 
         const change = quote?.regularMarketChangePercent || 0;
 
         // Gather Yahoo News
-        const yahooNews = (searchRes?.news || []).map(n => ({
+        const rawNews = (searchRes?.news || []).map(n => ({
             title: n.title,
             publisher: n.publisher,
             link: n.link,
@@ -113,11 +113,34 @@ export default async function handler(req, res) {
             source: 'Yahoo'
         }));
 
+        // STRICT FILTERING (The "Must" Requirement)
+        // Ensure article actually mentions the stock
+        const stopWords = ['saudi', 'bank', 'group', 'holding', 'company', 'corp', 'inc', 'ltd', 'the', 'al', 'for', 'and'];
+        const nameKeywords = stockName.toLowerCase().split(' ')
+            .filter(w => w.length > 2 && !stopWords.includes(w));
+
+        // If no unique keywords (common), fall back to checking strict full name match or Symbol match
+        const strictMode = nameKeywords.length > 0;
+
+        let relevantNews = rawNews.filter(n => {
+            const t = n.title.toLowerCase();
+            // 1. Check if Symbol appears (e.g. "AAPL")
+            if (t.includes(symbol.toLowerCase().split('.')[0])) return true;
+
+            // 2. Check Name Keywords
+            if (strictMode) {
+                // At least one unique keyword must be present
+                return nameKeywords.some(k => t.includes(k));
+            }
+
+            return true; // Fallback if name is generic (rare)
+        });
+
         // Combine & Sort
-        let allNews = [...yahooNews];
+        let allNews = [...relevantNews];
         allNews.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-        // Use strict 7-day filter ONLY for US market. For Emerging (SA/EG), use all available.
+        // Use strict 7-day filter ONLY for US market
         let validNews = allNews;
         if (market === 'US') {
             const sevenDaysAgo = new Date();
@@ -131,9 +154,9 @@ export default async function handler(req, res) {
         if (validNews.length === 0) {
             // No-News Rule
             const options = [
-                "No recent news found. Today's move may reflect normal market activity.",
+                `No fresh news found for ${stockName} today.`,
                 "Market sentiment seems neutral with no specific catalyst detected.",
-                "No clear news driver found. Check technical indicators."
+                "Trading appears technically driven as no major headlines were found."
             ];
             answer = options[Math.floor(Math.random() * options.length)];
         } else {

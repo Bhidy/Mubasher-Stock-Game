@@ -694,7 +694,7 @@ async function runScrapers() {
     console.log(`✅ Scraped ${allArticles.length} new articles`);
 
     // Merge with existing cache
-    newsCache = [...allArticles, ...newsCache].slice(0, 500); // Keep last 500
+    newsCache = [...allArticles, ...newsCache].slice(0, 2000); // Keep last 2000 (Big History)
 
     // Save to file
     try {

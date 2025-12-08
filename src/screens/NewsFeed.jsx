@@ -57,14 +57,53 @@ export default function NewsFeed() {
     };
 
     // Reuse fetch logic from original file...
+    // Load cached news on market change
+    useEffect(() => {
+        const cached = localStorage.getItem(`news_cache_${market}`);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setNewsItems(parsed);
+                    setLoading(false);
+                }
+            } catch (e) { }
+        } else {
+            setNewsItems([]); // Reset if no cache
+            setLoading(true);
+        }
+    }, [market]);
+
     const fetchNews = async () => {
-        setLoading(true);
         try {
             const res = await fetch(`${NEWS_API_URL}?market=${market}`);
             const data = await res.json();
-            if (Array.isArray(data)) {
-                setNewsItems(data);
-                // Initial filter will trigger via useEffect
+
+            if (Array.isArray(data) && data.length > 0) {
+                setNewsItems(prevItems => {
+                    // Create Map for deduplication by ID or Link
+                    const uniqueMap = new Map();
+
+                    // 1. Add existing items
+                    prevItems.forEach(item => uniqueMap.set(item.id || item.link, item));
+
+                    // 2. Add/Update with new items (Fresh data overrides old if needed, or just adds)
+                    data.forEach(item => uniqueMap.set(item.id || item.link, item));
+
+                    // 3. Convert back to array
+                    const merged = Array.from(uniqueMap.values());
+
+                    // 4. Sort by Time (Newest First)
+                    merged.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+                    // 5. Limit Cache Size (Keep history valid but manageable)
+                    const finalItems = merged.slice(0, 500);
+
+                    // 6. Save to Vault
+                    localStorage.setItem(`news_cache_${market}`, JSON.stringify(finalItems));
+
+                    return finalItems;
+                });
             }
         } catch (e) {
             console.error(e);
@@ -73,11 +112,9 @@ export default function NewsFeed() {
         }
     };
 
-    // Fetch News when market changes + auto-refresh every 60s
+    // Fetch News when market changes + auto-refresh
     useEffect(() => {
         fetchNews();
-
-        // Auto-refresh news every 60 seconds
         const interval = setInterval(fetchNews, 60000);
         return () => clearInterval(interval);
     }, [market]);

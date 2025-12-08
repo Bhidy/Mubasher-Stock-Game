@@ -1036,11 +1036,23 @@ export default async function handler(req, res) {
             }]);
         }
 
-        // ============ UPDATE CACHE ============
-        const finalNews = validatedNews.slice(0, 50);
+        // ============ UPDATE CACHE (CUMULATIVE) ============
+        const existingData = newsCache[cacheKey]?.data || [];
+        const existingIds = new Set(existingData.map(n => n.id || n.link));
+
+        // Add only new items
+        const newItems = validatedNews.filter(n => !existingIds.has(n.id || n.link));
+
+        // Merge New + Old
+        const mergedNews = [...newItems, ...existingData];
+
+        // Sort & Limit (Keep 300 items for Vercel History)
+        mergedNews.sort((a, b) => new Date(b.time) - new Date(a.time));
+        const finalNews = mergedNews.slice(0, 300);
+
         if (newsCache[cacheKey]) {
             newsCache[cacheKey] = { data: finalNews, timestamp: Date.now() };
-            console.log(`💾 Cached ${finalNews.length} articles for ${cacheKey}`);
+            console.log(`💾 Cached ${finalNews.length} articles (Legacy+Fresh) for ${cacheKey}`);
         }
 
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
