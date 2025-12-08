@@ -81,6 +81,138 @@ const CategoryBadge = ({ category }) => {
     );
 };
 
+// ============ MARKET INTELLIGENCE LOGIC ============
+const processMarketIntelligence = (tweets) => {
+    const tickers = {};
+    const sentiment = { bullish: 0, bearish: 0, neutral: 0, score: 50 };
+
+    // Arabic & English Keywords
+    const BULLISH_TERMS = ['breakout', 'bull', 'buy', 'long', 'support', 'profit', 'target', 'green', 'up', 'bounce', 'accumulate', 'moon', 'rocket', 'call', 'entry', 'اختراق', 'شراء', 'صعود', 'هدف', 'ايجابي', 'دعم', 'ارباح', 'تجميع'];
+    const BEARISH_TERMS = ['breakdown', 'bear', 'sell', 'short', 'resistance', 'loss', 'drop', 'red', 'down', 'crash', 'put', 'exit', 'dump', 'كسر', 'بيع', 'هبوط', 'سلبي', 'مقاومة', 'خسارة', 'تصريف', 'انهيار'];
+
+    // Ticker Regex: 4-digit codes (Saudi) or $TICKER
+    // Filter out common years like 2023, 2024, 2025, 2030 to avoid confusion
+    const tickerRegex = /\b\d{4}\b|\$[A-Z]{2,5}/g;
+
+    tweets.forEach(t => {
+        const text = t.content.toLowerCase();
+
+        // Sentiment Analysis
+        let score = 0;
+        BULLISH_TERMS.forEach(w => { if (text.includes(w)) score++; });
+        BEARISH_TERMS.forEach(w => { if (text.includes(w)) score--; });
+
+        if (score > 0) sentiment.bullish++;
+        else if (score < 0) sentiment.bearish++;
+        else sentiment.neutral++;
+
+        // Ticker Extraction
+        const matches = t.content.match(tickerRegex);
+        if (matches) {
+            matches.forEach(m => {
+                const s = m.replace('$', '');
+                // Exclude years
+                if (s.match(/^\d{4}$/) && (parseInt(s) >= 2020 && parseInt(s) <= 2035)) return;
+                tickers[s] = (tickers[s] || 0) + 1;
+            });
+        }
+    });
+
+    // Calculate overall Sentiment Score (0-100)
+    const total = sentiment.bullish + sentiment.bearish + sentiment.neutral;
+    if (total > 0) {
+        // Simple weighted: Bullish counts double in positive direction, Bearish in negative 
+        // 50 is neutral. 
+        const rawScore = 50 + ((sentiment.bullish - sentiment.bearish) / total * 50);
+        sentiment.score = Math.min(100, Math.max(0, rawScore));
+    }
+
+    // Sort tickers
+    const sortedTickers = Object.entries(tickers)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([symbol, count]) => ({ symbol, count }));
+
+    return { sentiment, tickers: sortedTickers };
+};
+
+// ============ SENTIMENT DASHBOARD COMPONENT ============
+const SentimentDashboard = ({ sentiment, tickers }) => {
+    // Determine Market Mood
+    let mood = "Neutral";
+    let moodColor = "#94a3b8"; // Gray
+    if (sentiment.score >= 60) { mood = "Greed"; moodColor = "#22c55e"; } // Green
+    else if (sentiment.score >= 75) { mood = "Euphoria"; moodColor = "#10b981"; } // Emerald
+    else if (sentiment.score <= 40) { mood = "Fear"; moodColor = "#f59e0b"; } // Orange
+    else if (sentiment.score <= 25) { mood = "Panic"; moodColor = "#ef4444"; } // Red
+
+    return (
+        <div className="animate-fade-in" style={{
+            background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+            borderRadius: '24px', padding: '1.5rem', marginBottom: '2rem',
+            border: '1px solid rgba(255,255,255,0.05)',
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)'
+        }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Zap size={20} color="#fbbf24" fill="#fbbf24" />
+                        Market Intelligence
+                    </h3>
+                    <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>AI-Powered Analysis of {sentiment.bullish + sentiment.bearish + sentiment.neutral} recent insights</p>
+                </div>
+                <div style={{
+                    padding: '8px 16px', borderRadius: '100px',
+                    background: `${moodColor}20`, border: `1px solid ${moodColor}40`,
+                    display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: moodColor, boxShadow: `0 0 10px ${moodColor}` }} />
+                    <span style={{ color: moodColor, fontWeight: 700, fontSize: '0.9rem' }}>{mood} ({sentiment.score.toFixed(0)})</span>
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                {/* Sentiment Gauge */}
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
+                        <span style={{ color: '#ef4444' }}>Bearish ({sentiment.bearish})</span>
+                        <span style={{ color: '#22c55e' }}>Bullish ({sentiment.bullish})</span>
+                    </div>
+                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', display: 'flex' }}>
+                        <div style={{ width: `${sentiment.score}%`, background: 'linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%)', height: '100%', transition: 'width 1s ease-out' }} />
+                    </div>
+                    <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
+                        <span>Extreme Fear</span>
+                        <span>Neutral</span>
+                        <span>Extreme Greed</span>
+                    </div>
+                </div>
+
+                {/* Hot Tickers */}
+                <div>
+                    <h4 style={{ fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Flame size={14} color="#f97316" /> Trending Tickers
+                    </h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {tickers.slice(0, 6).map((t, i) => (
+                            <div key={i} style={{
+                                display: 'flex', alignItems: 'center', gap: '6px',
+                                background: 'rgba(255,255,255,0.05)', padding: '6px 12px',
+                                borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)',
+                                cursor: 'default', transition: 'all 0.2s'
+                            }}>
+                                <span style={{ color: '#white', fontWeight: 700, fontSize: '0.85rem' }}>{t.symbol}</span>
+                                <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>{t.count}</span>
+                            </div>
+                        ))}
+                        {tickers.length === 0 && <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Analyzing mentions...</span>}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Tweet Image Gallery
 const TweetImageGallery = ({ images }) => {
     const [loadedImages, setLoadedImages] = useState({});
@@ -98,15 +230,15 @@ const TweetImageGallery = ({ images }) => {
                 {images.slice(0, 4).map((img, index) => (
                     <div key={index} onClick={() => setLightboxImage(img)} style={{
                         position: 'relative', paddingBottom: images.length === 1 ? '56.25%' : '100%',
-                        background: '#f1f5f9', cursor: 'pointer', overflow: 'hidden'
+                        background: '#1e293b', cursor: 'pointer', overflow: 'hidden'
                     }}>
                         {!loadedImages[index] && (
                             <div style={{
                                 position: 'absolute', inset: 0, display: 'flex',
                                 alignItems: 'center', justifyContent: 'center',
-                                background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)'
+                                background: '#1e293b'
                             }}>
-                                <ImageIcon size={24} color="#94a3b8" />
+                                <ImageIcon size={24} color="#475569" />
                             </div>
                         )}
                         <img src={img} alt={`Tweet image ${index + 1}`}
@@ -122,7 +254,7 @@ const TweetImageGallery = ({ images }) => {
             </div>
             {lightboxImage && (
                 <div onClick={() => setLightboxImage(null)} style={{
-                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 1000,
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 1000,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', cursor: 'zoom-out'
                 }}>
                     <img src={lightboxImage} alt="Full size" style={{
@@ -208,9 +340,9 @@ const TweetCard = ({ tweet, index, showRank = false, rankNumber = 0 }) => {
                 <p style={{
                     fontSize: '0.95rem', lineHeight: 1.6, color: '#1e293b',
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word', direction: 'ltr', textAlign: 'left'
-                }}>
-                    {displayContent}
-                </p>
+                }} dangerouslySetInnerHTML={{
+                    __html: displayContent.replace(/(\b\d{4}\b|\$[A-Z]{2,5})/g, '<span style="color: #2563eb; font-weight: 700; background: rgba(37,99,235,0.1); padding: 0 4px; border-radius: 4px; cursor: pointer;">$1</span>')
+                }} />
                 {isLongContent && (
                     <button onClick={() => setShowFullContent(!showFullContent)} style={{
                         background: 'none', border: 'none', color: '#06b6d4', fontWeight: 600,
@@ -342,6 +474,7 @@ export default function XCommunity() {
     const [error, setError] = useState(null);
     const [stats, setStats] = useState({ accounts: 0, totalTweets: 0 });
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [marketIntelligence, setMarketIntelligence] = useState(null);
     const refreshIntervalRef = useRef(null);
 
     useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -357,10 +490,15 @@ export default function XCommunity() {
             const data = await response.json();
 
             if (data.success) {
-                setTweets(data.tweets || []);
+                const fetchedTweets = data.tweets || [];
+                setTweets(fetchedTweets);
                 setLeaderboard(data.leaderboard || []);
                 setStats({ accounts: data.accounts || 0, totalTweets: data.totalTweets || 0 });
                 setLastUpdated(new Date());
+
+                // Process Intelligence locally on the frontend
+                const intelligence = processMarketIntelligence(fetchedTweets);
+                setMarketIntelligence(intelligence);
             } else {
                 throw new Error(data.error || 'Failed to fetch tweets');
             }
@@ -399,7 +537,7 @@ export default function XCommunity() {
 
             {/* Header */}
             <div className="animate-fade-in">
-                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+                <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
                             width: 52, height: 52, borderRadius: '16px',
@@ -412,60 +550,29 @@ export default function XCommunity() {
                         <div>
                             <h1 className="h1" style={{ fontSize: '1.75rem', marginBottom: 0 }}>X Community</h1>
                             <p className="caption" style={{ marginTop: '2px' }}>
-                                {stats.accounts}+ influencers • {stats.totalTweets} insights
+                                Market Pulse & Elite Insights
                             </p>
                         </div>
                     </div>
-                    <BurgerMenu />
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={handleRefresh} disabled={refreshing} style={{
+                            background: 'white', border: '1px solid #e2e8f0',
+                            borderRadius: '12px', width: 42, height: 42, color: '#0f172a',
+                            cursor: refreshing ? 'not-allowed' : 'pointer', fontSize: '1.2rem',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)', opacity: refreshing ? 0.7 : 1
+                        }}>
+                            <RefreshCw size={20} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+                        </button>
+                        <BurgerMenu />
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Banner */}
-            <Card className="animate-slide-up" style={{
-                background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)',
-                border: 'none', padding: '1.25rem', position: 'relative', overflow: 'hidden'
-            }}>
-                <div style={{
-                    position: 'absolute', top: -30, right: -30, width: 120, height: 120,
-                    borderRadius: '50%', background: 'radial-gradient(circle, rgba(251,191,36,0.2) 0%, transparent 70%)'
-                }} />
-                <Sparkles size={80} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.05, color: 'white' }} />
-
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} />
-                        <span style={{ color: '#22c55e', fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Live Feed</span>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                        <div>
-                            <div style={{ color: 'white', fontSize: '1.75rem', fontWeight: 800, lineHeight: 1 }}>{stats.accounts}+</div>
-                            <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '4px' }}>Influencers</div>
-                        </div>
-                        <div>
-                            <div style={{ color: 'white', fontSize: '1.75rem', fontWeight: 800, lineHeight: 1 }}>{stats.totalTweets}</div>
-                            <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '4px' }}>Insights</div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <button onClick={handleRefresh} disabled={refreshing} style={{
-                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                                borderRadius: '12px', padding: '10px 16px', color: 'white', fontWeight: 600,
-                                fontSize: '0.8rem', cursor: refreshing ? 'not-allowed' : 'pointer',
-                                display: 'flex', alignItems: 'center', gap: '6px', opacity: refreshing ? 0.7 : 1
-                            }}>
-                                <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-                                {refreshing ? 'Updating...' : 'Refresh'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {lastUpdated && (
-                        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.7rem' }}>
-                            <Clock size={10} /> Updated {lastUpdated.toLocaleTimeString()}
-                        </div>
-                    )}
-                </div>
-            </Card>
+            {/* Market Intelligence Dashboard (Replaces old Stats Banner) */}
+            {marketIntelligence && (
+                <SentimentDashboard sentiment={marketIntelligence.sentiment} tickers={marketIntelligence.tickers} />
+            )}
 
             {/* Smart Tabs */}
             <div className="animate-slide-up" style={{
