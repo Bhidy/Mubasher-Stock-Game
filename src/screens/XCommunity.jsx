@@ -83,17 +83,18 @@ const CategoryBadge = ({ category }) => {
 
 // ============ MARKET INTELLIGENCE LOGIC ============
 
-// Ticker to Name Mapping (Top 40 Saudi Stocks)
+// Expanded Ticker to Name Mapping
 const TICKER_MAP = {
     '1120': 'Al Rajhi', '2222': 'Aramco', '2010': 'SABIC', '1180': 'SNB', '7010': 'STC',
-    '2082': 'ACWA Power', '1211': 'Maaden', '1150': 'Alinma', '1140': 'Albilad', '1010': 'Riyad Bank',
-    '2380': 'Petro Rabigh', '2280': 'Almarai', '4030': 'Bahri', '2290': 'Yansab', '2020': 'SABIC Agri',
+    '2082': 'ACWA', '1211': 'Maaden', '1150': 'Alinma', '1140': 'Albilad', '1010': 'Riyad',
+    '2380': 'Rabigh', '2280': 'Almarai', '4030': 'Bahri', '2290': 'Yansab', '2020': 'SABIC Agri',
     '4190': 'Jarir', '4200': 'Aldrees', '4002': 'Mouwasat', '2060': 'Tasnee', '2310': 'Sipchem',
     '4164': 'Nahdi', '1831': 'Maharah', '1810': 'Seera', '1830': 'Fitness Time', '1302': 'Bawan',
     '6001': 'Americana', '7202': 'Solutions', '7203': 'Elm', '7204': 'Al Masane', '7200': 'Moammar',
     '1060': 'SABB', '1030': 'SAIB', '1020': 'Jazira', '1080': 'ANB', '1050': 'BSF',
-    '5110': 'Saudi Elec', '2190': 'SISCO', '3030': 'Cement Saudi', '3040': 'Qassim Cement',
-    'TASI': 'TASI Index', '^TASI': 'TASI Index'
+    '5110': 'Saudi Elec', '2190': 'SISCO', '3030': 'Saudi Cement', '3040': 'Qassim Cem',
+    '1924': 'Developer', '2003': 'Advanced', '4031': 'SGS', '4300': 'Dar Alarkan', '4230': 'Red Sea',
+    'TASI': 'TASI', '^TASI': 'TASI'
 };
 
 const processMarketIntelligence = (tweets) => {
@@ -132,10 +133,6 @@ const processMarketIntelligence = (tweets) => {
     // Score Calculation
     const total = sentiment.bullish + sentiment.bearish + sentiment.neutral;
     if (total > 0) {
-        // Weighted score: 0-100. Start at 50. 
-        // Bullish adds to score, Bearish subtracts.
-        const netSentiment = (sentiment.bullish - sentiment.bearish);
-        // Normalize: if 100% bullish -> 100, 100% bearish -> 0
         const ratio = (sentiment.bullish + 0.5 * sentiment.neutral) / total;
         sentiment.score = Math.round(ratio * 100);
     }
@@ -143,7 +140,7 @@ const processMarketIntelligence = (tweets) => {
     // Sort tickers & Map Names
     const sortedTickers = Object.entries(tickers)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
+        .slice(0, 5)
         .map(([symbol, count]) => ({
             symbol,
             name: TICKER_MAP[symbol] || symbol,
@@ -153,120 +150,135 @@ const processMarketIntelligence = (tweets) => {
     return { sentiment, tickers: sortedTickers };
 };
 
-// ============ RE-DESIGNED LIGHT DASHBOARD ============
+// ============ NEON GLASS DASHBOARD ============
 const SentimentDashboard = ({ sentiment, tickers }) => {
     // Determine Market Mood
     let mood = "Neutral";
-    let moodColor = "#64748b"; // Slate 500
-    let bgGradient = "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)";
-    let icon = <TrendingUp size={24} color="#64748b" />;
+    let moodColor = "#fff";
+    let glowColor = "rgba(255, 255, 255, 0.5)";
+    let orbGradient = "linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)";
 
-    if (sentiment.score >= 65) {
-        mood = "Greed"; moodColor = "#10b981"; // Emerald
-        bgGradient = "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)";
-        icon = <TrendingUp size={24} color="#10b981" />;
-    } else if (sentiment.score >= 80) {
-        mood = "Euphoria"; moodColor = "#059669";
-        bgGradient = "linear-gradient(135deg, #d1fae5 0%, #10b981 100%)";
-        icon = <Zap size={24} color="white" fill="white" />;
-    } else if (sentiment.score <= 35) {
-        mood = "Fear"; moodColor = "#f59e0b"; // Amber
-        bgGradient = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)";
-        icon = <TrendingUp size={24} color="#f59e0b" style={{ transform: 'scaleY(-1)' }} />;
-    } else if (sentiment.score <= 20) {
-        mood = "Panic"; moodColor = "#ef4444"; // Red
-        bgGradient = "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)";
-        icon = <Target size={24} color="#ef4444" />;
+    if (sentiment.score >= 60) {
+        mood = "GREED"; moodColor = "#34d399"; // Emerald
+        glowColor = "rgba(52, 211, 153, 0.6)";
+        orbGradient = "linear-gradient(135deg, #10b981 0%, #34d399 100%)";
+    }
+    if (sentiment.score >= 75) {
+        mood = "EUPHORIA"; moodColor = "#22d3ee"; // Cyan
+        glowColor = "rgba(34, 211, 238, 0.8)";
+        orbGradient = "linear-gradient(135deg, #0891b2 0%, #22d3ee 100%)";
+    }
+    if (sentiment.score <= 40) {
+        mood = "FEAR"; moodColor = "#fb923c"; // Orange
+        glowColor = "rgba(251, 146, 60, 0.6)";
+        orbGradient = "linear-gradient(135deg, #ea580c 0%, #fb923c 100%)";
+    }
+    if (sentiment.score <= 25) {
+        mood = "PANIC"; moodColor = "#f87171"; // Red
+        glowColor = "rgba(248, 113, 113, 0.8)";
+        orbGradient = "linear-gradient(135deg, #dc2626 0%, #f87171 100%)";
     }
 
     return (
         <div className="animate-fade-in" style={{
-            background: 'white',
-            borderRadius: '24px', padding: '1.25rem', marginBottom: '2rem',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-            border: '1px solid #f1f5f9'
+            position: 'relative', overflow: 'hidden',
+            borderRadius: '32px', padding: '1.5rem', marginBottom: '2rem',
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            boxShadow: '0 20px 40px -12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)'
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Sparkles size={20} color="#6366f1" fill="#6366f1" />
-                    Market Pulse
-                </h3>
-                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
-                    Based on {sentiment.bullish + sentiment.bearish + sentiment.neutral} recent insights
-                </span>
-            </div>
+            {/* Animated Mesh Background */}
+            <div style={{
+                position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
+                background: `radial-gradient(circle at 50% 50%, ${glowColor} 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%)`,
+                opacity: 0.6, pointerEvents: 'none',
+                animation: 'pulse-bg 8s infinite alternate'
+            }} />
+            <style>{`
+                @keyframes pulse-bg { 0% { transform: scale(1); } 100% { transform: scale(1.1) rotate(5deg); } }
+                @keyframes heartbeat { 0% { transform: scale(1); box-shadow: 0 0 0 0 ${glowColor}; } 70% { transform: scale(1.05); box-shadow: 0 0 20px 10px transparent; } 100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; } }
+            `}</style>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1fr) 2fr', gap: '1.5rem', alignItems: 'center' }}>
+            <div style={{ position: 'relative', zIndex: 2 }}>
 
-                {/* 1. Sentiment Gauge (Left) */}
-                <div style={{
-                    background: bgGradient,
-                    borderRadius: '20px', padding: '1.25rem', textAlign: 'center',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    minHeight: '120px', position: 'relative', overflow: 'hidden'
-                }}>
-                    <div style={{
-                        width: '50px', height: '50px', background: 'white', borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: '8px'
-                    }}>
-                        {icon}
-                    </div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' }}>
-                        {sentiment.score}
-                    </div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: moodColor, marginTop: '-2px' }}>
-                        {mood}
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>
+                            Market Pulse
+                        </h3>
+                        <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
+                            AI Sentiment Analysis
+                        </p>
                     </div>
                 </div>
 
-                {/* 2. Trending Chips (Right) */}
-                <div>
-                    <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Flame size={16} color="#f97316" fill="#f97316" />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>Top Talked About</span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2rem', alignItems: 'center' }}>
+
+                    {/* 1. The Heartbeat Orb (Left) */}
+                    <div style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: '12px', minWidth: '120px'
+                    }}>
+                        <div style={{
+                            width: '90px', height: '90px', borderRadius: '50%',
+                            background: orbGradient,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: `0 10px 30px -10px ${moodColor}`,
+                            animation: 'heartbeat 3s infinite ease-in-out',
+                            border: '4px solid rgba(255,255,255,0.8)'
+                        }}>
+                            <span style={{ fontSize: '2rem', fontWeight: 900, color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                                {sentiment.score}
+                            </span>
+                        </div>
+                        <div style={{
+                            background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)',
+                            padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)',
+                            color: moodColor, fontWeight: 800, fontSize: '0.8rem', letterSpacing: '1px'
+                        }}>
+                            {mood}
+                        </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {tickers.length > 0 ? tickers.slice(0, 5).map((t, i) => (
-                            <div key={i} className="hover-scale" style={{
-                                display: 'flex', alignItems: 'center', gap: '8px',
-                                background: 'white', padding: '8px 14px',
-                                borderRadius: '100px', border: '1px solid #e2e8f0',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
-                                cursor: 'default', transition: 'all 0.2s'
-                            }}>
-                                <span style={{
-                                    background: i === 0 ? '#3b82f6' : '#f1f5f9',
-                                    color: i === 0 ? 'white' : '#64748b',
-                                    fontWeight: 700, fontSize: '0.75rem',
-                                    width: '20px', height: '20px', borderRadius: '50%',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}>{i + 1}</span>
+                    {/* 2. Trending Glass Widgets (Right) */}
+                    <div>
+                        <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Flame size={18} color="#f97316" fill="#f97316" />
+                            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#334155' }}>Trending Now</span>
+                        </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-                                    <span style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.85rem' }}>
-                                        {t.name}
-                                    </span>
-                                    {t.name !== t.symbol && (
-                                        <span style={{ color: '#94a3b8', fontSize: '0.65rem', fontWeight: 500 }}>
-                                            {t.symbol}
-                                        </span>
-                                    )}
-                                </div>
-
-                                <span style={{
-                                    marginLeft: '4px', fontSize: '0.75rem', fontWeight: 600,
-                                    color: '#6366f1', background: '#e0e7ff', padding: '2px 6px', borderRadius: '6px'
+                        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+                            {tickers.map((t, i) => (
+                                <div key={i} style={{
+                                    minWidth: '110px', padding: '14px',
+                                    background: 'rgba(255, 255, 255, 0.6)',
+                                    backdropFilter: 'blur(12px)',
+                                    borderRadius: '20px',
+                                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                                    boxShadow: '0 8px 20px -8px rgba(0,0,0,0.1)',
+                                    display: 'flex', flexDirection: 'column', gap: '4px',
+                                    transition: 'transform 0.2s', cursor: 'default'
                                 }}>
-                                    {t.count}
-                                </span>
-                            </div>
-                        )) : (
-                            <div style={{ color: '#94a3b8', fontSize: '0.9rem', padding: '10px' }}>
-                                Listening to market chatter...
-                            </div>
-                        )}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{
+                                            width: '24px', height: '24px', borderRadius: '50%',
+                                            background: i === 0 ? '#0f172a' : '#f1f5f9',
+                                            color: i === 0 ? 'white' : '#64748b',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '0.75rem', fontWeight: 700
+                                        }}>{i + 1}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 700 }}>
+                                            {t.count}x
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {t.name}
+                                    </div>
+                                    {t.name !== t.symbol && <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t.symbol}</div>}
+                                </div>
+                            ))}
+                            {tickers.length === 0 && <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Analyzing feed...</div>}
+                        </div>
                     </div>
                 </div>
             </div>
