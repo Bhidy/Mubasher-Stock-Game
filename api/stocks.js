@@ -100,7 +100,7 @@ const SOUTHAFRICA_STOCKS = [
 // Qatar (QSE) - .QA suffix
 const QATAR_STOCKS = [
     'QNBK.QA', 'QEWS.QA', 'QGTS.QA', 'QIBK.QA', 'IQCD.QA', 'MARK.QA',
-    'BRES.QA', 'CBQK.QA', 'ORDS.QA', 'QFLS.QA', 'UDCD.QA', 'DHBK.QA'
+    'BRES.QA', 'CBQK.QA', 'ORDS.QA', 'QFLS.QA', 'UDCD.QA', 'DHBK.QA', '^QSI'
 ];
 
 // Legacy global (for backward compatibility)
@@ -226,7 +226,8 @@ const STOCK_META = {
     '^J203': { name: 'JSE All Share', country: '🇿🇦', sector: 'Index' },
     // Qatar
     'QNBK.QA': { name: 'QNB Group', country: '🇶🇦', sector: 'Financial' },
-    'ORDS.QA': { name: 'Ooredoo', country: '🇶🇦', sector: 'Telecom' }
+    'ORDS.QA': { name: 'Ooredoo', country: '🇶🇦', sector: 'Telecom' },
+    '^QSI': { name: 'QE Index', country: '🇶🇦', sector: 'Index' }
 };
 
 // Market category detection
@@ -242,7 +243,7 @@ const getMarketCategory = (symbol) => {
     if (symbol.endsWith('.T') || symbol === '^N225' || JAPAN_STOCKS.includes(symbol)) return 'JP';
     if (symbol.endsWith('.AE') || symbol.endsWith('.DU') || symbol === '^ADI' || UAE_STOCKS.includes(symbol)) return 'AE';
     if (symbol.endsWith('.JO') || symbol === '^J203' || SOUTHAFRICA_STOCKS.includes(symbol)) return 'ZA';
-    if (symbol.endsWith('.QA') || QATAR_STOCKS.includes(symbol)) return 'QA';
+    if (symbol.endsWith('.QA') || symbol === '^QSI' || QATAR_STOCKS.includes(symbol)) return 'QA';
     return 'US';
 };
 
