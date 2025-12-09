@@ -7,127 +7,8 @@ import {
 } from 'lucide-react';
 import { UserContext } from '../../App';
 import { useMode } from '../../context/ModeContext';
+import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
-
-// Challenge types and data
-const DAILY_CHALLENGES = [
-    {
-        id: 'd1',
-        title: 'Make 3 Predictions',
-        description: 'Pick 3 stocks for today\'s contest',
-        icon: '🎯',
-        reward: 50,
-        rewardType: 'coins',
-        progress: 2,
-        total: 3,
-        xp: 25,
-        difficulty: 'easy'
-    },
-    {
-        id: 'd2',
-        title: 'Win 2 Predictions',
-        description: 'Get 2 correct predictions',
-        icon: '🏆',
-        reward: 100,
-        rewardType: 'xp',
-        progress: 1,
-        total: 2,
-        xp: 50,
-        difficulty: 'medium'
-    },
-    {
-        id: 'd3',
-        title: 'Complete a Lesson',
-        description: 'Finish any Academy lesson',
-        icon: '📚',
-        reward: 75,
-        rewardType: 'coins',
-        progress: 0,
-        total: 1,
-        xp: 30,
-        difficulty: 'easy'
-    },
-    {
-        id: 'd4',
-        title: 'Visit Community',
-        description: 'Check out what others are saying',
-        icon: '👥',
-        reward: 25,
-        rewardType: 'coins',
-        progress: 1,
-        total: 1,
-        xp: 10,
-        difficulty: 'easy'
-    },
-];
-
-const WEEKLY_CHALLENGES = [
-    {
-        id: 'w1',
-        title: 'Prediction Master',
-        description: 'Make 20 predictions this week',
-        icon: '🎲',
-        reward: 500,
-        rewardType: 'coins',
-        progress: 12,
-        total: 20,
-        xp: 200,
-        difficulty: 'hard'
-    },
-    {
-        id: 'w2',
-        title: '7-Day Streak',
-        description: 'Maintain a 7-day login streak',
-        icon: '🔥',
-        reward: 300,
-        rewardType: 'coins',
-        progress: 5,
-        total: 7,
-        xp: 150,
-        difficulty: 'medium'
-    },
-    {
-        id: 'w3',
-        title: 'Top 100',
-        description: 'Reach top 100 on the leaderboard',
-        icon: '⭐',
-        reward: 1000,
-        rewardType: 'coins',
-        progress: 0,
-        total: 1,
-        xp: 500,
-        difficulty: 'legendary'
-    },
-];
-
-const SPECIAL_CHALLENGES = [
-    {
-        id: 's1',
-        title: 'Perfect Day',
-        description: 'Get all predictions right in one day',
-        icon: '💯',
-        reward: 1000,
-        rewardType: 'coins',
-        progress: 0,
-        total: 1,
-        xp: 1000,
-        difficulty: 'legendary',
-        expires: 'End of day'
-    },
-    {
-        id: 's2',
-        title: 'Early Bird',
-        description: 'Make predictions before 9 AM',
-        icon: '🌅',
-        reward: 100,
-        rewardType: 'coins',
-        progress: 0,
-        total: 3,
-        xp: 75,
-        difficulty: 'medium',
-        expires: 'Daily'
-    },
-];
 
 const DIFFICULTY_COLORS = {
     easy: { bg: '#DCFCE7', text: '#16A34A', border: '#86EFAC' },
@@ -136,10 +17,20 @@ const DIFFICULTY_COLORS = {
     legendary: { bg: '#F3E8FF', text: '#7C3AED', border: '#C4B5FD' },
 };
 
-function ChallengeCard({ challenge, onClaim }) {
-    const isComplete = challenge.progress >= challenge.total;
-    const progressPercent = (challenge.progress / challenge.total) * 100;
-    const diffColors = DIFFICULTY_COLORS[challenge.difficulty];
+// Challenge type icons
+const TYPE_ICONS = {
+    daily: '🎯',
+    weekly: '🏆',
+    special: '⭐',
+};
+
+function ChallengeCard({ challenge, onClaim, userProgress = 0 }) {
+    const progress = userProgress;
+    const total = challenge.targetValue || 1;
+    const isComplete = progress >= total;
+    const progressPercent = Math.min((progress / total) * 100, 100);
+    const difficulty = challenge.difficulty || 'medium';
+    const diffColors = DIFFICULTY_COLORS[difficulty] || DIFFICULTY_COLORS.medium;
 
     return (
         <div style={{
@@ -167,7 +58,7 @@ function ChallengeCard({ challenge, onClaim }) {
                     {isComplete ? (
                         <Check size={24} color="white" strokeWidth={3} />
                     ) : (
-                        <span style={{ fontSize: '1.5rem' }}>{challenge.icon}</span>
+                        <span style={{ fontSize: '1.5rem' }}>{challenge.icon || TYPE_ICONS[challenge.type] || '🎯'}</span>
                     )}
                 </div>
 
@@ -192,7 +83,7 @@ function ChallengeCard({ challenge, onClaim }) {
                             color: diffColors.text,
                             border: `1px solid ${diffColors.border}`,
                         }}>
-                            {challenge.difficulty}
+                            {difficulty}
                         </span>
                     </div>
                     <p style={{
@@ -214,7 +105,7 @@ function ChallengeCard({ challenge, onClaim }) {
                                 color: '#9CA3AF',
                             }}>
                                 <span>Progress</span>
-                                <span>{challenge.progress} / {challenge.total}</span>
+                                <span>{progress} / {total}</span>
                             </div>
                             <div style={{
                                 height: '8px',
@@ -245,7 +136,7 @@ function ChallengeCard({ challenge, onClaim }) {
                         }}>
                             <span style={{ fontSize: '0.75rem' }}>🪙</span>
                             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#92400E' }}>
-                                +{challenge.reward}
+                                +{challenge.coinReward || 0}
                             </span>
                         </div>
                         <div style={{
@@ -258,7 +149,7 @@ function ChallengeCard({ challenge, onClaim }) {
                         }}>
                             <Zap size={12} color="#8B5CF6" fill="#8B5CF6" />
                             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#7C3AED' }}>
-                                +{challenge.xp} XP
+                                +{challenge.xpReward || 0} XP
                             </span>
                         </div>
                     </div>
@@ -292,35 +183,50 @@ function ChallengeCard({ challenge, onClaim }) {
 export default function PlayerChallenges() {
     const navigate = useNavigate();
     const { user, setUser } = useContext(UserContext);
+    const { challenges, getActiveChallenges, loading } = useCMS();
     const [activeTab, setActiveTab] = useState('daily');
-    const [claimedIds, setClaimedIds] = useState(['d4']);
+    const [claimedIds, setClaimedIds] = useState([]);
+
+    // Mock user progress - in production, this would come from user context/API
+    const [userProgress] = useState({
+        'prediction_made': 2,
+        'streak_achieved': 1,
+        'lesson_completed': 3,
+        'weekend_prediction': 0,
+    });
 
     const handleClaim = (challenge) => {
         setClaimedIds([...claimedIds, challenge.id]);
         // Update user coins/xp
         setUser(prev => ({
             ...prev,
-            coins: prev.coins + challenge.reward,
-            xp: (prev.xp || 0) + challenge.xp,
+            coins: prev.coins + (challenge.coinReward || 0),
+            xp: (prev.xp || 0) + (challenge.xpReward || 0),
         }));
     };
 
     const tabs = [
-        { id: 'daily', label: 'Daily', icon: Calendar, count: DAILY_CHALLENGES.length },
-        { id: 'weekly', label: 'Weekly', icon: Trophy, count: WEEKLY_CHALLENGES.length },
-        { id: 'special', label: 'Special', icon: Sparkles, count: SPECIAL_CHALLENGES.length },
+        { id: 'daily', label: 'Daily', icon: Calendar },
+        { id: 'weekly', label: 'Weekly', icon: Trophy },
+        { id: 'special', label: 'Special', icon: Sparkles },
     ];
 
-    const getChallenges = () => {
-        switch (activeTab) {
-            case 'weekly': return WEEKLY_CHALLENGES;
-            case 'special': return SPECIAL_CHALLENGES;
-            default: return DAILY_CHALLENGES;
-        }
-    };
+    // Get active challenges from CMS filtered by type
+    const activeChallenges = getActiveChallenges(activeTab);
+    const filteredChallenges = activeChallenges.filter(c => !claimedIds.includes(c.id));
 
-    const challenges = getChallenges().filter(c => !claimedIds.includes(c.id));
-    const completedCount = getChallenges().filter(c => c.progress >= c.total || claimedIds.includes(c.id)).length;
+    const getProgress = (challenge) => userProgress[challenge.triggerEvent] || 0;
+    const completedCount = activeChallenges.filter(c =>
+        getProgress(c) >= (c.targetValue || 1) || claimedIds.includes(c.id)
+    ).length;
+
+    if (loading) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Loading challenges...
+            </div>
+        );
+    }
 
     return (
         <div style={{
@@ -388,10 +294,10 @@ export default function PlayerChallenges() {
                         textAlign: 'center',
                     }}>
                         <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 900 }}>
-                            14h
+                            {activeChallenges.length}
                         </div>
                         <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 500 }}>
-                            Time Left
+                            Available
                         </div>
                     </div>
                     <div style={{
@@ -402,7 +308,7 @@ export default function PlayerChallenges() {
                         textAlign: 'center',
                     }}>
                         <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 900 }}>
-                            1,250
+                            {user.coins?.toLocaleString() || 0}
                         </div>
                         <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 500 }}>
                             Coins Earned
@@ -420,6 +326,7 @@ export default function PlayerChallenges() {
             }}>
                 {tabs.map(tab => {
                     const isActive = activeTab === tab.id;
+                    const count = challenges.filter(c => c.isActive && c.type === tab.id).length;
                     return (
                         <button
                             key={tab.id}
@@ -447,6 +354,7 @@ export default function PlayerChallenges() {
                         >
                             <tab.icon size={16} />
                             {tab.label}
+                            {count > 0 && <span style={{ opacity: 0.8 }}>({count})</span>}
                         </button>
                     );
                 })}
@@ -454,12 +362,13 @@ export default function PlayerChallenges() {
 
             {/* Challenge List */}
             <div style={{ padding: '0 1rem' }}>
-                {challenges.length > 0 ? (
-                    challenges.map(challenge => (
+                {filteredChallenges.length > 0 ? (
+                    filteredChallenges.map(challenge => (
                         <ChallengeCard
                             key={challenge.id}
                             challenge={challenge}
                             onClaim={handleClaim}
+                            userProgress={getProgress(challenge)}
                         />
                     ))
                 ) : (
