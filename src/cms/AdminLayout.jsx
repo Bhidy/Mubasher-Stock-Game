@@ -58,7 +58,7 @@ export default function AdminLayout({ children }) {
             background: '#F1F5F9',
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             width: '100vw',
-            overflow: 'hidden',
+            overflow: 'auto',
         }}>
             {/* Sidebar - Always visible on desktop */}
             <aside style={{
@@ -223,6 +223,7 @@ export default function AdminLayout({ children }) {
                 minHeight: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
+                overflowY: 'auto',
             }}>
                 {/* Top Bar */}
                 <header style={{
@@ -331,6 +332,8 @@ export default function AdminLayout({ children }) {
                     display: 'flex',
                     justifyContent: mobilePreview ? 'center' : 'flex-start',
                     background: mobilePreview ? '#1E293B' : '#F1F5F9',
+                    overflowY: 'auto',
+                    paddingBottom: '3rem',
                 }}>
                     {mobilePreview ? (
                         <div style={{
