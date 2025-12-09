@@ -156,18 +156,24 @@ export default function InvestorHome() {
                                 padding: '0.625rem',
                                 cursor: 'pointer',
                                 backdropFilter: 'blur(10px)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '42px',
+                                height: '42px',
                             }}
                         >
-                            <Bell size={18} color="white" />
+                            <Bell size={20} color="white" />
                             {portfolioData.alertsActive > 0 && (
                                 <span style={{
                                     position: 'absolute',
-                                    top: '-2px',
-                                    right: '-2px',
+                                    top: '10px',
+                                    right: '10px',
                                     width: '8px',
                                     height: '8px',
                                     borderRadius: '50%',
                                     background: '#EF4444',
+                                    border: '1px solid rgba(255,255,255,0.2)'
                                 }} />
                             )}
                         </button>
@@ -179,27 +185,45 @@ export default function InvestorHome() {
                                 background: 'rgba(255,255,255,0.1)',
                                 border: '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: '12px',
-                                padding: '0.25rem',
+                                padding: '0',
+                                width: '42px',
+                                height: '42px',
                                 cursor: 'pointer',
                                 backdropFilter: 'blur(10px)',
-                            }}
-                        >
-                            <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '8px',
-                                background: 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
+                                overflow: 'hidden',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '0.9rem',
-                                color: 'white',
-                                fontWeight: 700,
-                            }}>
-                                {user.name?.charAt(0)?.toUpperCase() || '👤'}
-                            </div>
+                            }}
+                        >
+                            {user.avatar ? (
+                                <img
+                                    src={user.avatar}
+                                    alt="Profile"
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover'
+                                    }}
+                                />
+                            ) : (
+                                <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    background: 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '1rem',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                }}>
+                                    {user.name?.charAt(0)?.toUpperCase()}
+                                </div>
+                            )}
                         </button>
 
+                        {/* Market Status */}
                         <div style={{
                             padding: '0.5rem 0.875rem',
                             background: marketStatus.bg,
@@ -207,6 +231,7 @@ export default function InvestorHome() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.375rem',
+                            height: '42px',
                         }}>
                             <div style={{
                                 width: '6px',
