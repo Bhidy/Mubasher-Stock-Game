@@ -135,7 +135,20 @@ export default function Profile() {
                             fontSize: '2rem',
                             border: '3px solid rgba(255,255,255,0.3)',
                         }}>
-                            {user.avatar || '👤'}
+                            {user.avatar ? (
+                                <img
+                                    src={user.avatar}
+                                    alt="Profile"
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover'
+                                    }}
+                                />
+                            ) : (
+                                '👤'
+                            )}
                         </div>
                         <button style={{
                             position: 'absolute',
