@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ChevronRight, Target, Flame, Trophy, Gift, BookOpen,
     TrendingUp, Zap, Star, Users, Clock, Play, Sparkles,
-    ArrowRight, Check, Lock, Award, Gamepad2
+    ArrowRight, Check, Lock, Award, Gamepad2, Bell
 } from 'lucide-react';
 import { UserContext } from '../../App';
 import { useMarket } from '../../context/MarketContext';
@@ -105,9 +105,64 @@ export default function PlayerHome() {
                 }}>
                     <BurgerMenu variant="glass" />
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <CoinDisplay coins={playerData.coins} size="sm" variant="glass" />
                         <StreakDisplay streak={playerData.streak} compact />
+
+                        {/* Notifications */}
+                        <button
+                            onClick={() => navigate('/notifications')}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '0.5rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                position: 'relative',
+                            }}
+                        >
+                            <Bell size={18} color="white" />
+                            <span style={{
+                                position: 'absolute',
+                                top: '2px',
+                                right: '2px',
+                                width: '8px',
+                                height: '8px',
+                                background: '#EF4444',
+                                borderRadius: '50%',
+                            }} />
+                        </button>
+
+                        {/* Profile */}
+                        <button
+                            onClick={() => navigate('/profile')}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '0.25rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                background: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.9rem',
+                            }}>
+                                {user.avatar || '👤'}
+                            </div>
+                        </button>
                     </div>
                 </div>
 

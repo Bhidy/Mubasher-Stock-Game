@@ -47,6 +47,10 @@ import InvestorCalendar from './screens/investor/InvestorCalendar';
 import InvestorAlerts from './screens/investor/InvestorAlerts';
 import InvestorNotes from './screens/investor/InvestorNotes';
 
+// Shared Screens (both modes)
+import Profile from './screens/shared/Profile';
+import Notifications from './screens/shared/Notifications';
+
 // CMS Admin Screens
 import AdminLayout from './cms/AdminLayout';
 import AdminDashboard from './cms/AdminDashboard';
@@ -144,6 +148,10 @@ function ModeAwareRoutes() {
       {/* Education */}
       <Route path="/academy" element={<Academy />} />
       <Route path="/academy/lesson/:lessonId" element={<LessonDetail />} />
+
+      {/* User */}
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/notifications" element={<Notifications />} />
 
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -79,6 +79,10 @@ export default function BurgerMenu({ variant = 'default' }) {
                 { icon: Gift, label: 'Invite Friends', path: '/invite' },
                 { divider: true, label: 'Learn' },
                 { icon: BookOpen, label: 'Academy', path: '/player/learn' },
+                { divider: true, label: 'Account' },
+                { icon: User, label: 'Profile', path: '/profile' },
+                { icon: Bell, label: 'Notifications', path: '/notifications' },
+                { icon: Settings, label: 'Settings', path: '/profile' },
             ];
         } else {
             // Investor Mode
@@ -98,6 +102,10 @@ export default function BurgerMenu({ variant = 'default' }) {
                 { icon: BookOpen, label: 'Education', path: '/academy' },
                 { divider: true, label: 'Competition' },
                 { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
+                { divider: true, label: 'Account' },
+                { icon: User, label: 'Profile', path: '/profile' },
+                { icon: Bell, label: 'Notifications', path: '/notifications' },
+                { icon: Settings, label: 'Settings', path: '/profile' },
             ];
         }
     };

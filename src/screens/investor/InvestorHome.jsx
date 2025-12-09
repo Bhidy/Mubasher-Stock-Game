@@ -174,6 +174,58 @@ export default function InvestorHome() {
                                 }}>{portfolioData.alertsActive}</span>
                             )}
                         </button>
+
+                        {/* Notifications */}
+                        <button
+                            onClick={() => navigate('/notifications')}
+                            style={{
+                                position: 'relative',
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '12px',
+                                padding: '0.625rem',
+                                cursor: 'pointer',
+                                backdropFilter: 'blur(10px)',
+                            }}
+                        >
+                            <Bell size={18} color="white" />
+                            <span style={{
+                                position: 'absolute',
+                                top: '-2px',
+                                right: '-2px',
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: '#EF4444',
+                            }} />
+                        </button>
+
+                        {/* Profile */}
+                        <button
+                            onClick={() => navigate('/profile')}
+                            style={{
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '12px',
+                                padding: '0.25rem',
+                                cursor: 'pointer',
+                                backdropFilter: 'blur(10px)',
+                            }}
+                        >
+                            <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.9rem',
+                            }}>
+                                {user.avatar || '👤'}
+                            </div>
+                        </button>
+
                         <div style={{
                             padding: '0.5rem 0.875rem',
                             background: marketStatus.bg,
