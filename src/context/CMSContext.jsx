@@ -54,6 +54,41 @@ export function CMSProvider({ children }) {
         }
     }, []);
 
+    // Fallback mock data for development when API is unavailable
+    const FALLBACK_DATA = {
+        lessons: [
+            { id: 'lesson-1', title: 'Introduction to Stocks', description: 'Learn what stocks are and why people invest in them', category: 'beginner', difficulty: 'easy', duration: 5, xpReward: 50, coinReward: 25, icon: '📈', isPublished: true, order: 1 },
+            { id: 'lesson-2', title: 'Reading Stock Charts', description: 'Master the art of technical analysis', category: 'intermediate', difficulty: 'medium', duration: 10, xpReward: 100, coinReward: 50, icon: '📊', isPublished: true, order: 2 },
+            { id: 'lesson-3', title: 'Market Orders vs Limit Orders', description: 'Understanding different order types', category: 'beginner', difficulty: 'easy', duration: 7, xpReward: 75, coinReward: 35, icon: '🎯', isPublished: true, order: 3 },
+        ],
+        challenges: [
+            { id: 'chal-1', title: 'First Prediction', description: 'Make your first stock prediction', type: 'daily', icon: '🎯', coinReward: 50, xpReward: 25, targetValue: 1, triggerEvent: 'prediction_made', isActive: true },
+            { id: 'chal-2', title: 'Hot Streak', description: 'Get 3 correct predictions in a row', type: 'weekly', icon: '🔥', coinReward: 200, xpReward: 100, targetValue: 3, triggerEvent: 'streak_achieved', isActive: true },
+            { id: 'chal-3', title: 'Market Scholar', description: 'Complete 5 lessons this week', type: 'weekly', icon: '📚', coinReward: 150, xpReward: 75, targetValue: 5, triggerEvent: 'lesson_completed', isActive: true },
+        ],
+        achievements: [
+            { id: 'ach-1', title: 'First Steps', description: 'Make your first prediction', icon: '👣', rarity: 'common', category: 'prediction', xpReward: 50, coinReward: 25, requirement: 1, requirementType: 'predictions_made' },
+            { id: 'ach-2', title: 'Lucky Streak', description: 'Get 5 correct predictions in a row', icon: '🍀', rarity: 'rare', category: 'streak', xpReward: 200, coinReward: 100, requirement: 5, requirementType: 'consecutive_wins' },
+            { id: 'ach-3', title: 'Market Master', description: 'Reach level 10', icon: '👑', rarity: 'epic', category: 'special', xpReward: 500, coinReward: 250, requirement: 10, requirementType: 'level_reached' },
+        ],
+        shopItems: [
+            { id: 'shop-1', name: 'Golden Avatar', description: 'A prestigious golden frame', category: 'avatars', price: 500, rarity: 'rare', icon: '👤', isAvailable: true, discount: 0 },
+            { id: 'shop-2', name: 'Pro Trader Badge', description: 'Show everyone you mean business', category: 'badges', price: 300, rarity: 'common', icon: '🏅', isAvailable: true, discount: 0 },
+            { id: 'shop-3', name: 'Dark Theme', description: 'Easy on the eyes', category: 'themes', price: 200, rarity: 'common', icon: '🌙', isAvailable: true, discount: 10 },
+        ],
+        news: [
+            { id: 'news-1', title: 'Markets Rally on Strong Earnings', summary: 'Major indices closed higher as tech giants beat expectations', content: 'The stock market closed significantly higher today...', source: 'Market Wire', category: 'Market Analysis', market: 'US', isPublished: true, isFeatured: true, publishedAt: new Date().toISOString() },
+            { id: 'news-2', title: 'Saudi Aramco Announces Dividend', summary: 'Oil giant declares quarterly dividend amid strong oil prices', content: 'Saudi Aramco announced its quarterly dividend...', source: 'Gulf Business', category: 'Company News', market: 'SA', isPublished: true, isFeatured: false, publishedAt: new Date().toISOString() },
+        ],
+        announcements: [
+            { id: 'ann-1', title: 'Welcome to Bhidy!', message: 'Start your trading journey with us. Make predictions, earn rewards, and learn about the markets!', type: 'info', priority: 'high', targetMode: 'all', buttonText: 'Get Started', buttonLink: '/player/home', isActive: true },
+            { id: 'ann-2', title: 'Weekend Contest!', message: 'Join our special weekend prediction contest. Top 10 win exclusive prizes!', type: 'promo', priority: 'high', targetMode: 'player', buttonText: 'Join Now', buttonLink: '/player/live', isActive: true },
+        ],
+        contests: [
+            { id: 'contest-1', name: 'Daily Challenge', description: 'Compete daily for top spot', startTime: new Date().toISOString(), endTime: new Date(Date.now() + 86400000).toISOString(), prizePool: 1000, entryFee: 0, maxParticipants: 1000, isActive: true },
+        ],
+    };
+
     // Fetch all data on mount
     useEffect(() => {
         const fetchAllData = async () => {
@@ -86,8 +121,16 @@ export function CMSProvider({ children }) {
                 setContests(contestsData);
                 setError(null);
             } catch (err) {
-                setError(err.message);
-                console.error('Failed to fetch CMS data:', err);
+                console.warn('API unavailable, using fallback data:', err.message);
+                // Use fallback data when API is not available
+                setLessons(FALLBACK_DATA.lessons);
+                setChallenges(FALLBACK_DATA.challenges);
+                setAchievements(FALLBACK_DATA.achievements);
+                setShopItems(FALLBACK_DATA.shopItems);
+                setNews(FALLBACK_DATA.news);
+                setAnnouncements(FALLBACK_DATA.announcements);
+                setContests(FALLBACK_DATA.contests);
+                setError(null); // Don't show error when using fallback
             } finally {
                 setLoading(false);
             }
@@ -96,23 +139,43 @@ export function CMSProvider({ children }) {
         fetchAllData();
     }, [apiCall]);
 
+    // Helper to generate local IDs
+    const generateId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     // ============================================
     // LESSONS CRUD
     // ============================================
     const createLesson = useCallback(async (lessonData) => {
-        const newLesson = await apiCall('lessons', 'POST', null, lessonData);
-        setLessons(prev => [...prev, newLesson]);
-        return newLesson;
+        try {
+            const newLesson = await apiCall('lessons', 'POST', null, lessonData);
+            setLessons(prev => [...prev, newLesson]);
+            return newLesson;
+        } catch (err) {
+            // Fallback: create locally
+            const localLesson = { id: generateId('lesson'), ...lessonData, createdAt: new Date().toISOString() };
+            setLessons(prev => [...prev, localLesson]);
+            return localLesson;
+        }
     }, [apiCall]);
 
     const updateLesson = useCallback(async (id, updates) => {
-        const updated = await apiCall('lessons', 'PUT', id, updates);
-        setLessons(prev => prev.map(l => l.id === id ? updated : l));
-        return updated;
+        try {
+            const updated = await apiCall('lessons', 'PUT', id, updates);
+            setLessons(prev => prev.map(l => l.id === id ? updated : l));
+            return updated;
+        } catch (err) {
+            // Fallback: update locally
+            setLessons(prev => prev.map(l => l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteLesson = useCallback(async (id) => {
-        await apiCall('lessons', 'DELETE', id);
+        try {
+            await apiCall('lessons', 'DELETE', id);
+        } catch (err) {
+            // Continue with local delete even if API fails
+        }
         setLessons(prev => prev.filter(l => l.id !== id));
     }, [apiCall]);
 
@@ -120,19 +183,32 @@ export function CMSProvider({ children }) {
     // CHALLENGES CRUD
     // ============================================
     const createChallenge = useCallback(async (challengeData) => {
-        const newChallenge = await apiCall('challenges', 'POST', null, challengeData);
-        setChallenges(prev => [...prev, newChallenge]);
-        return newChallenge;
+        try {
+            const newChallenge = await apiCall('challenges', 'POST', null, challengeData);
+            setChallenges(prev => [...prev, newChallenge]);
+            return newChallenge;
+        } catch (err) {
+            const localChallenge = { id: generateId('chal'), ...challengeData, createdAt: new Date().toISOString() };
+            setChallenges(prev => [...prev, localChallenge]);
+            return localChallenge;
+        }
     }, [apiCall]);
 
     const updateChallenge = useCallback(async (id, updates) => {
-        const updated = await apiCall('challenges', 'PUT', id, updates);
-        setChallenges(prev => prev.map(c => c.id === id ? updated : c));
-        return updated;
+        try {
+            const updated = await apiCall('challenges', 'PUT', id, updates);
+            setChallenges(prev => prev.map(c => c.id === id ? updated : c));
+            return updated;
+        } catch (err) {
+            setChallenges(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteChallenge = useCallback(async (id) => {
-        await apiCall('challenges', 'DELETE', id);
+        try {
+            await apiCall('challenges', 'DELETE', id);
+        } catch (err) { }
         setChallenges(prev => prev.filter(c => c.id !== id));
     }, [apiCall]);
 
@@ -140,19 +216,32 @@ export function CMSProvider({ children }) {
     // ACHIEVEMENTS CRUD
     // ============================================
     const createAchievement = useCallback(async (achievementData) => {
-        const newAchievement = await apiCall('achievements', 'POST', null, achievementData);
-        setAchievements(prev => [...prev, newAchievement]);
-        return newAchievement;
+        try {
+            const newAchievement = await apiCall('achievements', 'POST', null, achievementData);
+            setAchievements(prev => [...prev, newAchievement]);
+            return newAchievement;
+        } catch (err) {
+            const localAchievement = { id: generateId('ach'), ...achievementData, createdAt: new Date().toISOString() };
+            setAchievements(prev => [...prev, localAchievement]);
+            return localAchievement;
+        }
     }, [apiCall]);
 
     const updateAchievement = useCallback(async (id, updates) => {
-        const updated = await apiCall('achievements', 'PUT', id, updates);
-        setAchievements(prev => prev.map(a => a.id === id ? updated : a));
-        return updated;
+        try {
+            const updated = await apiCall('achievements', 'PUT', id, updates);
+            setAchievements(prev => prev.map(a => a.id === id ? updated : a));
+            return updated;
+        } catch (err) {
+            setAchievements(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteAchievement = useCallback(async (id) => {
-        await apiCall('achievements', 'DELETE', id);
+        try {
+            await apiCall('achievements', 'DELETE', id);
+        } catch (err) { }
         setAchievements(prev => prev.filter(a => a.id !== id));
     }, [apiCall]);
 
@@ -160,19 +249,32 @@ export function CMSProvider({ children }) {
     // SHOP ITEMS CRUD
     // ============================================
     const createShopItem = useCallback(async (itemData) => {
-        const newItem = await apiCall('shopItems', 'POST', null, itemData);
-        setShopItems(prev => [...prev, newItem]);
-        return newItem;
+        try {
+            const newItem = await apiCall('shopItems', 'POST', null, itemData);
+            setShopItems(prev => [...prev, newItem]);
+            return newItem;
+        } catch (err) {
+            const localItem = { id: generateId('shop'), ...itemData, createdAt: new Date().toISOString() };
+            setShopItems(prev => [...prev, localItem]);
+            return localItem;
+        }
     }, [apiCall]);
 
     const updateShopItem = useCallback(async (id, updates) => {
-        const updated = await apiCall('shopItems', 'PUT', id, updates);
-        setShopItems(prev => prev.map(i => i.id === id ? updated : i));
-        return updated;
+        try {
+            const updated = await apiCall('shopItems', 'PUT', id, updates);
+            setShopItems(prev => prev.map(i => i.id === id ? updated : i));
+            return updated;
+        } catch (err) {
+            setShopItems(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteShopItem = useCallback(async (id) => {
-        await apiCall('shopItems', 'DELETE', id);
+        try {
+            await apiCall('shopItems', 'DELETE', id);
+        } catch (err) { }
         setShopItems(prev => prev.filter(i => i.id !== id));
     }, [apiCall]);
 
@@ -180,19 +282,32 @@ export function CMSProvider({ children }) {
     // NEWS CRUD
     // ============================================
     const createNews = useCallback(async (newsData) => {
-        const newNews = await apiCall('news', 'POST', null, newsData);
-        setNews(prev => [...prev, newNews]);
-        return newNews;
+        try {
+            const newNews = await apiCall('news', 'POST', null, newsData);
+            setNews(prev => [...prev, newNews]);
+            return newNews;
+        } catch (err) {
+            const localNews = { id: generateId('news'), ...newsData, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() };
+            setNews(prev => [...prev, localNews]);
+            return localNews;
+        }
     }, [apiCall]);
 
     const updateNews = useCallback(async (id, updates) => {
-        const updated = await apiCall('news', 'PUT', id, updates);
-        setNews(prev => prev.map(n => n.id === id ? updated : n));
-        return updated;
+        try {
+            const updated = await apiCall('news', 'PUT', id, updates);
+            setNews(prev => prev.map(n => n.id === id ? updated : n));
+            return updated;
+        } catch (err) {
+            setNews(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteNews = useCallback(async (id) => {
-        await apiCall('news', 'DELETE', id);
+        try {
+            await apiCall('news', 'DELETE', id);
+        } catch (err) { }
         setNews(prev => prev.filter(n => n.id !== id));
     }, [apiCall]);
 
@@ -200,19 +315,32 @@ export function CMSProvider({ children }) {
     // ANNOUNCEMENTS CRUD
     // ============================================
     const createAnnouncement = useCallback(async (announcementData) => {
-        const newAnnouncement = await apiCall('announcements', 'POST', null, announcementData);
-        setAnnouncements(prev => [...prev, newAnnouncement]);
-        return newAnnouncement;
+        try {
+            const newAnnouncement = await apiCall('announcements', 'POST', null, announcementData);
+            setAnnouncements(prev => [...prev, newAnnouncement]);
+            return newAnnouncement;
+        } catch (err) {
+            const localAnnouncement = { id: generateId('ann'), ...announcementData, createdAt: new Date().toISOString() };
+            setAnnouncements(prev => [...prev, localAnnouncement]);
+            return localAnnouncement;
+        }
     }, [apiCall]);
 
     const updateAnnouncement = useCallback(async (id, updates) => {
-        const updated = await apiCall('announcements', 'PUT', id, updates);
-        setAnnouncements(prev => prev.map(a => a.id === id ? updated : a));
-        return updated;
+        try {
+            const updated = await apiCall('announcements', 'PUT', id, updates);
+            setAnnouncements(prev => prev.map(a => a.id === id ? updated : a));
+            return updated;
+        } catch (err) {
+            setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteAnnouncement = useCallback(async (id) => {
-        await apiCall('announcements', 'DELETE', id);
+        try {
+            await apiCall('announcements', 'DELETE', id);
+        } catch (err) { }
         setAnnouncements(prev => prev.filter(a => a.id !== id));
     }, [apiCall]);
 
@@ -220,19 +348,32 @@ export function CMSProvider({ children }) {
     // CONTESTS CRUD
     // ============================================
     const createContest = useCallback(async (contestData) => {
-        const newContest = await apiCall('contests', 'POST', null, contestData);
-        setContests(prev => [...prev, newContest]);
-        return newContest;
+        try {
+            const newContest = await apiCall('contests', 'POST', null, contestData);
+            setContests(prev => [...prev, newContest]);
+            return newContest;
+        } catch (err) {
+            const localContest = { id: generateId('contest'), ...contestData, createdAt: new Date().toISOString() };
+            setContests(prev => [...prev, localContest]);
+            return localContest;
+        }
     }, [apiCall]);
 
     const updateContest = useCallback(async (id, updates) => {
-        const updated = await apiCall('contests', 'PUT', id, updates);
-        setContests(prev => prev.map(c => c.id === id ? updated : c));
-        return updated;
+        try {
+            const updated = await apiCall('contests', 'PUT', id, updates);
+            setContests(prev => prev.map(c => c.id === id ? updated : c));
+            return updated;
+        } catch (err) {
+            setContests(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+            return { id, ...updates };
+        }
     }, [apiCall]);
 
     const deleteContest = useCallback(async (id) => {
-        await apiCall('contests', 'DELETE', id);
+        try {
+            await apiCall('contests', 'DELETE', id);
+        } catch (err) { }
         setContests(prev => prev.filter(c => c.id !== id));
     }, [apiCall]);
 
