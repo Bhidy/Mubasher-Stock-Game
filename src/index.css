@@ -409,7 +409,10 @@ main,
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
+    /* Keep fixed elements contained within phone frame */
     transform: translateZ(0);
+    /* Create isolated stacking context for proper z-index layering */
+    isolation: isolate;
 
     /* Force Pure White Background */
     background-color: #ffffff;

@@ -63,6 +63,9 @@ export default function PlayerHome() {
             minHeight: '100vh',
             background: 'linear-gradient(180deg, #FAF5FF 0%, #FFFFFF 20%, #FFFFFF 100%)',
             paddingBottom: '120px',
+            position: 'relative',
+            zIndex: 0,
+            isolation: 'isolate',
         }}>
             {/* Header */}
             <div style={{
@@ -99,7 +102,6 @@ export default function PlayerHome() {
                     justifyContent: 'space-between',
                     marginBottom: '1.25rem',
                     position: 'relative',
-                    zIndex: 1,
                 }}>
                     <BurgerMenu variant="glass" />
 
@@ -112,7 +114,6 @@ export default function PlayerHome() {
                 {/* Greeting and user info */}
                 <div style={{
                     position: 'relative',
-                    zIndex: 1,
                     color: 'white',
                     paddingLeft: '0.25rem',
                 }}>
@@ -148,7 +149,6 @@ export default function PlayerHome() {
             <div style={{
                 margin: '-2rem 1rem 0 1rem',
                 position: 'relative',
-                zIndex: 10,
             }}>
                 <XPProgressBar
                     currentXP={playerData.xp}

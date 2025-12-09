@@ -203,7 +203,12 @@ export default function BurgerMenu({ variant = 'default' }) {
 
                     {/* Mode Switcher */}
                     <div style={{ marginTop: '1.25rem', position: 'relative', zIndex: 25 }}>
-                        <ModeSwitcher />
+                        <ModeSwitcher
+                            onModeSwitch={(newMode) => {
+                                setIsOpen(false);
+                                navigate(newMode === 'player' ? '/player/home' : '/investor/home');
+                            }}
+                        />
                     </div>
 
                     {/* Market Dropdown */}

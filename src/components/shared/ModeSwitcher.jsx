@@ -2,12 +2,16 @@ import React from 'react';
 import { useMode } from '../../context/ModeContext';
 import { Gamepad2, TrendingUp, Sparkles } from 'lucide-react';
 
-export default function ModeSwitcher({ variant = 'default', showLabels = true }) {
+export default function ModeSwitcher({ variant = 'default', showLabels = true, onModeSwitch }) {
     const { mode, switchMode, isTransitioning, MODES } = useMode();
 
     const handleModeSwitch = (newMode) => {
         if (newMode !== mode) {
             switchMode(newMode);
+            // Call callback after mode switch
+            if (onModeSwitch) {
+                onModeSwitch(newMode);
+            }
         }
     };
 

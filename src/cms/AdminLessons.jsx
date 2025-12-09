@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Eye, EyeOff, ChevronDown, X, Save, BookOpen, Clock, Award, Coins } from 'lucide-react';
-import { getAllLessons, createLesson, updateLesson, deleteLesson } from './cmsApi';
+import { useSearchParams } from 'react-router-dom';
+import { Plus, Search, Edit2, Trash2, Eye, EyeOff, X, Save, Clock } from 'lucide-react';
+import { useCMS } from '../context/CMSContext';
 
 const CATEGORIES = ['beginner', 'intermediate', 'advanced'];
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
 export default function AdminLessons() {
-    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const [lessons, setLessons] = useState([]);
+    const { lessons, createLesson, updateLesson, deleteLesson } = useCMS();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
     const [showModal, setShowModal] = useState(false);
@@ -20,11 +20,8 @@ export default function AdminLessons() {
     });
 
     useEffect(() => {
-        loadLessons();
         if (searchParams.get('action') === 'new') setShowModal(true);
-    }, []);
-
-    const loadLessons = () => setLessons(getAllLessons());
+    }, [searchParams]);
 
     const filteredLessons = lessons.filter(l => {
         const matchesSearch = l.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -41,13 +38,11 @@ export default function AdminLessons() {
     const handleDelete = (id) => {
         if (confirm('Delete this lesson?')) {
             deleteLesson(id);
-            loadLessons();
         }
     };
 
     const handleTogglePublish = (lesson) => {
         updateLesson(lesson.id, { isPublished: !lesson.isPublished });
-        loadLessons();
     };
 
     const handleSubmit = () => {
@@ -59,7 +54,6 @@ export default function AdminLessons() {
         setShowModal(false);
         setEditingLesson(null);
         setFormData({ title: '', description: '', category: 'beginner', difficulty: 'easy', duration: 5, xpReward: 50, coinReward: 25, isPublished: false });
-        loadLessons();
     };
 
     return (
@@ -68,7 +62,7 @@ export default function AdminLessons() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.25rem' }}>Lessons</h1>
-                    <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Manage educational content for Player Mode</p>
+                    <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Manage educational content for Player Mode • Changes sync instantly</p>
                 </div>
                 <button onClick={() => { setEditingLesson(null); setFormData({ title: '', description: '', category: 'beginner', difficulty: 'easy', duration: 5, xpReward: 50, coinReward: 25, isPublished: false }); setShowModal(true); }}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
@@ -144,6 +138,11 @@ export default function AdminLessons() {
                         ))}
                     </tbody>
                 </table>
+                {filteredLessons.length === 0 && (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: '#94A3B8' }}>
+                        No lessons found. Click "Add Lesson" to create one.
+                    </div>
+                )}
             </div>
 
             {/* Modal */}

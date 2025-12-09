@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import { PriceProvider } from './context/PriceContext';
 import { MarketProvider } from './context/MarketContext';
 import { ModeProvider, useMode } from './context/ModeContext';
+import { CMSProvider } from './context/CMSContext';
 
 // Import mode-specific styles
 import './styles/mode-themes.css';
@@ -53,6 +54,9 @@ import AdminLessons from './cms/AdminLessons';
 import AdminChallenges from './cms/AdminChallenges';
 import AdminAchievements from './cms/AdminAchievements';
 import AdminShop from './cms/AdminShop';
+import AdminNews from './cms/AdminNews';
+import AdminAnnouncements from './cms/AdminAnnouncements';
+import AdminLogin from './cms/AdminLogin';
 
 import profileImg from './assets/profile.jpg';
 
@@ -141,15 +145,6 @@ function ModeAwareRoutes() {
       <Route path="/academy" element={<Academy />} />
       <Route path="/academy/lesson/:lessonId" element={<LessonDetail />} />
 
-      {/* ============================================
-                ADMIN CMS ROUTES
-                ============================================ */}
-      <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-      <Route path="/admin/lessons" element={<AdminLayout><AdminLessons /></AdminLayout>} />
-      <Route path="/admin/challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
-      <Route path="/admin/achievements" element={<AdminLayout><AdminAchievements /></AdminLayout>} />
-      <Route path="/admin/shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
-
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -184,17 +179,51 @@ export default function App() {
 
   return (
     <UserContext.Provider value={{ user, setUser, showChat, setShowChat }}>
-      <ModeProvider>
-        <MarketProvider>
-          <PriceProvider>
-            <BrowserRouter>
-              <Layout>
-                <ModeAwareRoutes />
-              </Layout>
-            </BrowserRouter>
-          </PriceProvider>
-        </MarketProvider>
-      </ModeProvider>
+      <CMSProvider>
+        <ModeProvider>
+          <MarketProvider>
+            <PriceProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </PriceProvider>
+          </MarketProvider>
+        </ModeProvider>
+      </CMSProvider>
     </UserContext.Provider>
+  );
+}
+
+// Separate component to handle routing logic - determines if we show Layout or AdminLayout
+function AppRoutes() {
+  const location = useLocation();
+
+  // Admin routes should NOT use the mobile phone Layout
+  if (location.pathname.startsWith('/admin')) {
+    return <AdminRoutes />;
+  }
+
+  // All other routes use the mobile phone Layout
+  return (
+    <Layout>
+      <ModeAwareRoutes />
+    </Layout>
+  );
+}
+
+// Admin CMS Routes - full desktop view, no phone frame
+function AdminRoutes() {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+      <Route path="/admin/lessons" element={<AdminLayout><AdminLessons /></AdminLayout>} />
+      <Route path="/admin/challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
+      <Route path="/admin/achievements" element={<AdminLayout><AdminAchievements /></AdminLayout>} />
+      <Route path="/admin/shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
+      <Route path="/admin/news" element={<AdminLayout><AdminNews /></AdminLayout>} />
+      <Route path="/admin/announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
+      <Route path="*" element={<Navigate to="/admin/login" replace />} />
+    </Routes>
   );
 }

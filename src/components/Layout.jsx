@@ -82,6 +82,7 @@ export default function Layout({ children }) {
           WebkitOverflowScrolling: 'touch',
           paddingBottom: 'calc(var(--nav-height) + 1rem)',
           position: 'relative',
+          zIndex: 1, // Keep main content below burger menu overlay
           background: 'var(--background)',
         }}
       >
