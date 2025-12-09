@@ -197,9 +197,27 @@ export default function App() {
 // Separate component to handle routing logic - determines if we show Layout or AdminLayout
 function AppRoutes() {
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Toggle admin mode class on #root to disable phone frame styling
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (root) {
+      if (isAdminRoute) {
+        root.classList.add('admin-mode');
+      } else {
+        root.classList.remove('admin-mode');
+      }
+    }
+    return () => {
+      if (root) {
+        root.classList.remove('admin-mode');
+      }
+    };
+  }, [isAdminRoute]);
 
   // Admin routes should NOT use the mobile phone Layout
-  if (location.pathname.startsWith('/admin')) {
+  if (isAdminRoute) {
     return <AdminRoutes />;
   }
 

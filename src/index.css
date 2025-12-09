@@ -432,6 +432,28 @@ main,
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Admin mode - remove phone frame styling for full desktop CMS */
+  #root.admin-mode {
+    max-width: none;
+    width: 100%;
+    height: 100vh;
+    max-height: none;
+    min-height: 100vh;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    isolation: auto;
+    overflow: visible;
+  }
+
+  body:has(#root.admin-mode) {
+    display: block;
+    padding: 0;
+    overflow: auto;
+  }
 }
 
 /* Toast Notification Animation */
