@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield, Zap, BarChart3, Newspaper, Gamepad2, ChevronDown, ChevronUp, Check, MessageCircle, Sparkles, Globe, Settings, Bell, User, Briefcase, Target, PieChart, LineChart, AlertCircle, Calendar, FileText, Star, Wallet } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../App';
@@ -131,7 +132,7 @@ export default function BurgerMenu({ variant = 'default' }) {
         return 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 50%, #10B981 100%)';
     };
 
-    const menuContent = isOpen && (
+    const menuContent = isOpen && createPortal(
         <>
             {/* Backdrop */}
             <div
@@ -479,7 +480,8 @@ export default function BurgerMenu({ variant = 'default' }) {
                     </div>
                 </div>
             </div>
-        </>
+        </>,
+        document.body
     );
 
     const buttonStyles = {
