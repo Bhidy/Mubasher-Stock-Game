@@ -61,6 +61,9 @@ import AdminShop from './cms/AdminShop';
 import AdminNews from './cms/AdminNews';
 import AdminAnnouncements from './cms/AdminAnnouncements';
 import AdminLogin from './cms/AdminLogin';
+import AdminContests from './cms/AdminContests';
+import AdminUsers from './cms/AdminUsers';
+import AdminSettings from './cms/AdminSettings';
 
 import profileImg from './assets/profile.jpg';
 
@@ -288,6 +291,9 @@ function AdminRoutes() {
       <Route path="/admin/shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
       <Route path="/admin/news" element={<AdminLayout><AdminNews /></AdminLayout>} />
       <Route path="/admin/announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
+      <Route path="/admin/contests" element={<AdminLayout><AdminContests /></AdminLayout>} />
+      <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
+      <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
       <Route path="*" element={<Navigate to="/admin/login" replace />} />
     </Routes>
   );
