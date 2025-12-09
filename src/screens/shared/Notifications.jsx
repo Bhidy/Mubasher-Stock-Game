@@ -79,11 +79,12 @@ export default function Notifications() {
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
-    const filteredNotifications = filter === 'all'
-        ? notifications
-        : filter === 'unread'
-            ? notifications.filter(n => !n.read)
-            : notifications.filter(n => n.type === filter);
+    const filteredNotifications = notifications.filter(n => {
+        if (filter === 'all') return true;
+        if (filter === 'alerts') return n.type === 'price_alert';
+        if (filter === 'activity') return n.type !== 'price_alert';
+        return true;
+    });
 
     const markAsRead = (id) => {
         setNotifications(prev =>
@@ -150,18 +151,6 @@ export default function Notifications() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                borderRadius: '10px',
-                                padding: '0.5rem',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            <Filter size={18} color="white" />
-                        </button>
-                        <button
                             onClick={() => navigate('/profile')}
                             style={{
                                 background: 'rgba(255,255,255,0.2)',
@@ -176,41 +165,66 @@ export default function Notifications() {
                     </div>
                 </div>
 
-                {/* Filters */}
-                {showFilters && (
-                    <div style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        marginTop: '1rem',
-                        overflowX: 'auto',
-                        paddingBottom: '0.25rem',
-                    }}>
-                        {['all', 'unread', ...Object.keys(NOTIFICATION_TYPES)].map(f => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                style={{
-                                    padding: '0.375rem 0.75rem',
-                                    borderRadius: '999px',
-                                    border: 'none',
-                                    background: filter === f ? 'white' : 'rgba(255,255,255,0.2)',
-                                    color: filter === f ? '#1F2937' : 'white',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap',
-                                    textTransform: 'capitalize',
-                                }}
-                            >
-                                {f === 'all' ? 'All' : f === 'unread' ? 'Unread' : NOTIFICATION_TYPES[f]?.label || f}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {/* Tabs */}
+                <div style={{
+                    display: 'flex',
+                    background: 'rgba(0,0,0,0.1)',
+                    borderRadius: '12px',
+                    padding: '4px',
+                    marginTop: '1rem',
+                }}>
+                    {['all', 'alerts', 'activity'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setFilter(tab)}
+                            style={{
+                                flex: 1,
+                                padding: '0.5rem',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: filter === tab ? 'white' : 'transparent',
+                                color: filter === tab ? (isPlayerMode ? '#7C3AED' : '#0EA5E9') : 'rgba(255,255,255,0.7)',
+                                fontWeight: 700,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                textTransform: 'capitalize',
+                                transition: 'all 0.2s',
+                                boxShadow: filter === tab ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                            }}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Actions */}
-            {notifications.length > 0 && (
+            {filter === 'alerts' && !isPlayerMode && (
+                <div style={{ padding: '0 1rem 0.5rem' }}>
+                    <button
+                        onClick={() => navigate('/investor/alerts')}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: 'white',
+                            border: '1px solid #E5E7EB',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            color: '#0EA5E9',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <Settings size={16} /> Manage Price Alerts
+                    </button>
+                </div>
+            )}
+
+            {notifications.length > 0 && filter !== 'alerts' && (
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',

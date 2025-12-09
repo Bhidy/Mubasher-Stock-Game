@@ -8,6 +8,7 @@ import {
 import { UserContext } from '../../App';
 import { useMarket } from '../../context/MarketContext';
 import { useMode } from '../../context/ModeContext';
+import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
 import XPProgressBar from '../../components/player/XPProgressBar';
 import CoinDisplay from '../../components/player/CoinDisplay';
@@ -33,6 +34,7 @@ export default function PlayerHome() {
     const { user, setUser } = useContext(UserContext);
     const { market } = useMarket();
     const { currentMode } = useMode();
+    const { announcements, loading: cmsLoading } = useCMS();
     const navigate = useNavigate();
     const [greeting, setGreeting] = useState('');
     const [showDailyReward, setShowDailyReward] = useState(false);
@@ -154,13 +156,15 @@ export default function PlayerHome() {
                                 width: '28px',
                                 height: '28px',
                                 borderRadius: '8px',
-                                background: 'white',
+                                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontSize: '0.9rem',
+                                color: 'white',
+                                fontWeight: 700,
                             }}>
-                                {user.avatar || '👤'}
+                                {user.name?.charAt(0)?.toUpperCase() || '👤'}
                             </div>
                         </button>
                     </div>
@@ -261,6 +265,84 @@ export default function PlayerHome() {
                         </button>
                     ))}
                 </div>
+
+                {/* Announcements Banner */}
+                {announcements && announcements
+                    .filter(a => a.isActive && (a.targetMode === 'player' || a.targetMode === 'all'))
+                    .map((ann, i) => (
+                        <div
+                            key={ann.id}
+                            style={{
+                                marginBottom: '1.5rem',
+                                background: ann.type === 'promo' ? 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)' : 'white',
+                                borderRadius: '20px',
+                                padding: '1.25rem',
+                                color: ann.type === 'promo' ? 'white' : '#1F2937',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                boxShadow: '0 8px 16px rgba(124, 58, 237, 0.15)',
+                                border: ann.type !== 'promo' ? '1px solid #F3F4F6' : 'none',
+                                position: 'relative',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {/* Decorative background needed for promo */}
+                            {ann.type === 'promo' && (
+                                <>
+                                    <div style={{
+                                        position: 'absolute', top: -20, right: -20, width: 80, height: 80,
+                                        background: 'rgba(255,255,255,0.1)', borderRadius: '50%'
+                                    }} />
+                                    <div style={{
+                                        position: 'absolute', bottom: -10, left: -10, width: 60, height: 60,
+                                        background: 'rgba(255,255,255,0.1)', borderRadius: '50%'
+                                    }} />
+                                </>
+                            )}
+
+                            <div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
+                                <div style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase',
+                                    marginBottom: '0.25rem',
+                                    color: ann.type === 'promo' ? 'rgba(255,255,255,0.8)' : '#7C3AED',
+                                    display: 'flex', alignItems: 'center', gap: '0.375rem'
+                                }}>
+                                    {ann.type === 'promo' ? <Sparkles size={12} /> : <Bell size={12} />}
+                                    {ann.type}
+                                </div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.25rem' }}>{ann.title}</h3>
+                                <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.4 }}>{ann.message}</p>
+
+                                {ann.buttonText && (
+                                    <button
+                                        onClick={() => navigate(ann.buttonLink)}
+                                        style={{
+                                            marginTop: '0.75rem',
+                                            padding: '0.5rem 1rem',
+                                            background: ann.type === 'promo' ? 'white' : '#7C3AED',
+                                            color: ann.type === 'promo' ? '#7C3AED' : 'white',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        {ann.buttonText}
+                                    </button>
+                                )}
+                            </div>
+
+                            {ann.type === 'promo' && (
+                                <div style={{ position: 'relative', zIndex: 1, marginLeft: '1rem', opacity: 0.9 }}>
+                                    <Gift size={48} color="white" strokeWidth={1.5} />
+                                </div>
+                            )}
+                        </div>
+                    ))}
 
                 {/* Featured Contest Card */}
                 <div

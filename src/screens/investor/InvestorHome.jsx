@@ -8,6 +8,7 @@ import {
 import { UserContext } from '../../App';
 import { useMarket } from '../../context/MarketContext';
 import { useMode } from '../../context/ModeContext';
+import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
 
 // Market Indices Mock Data
@@ -49,6 +50,7 @@ const NEWS_ITEMS = [
 export default function InvestorHome() {
     const { user } = useContext(UserContext);
     const { market } = useMarket();
+    const { announcements } = useCMS();
     const navigate = useNavigate();
     const [greeting, setGreeting] = useState('');
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -142,38 +144,6 @@ export default function InvestorHome() {
                 }}>
                     <BurgerMenu variant="glass" />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                        <button
-                            onClick={() => navigate('/investor/alerts')}
-                            style={{
-                                position: 'relative',
-                                background: 'rgba(255,255,255,0.1)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '12px',
-                                padding: '0.625rem',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(10px)',
-                            }}
-                        >
-                            <Bell size={18} color="white" />
-                            {portfolioData.alertsActive > 0 && (
-                                <span style={{
-                                    position: 'absolute',
-                                    top: '-4px',
-                                    right: '-4px',
-                                    width: '18px',
-                                    height: '18px',
-                                    borderRadius: '50%',
-                                    background: '#EF4444',
-                                    color: 'white',
-                                    fontSize: '0.65rem',
-                                    fontWeight: 700,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    border: '2px solid #0F172A',
-                                }}>{portfolioData.alertsActive}</span>
-                            )}
-                        </button>
 
                         {/* Notifications */}
                         <button
@@ -189,15 +159,17 @@ export default function InvestorHome() {
                             }}
                         >
                             <Bell size={18} color="white" />
-                            <span style={{
-                                position: 'absolute',
-                                top: '-2px',
-                                right: '-2px',
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                background: '#EF4444',
-                            }} />
+                            {portfolioData.alertsActive > 0 && (
+                                <span style={{
+                                    position: 'absolute',
+                                    top: '-2px',
+                                    right: '-2px',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    background: '#EF4444',
+                                }} />
+                            )}
                         </button>
 
                         {/* Profile */}
@@ -221,8 +193,10 @@ export default function InvestorHome() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontSize: '0.9rem',
+                                color: 'white',
+                                fontWeight: 700,
                             }}>
-                                {user.avatar || '👤'}
+                                {user.name?.charAt(0)?.toUpperCase() || '👤'}
                             </div>
                         </button>
 
@@ -360,6 +334,65 @@ export default function InvestorHome() {
 
             {/* Content */}
             <div style={{ padding: '1.25rem 1rem' }}>
+
+                {/* Announcements Banner */}
+                {announcements && announcements
+                    .filter(a => a.isActive && (a.targetMode === 'investor' || a.targetMode === 'all'))
+                    .map((ann) => (
+                        <div
+                            key={ann.id}
+                            style={{
+                                marginBottom: '1.5rem',
+                                background: ann.type === 'info' ? 'white' : 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                                borderRadius: '16px',
+                                padding: '1.25rem',
+                                color: ann.type === 'info' ? '#1E293B' : 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                                border: ann.type === 'info' ? '1px solid #E2E8F0' : 'none',
+                                position: 'relative',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
+                                <div style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase',
+                                    marginBottom: '0.25rem',
+                                    color: ann.type === 'info' ? '#0EA5E9' : '#94A3B8',
+                                    display: 'flex', alignItems: 'center', gap: '0.375rem'
+                                }}>
+                                    <Bell size={12} />
+                                    {ann.type}
+                                </div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.25rem' }}>{ann.title}</h3>
+                                <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.4 }}>{ann.message}</p>
+
+                                {ann.buttonText && (
+                                    <button
+                                        onClick={() => navigate(ann.buttonLink)}
+                                        style={{
+                                            marginTop: '0.75rem',
+                                            padding: '0.5rem 1rem',
+                                            background: ann.type === 'info' ? '#0F172A' : 'white',
+                                            color: ann.type === 'info' ? 'white' : '#0F172A',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        {ann.buttonText}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+
                 {/* Quick Actions */}
                 <div style={{
                     display: 'grid',

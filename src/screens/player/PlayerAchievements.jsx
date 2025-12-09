@@ -1,11 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Trophy, Star, Lock, Check, ArrowLeft, Filter, Search,
     Sparkles, Crown, Medal, Shield, Target, Flame, Zap, Award
 } from 'lucide-react';
 import { UserContext } from '../../App';
-import { ACHIEVEMENTS, RARITY_COLORS, AchievementBadge, AchievementUnlockPopup } from '../../components/player/AchievementBadge';
+import { useCMS } from '../../context/CMSContext';
+import { ACHIEVEMENTS as FALLBACK_ACHIEVEMENTS, RARITY_COLORS, AchievementBadge, AchievementUnlockPopup } from '../../components/player/AchievementBadge';
 
 // Extended achievements with categories
 const ACHIEVEMENT_CATEGORIES = [
@@ -20,13 +21,32 @@ const ACHIEVEMENT_CATEGORIES = [
 export default function PlayerAchievements() {
     const navigate = useNavigate();
     const { user } = useContext(UserContext);
+    const { achievements: cmsAchievements, loading } = useCMS();
     const [activeCategory, setActiveCategory] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState('')
     const [selectedAchievement, setSelectedAchievement] = useState(null);
     const [showUnlockPopup, setShowUnlockPopup] = useState(false);
 
     // Mock unlocked achievements
-    const unlockedIds = ['first_pick', 'first_win', 'tutorial_done', 'streak_3', 'streak_7', 'join_clan'];
+    const unlockedIds = ['first_pick', 'first_win', 'tutorial_done', 'streak_3', 'streak_7', 'join_clan', 'ach-1'];
+
+    // Merge CMS achievements with fallback
+    const ACHIEVEMENTS = useMemo(() => {
+        if (cmsAchievements.length > 0) {
+            // Transform CMS achievements to match expected format
+            return cmsAchievements.map(a => ({
+                id: a.id,
+                name: a.title,
+                description: a.description,
+                icon: a.icon || '🏆',
+                category: a.category || 'special',
+                xp: a.xpReward || 100,
+                coins: a.coinReward || 0,
+                rarity: a.rarity || 'common',
+            }));
+        }
+        return FALLBACK_ACHIEVEMENTS;
+    }, [cmsAchievements]);
 
     // Filter achievements
     const filteredAchievements = ACHIEVEMENTS.filter(a => {
@@ -40,7 +60,7 @@ export default function PlayerAchievements() {
     const totalUnlocked = unlockedIds.length;
     const totalXP = ACHIEVEMENTS
         .filter(a => unlockedIds.includes(a.id))
-        .reduce((sum, a) => sum + a.xp, 0);
+        .reduce((sum, a) => sum + (a.xp || 0), 0);
 
     // Group by rarity
     const rarityGroups = {

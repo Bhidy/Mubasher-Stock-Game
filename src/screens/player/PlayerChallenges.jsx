@@ -9,6 +9,7 @@ import { UserContext } from '../../App';
 import { useMode } from '../../context/ModeContext';
 import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
+import { PageLoading, EmptyState } from '../../components/shared/LoadingStates';
 
 const DIFFICULTY_COLORS = {
     easy: { bg: '#DCFCE7', text: '#16A34A', border: '#86EFAC' },
@@ -221,11 +222,7 @@ export default function PlayerChallenges() {
     ).length;
 
     if (loading) {
-        return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                Loading challenges...
-            </div>
-        );
+        return <PageLoading message="Loading challenges..." />;
     }
 
     return (

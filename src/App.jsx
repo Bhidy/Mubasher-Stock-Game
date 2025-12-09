@@ -160,28 +160,67 @@ function ModeAwareRoutes() {
 }
 
 export default function App() {
-  const [user, setUser] = useState({
-    name: 'BHIDY',
-    avatar: profileImg,
-    coins: 1250,
-    level: 7,
-    levelTitle: 'Market Rookie',
-    streak: 3,
-    rank: 1247,
-    gain: 2.45,
-    picks: [], // { ticker, price, change, name }
-    isLocked: false,
-    hasSeenDailySpin: false, // Track if user has seen daily spin this session
-    // New fields for dual-mode
-    xp: 750,
-    xpToNextLevel: 1000,
-    achievements: [],
-    // Investor mode fields
-    portfolioValue: 125000,
-    portfolioChange: 2.35,
-    watchlistCount: 12,
-    alertsCount: 3,
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('appUser');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Merge with default/current structure to ensure new fields are present
+        // and restore avatar import
+        return {
+          name: 'BHIDY',
+          avatar: profileImg,
+          coins: 1250,
+          level: 7,
+          levelTitle: 'Market Rookie',
+          streak: 3,
+          rank: 1247,
+          gain: 2.45,
+          picks: [],
+          isLocked: false,
+          hasSeenDailySpin: false,
+          xp: 750,
+          xpToNextLevel: 1000,
+          achievements: [],
+          portfolioValue: 125000,
+          portfolioChange: 2.35,
+          watchlistCount: 12,
+          alertsCount: 3,
+          ...parsed,
+          avatar: profileImg // Ensure local import is used
+        };
+      } catch (e) {
+        console.error('Failed to load user from storage', e);
+      }
+    }
+    return {
+      name: 'BHIDY',
+      avatar: profileImg,
+      coins: 1250,
+      level: 7,
+      levelTitle: 'Market Rookie',
+      streak: 3,
+      rank: 1247,
+      gain: 2.45,
+      picks: [], // { ticker, price, change, name }
+      isLocked: false,
+      hasSeenDailySpin: false, // Track if user has seen daily spin this session
+      // New fields for dual-mode
+      xp: 750,
+      xpToNextLevel: 1000,
+      achievements: [],
+      // Investor mode fields
+      portfolioValue: 125000,
+      portfolioChange: 2.35,
+      watchlistCount: 12,
+      alertsCount: 3,
+    };
   });
+
+  // Persist user state
+  useEffect(() => {
+    localStorage.setItem('appUser', JSON.stringify(user));
+  }, [user]);
 
   const [showChat, setShowChat] = useState(false);
 
