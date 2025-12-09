@@ -31,15 +31,15 @@ import LessonDetail from './screens/LessonDetail';
 import DiscussionDetail from './screens/DiscussionDetail';
 import ClanDetail from './screens/ClanDetail';
 
-// Player Mode Screens (to be created)
-// import PlayerHome from './screens/player/PlayerHome';
+// Player Mode Screens
+import PlayerHome from './screens/player/PlayerHome';
 // import PlayerLearn from './screens/player/PlayerLearn';
 // import PlayerChallenges from './screens/player/PlayerChallenges';
 // import PlayerAchievements from './screens/player/PlayerAchievements';
 // import PlayerShop from './screens/player/PlayerShop';
 
-// Investor Mode Screens (to be created)
-// import InvestorHome from './screens/investor/InvestorHome';
+// Investor Mode Screens
+import InvestorHome from './screens/investor/InvestorHome';
 // import InvestorPortfolio from './screens/investor/InvestorPortfolio';
 // import InvestorWatchlist from './screens/investor/InvestorWatchlist';
 // import InvestorScreener from './screens/investor/InvestorScreener';
@@ -76,8 +76,8 @@ function ModeAwareRoutes() {
                 PLAYER MODE ROUTES
                 ============================================ */}
       <Route path="/player">
-        {/* Player Home - Uses legacy Home for now */}
-        <Route path="home" element={<Home />} />
+        {/* Player Home - NEW GAMIFIED HOME */}
+        <Route path="home" element={<PlayerHome />} />
         <Route path="pick" element={<Pick />} />
         <Route path="live" element={<Live />} />
         <Route path="learn" element={<Academy />} />
@@ -90,8 +90,8 @@ function ModeAwareRoutes() {
                 INVESTOR MODE ROUTES
                 ============================================ */}
       <Route path="/investor">
-        {/* Investor Home - Uses legacy Home for now */}
-        <Route path="home" element={<Home />} />
+        {/* Investor Home - NEW PROFESSIONAL DASHBOARD */}
+        <Route path="home" element={<InvestorHome />} />
         <Route path="portfolio" element={<Home />} /> {/* Placeholder */}
         <Route path="watchlist" element={<MarketSummary />} /> {/* Placeholder */}
         <Route path="screener" element={<MarketSummary />} /> {/* Placeholder */}
