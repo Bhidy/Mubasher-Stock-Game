@@ -75,27 +75,36 @@ export default function PlayerHome() {
                 padding: '1rem 1rem 3rem 1rem',
                 borderRadius: '0 0 32px 32px',
                 position: 'relative',
-                overflow: 'hidden',
+                // overflow: 'hidden' removed
             }}>
-                {/* Decorative elements */}
+                {/* Background Clipper */}
                 <div style={{
                     position: 'absolute',
-                    top: '-50px',
-                    right: '-30px',
-                    width: '150px',
-                    height: '150px',
-                    borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.1)',
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    bottom: '-20px',
-                    left: '10%',
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.08)',
-                }} />
+                    inset: 0,
+                    overflow: 'hidden',
+                    borderRadius: '0 0 32px 32px',
+                }}>
+                    {/* Decorative elements */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '-50px',
+                        right: '-30px',
+                        width: '150px',
+                        height: '150px',
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.1)',
+                    }} />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '-20px',
+                        left: '10%',
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.08)',
+                    }} />
+
+                </div>
 
                 {/* Top bar */}
                 <div style={{

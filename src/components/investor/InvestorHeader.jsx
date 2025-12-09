@@ -14,35 +14,44 @@ export default function InvestorHeader({ alertsCount, marketStatus, portfolioDat
             padding: '1.25rem 1rem 2rem 1rem',
             borderRadius: '0 0 32px 32px',
             position: 'relative',
-            overflow: 'hidden',
+            // Overflow removed to allow BurgerMenu to pop out
         }}>
-            {/* Subtle grid pattern */}
+            {/* Background Effects Container - Clipped */}
             <div style={{
                 position: 'absolute',
                 inset: 0,
-                background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                opacity: 0.5,
-            }} />
+                overflow: 'hidden',
+                borderRadius: '0 0 32px 32px',
+            }}>
+                {/* Subtle grid pattern */}
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                    opacity: 0.5,
+                }} />
 
-            {/* Gradient orbs */}
-            <div style={{
-                position: 'absolute',
-                top: '-60px',
-                right: '-40px',
-                width: '180px',
-                height: '180px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)',
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '-40px',
-                left: '-20px',
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
-            }} />
+                {/* Gradient orbs */}
+                <div style={{
+                    position: 'absolute',
+                    top: '-60px',
+                    right: '-40px',
+                    width: '180px',
+                    height: '180px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)',
+                }} />
+                <div style={{
+                    position: 'absolute',
+                    bottom: '-40px',
+                    left: '-20px',
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
+                }} />
+
+            </div>
 
             {/* Top bar */}
             <div style={{
