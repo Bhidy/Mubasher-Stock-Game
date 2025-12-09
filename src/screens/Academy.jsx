@@ -1,102 +1,99 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
 import { useMarket } from '../context/MarketContext';
+import { useCMS } from '../context/CMSContext';
 import { BookOpen, TrendingUp, Target, Award, Lock, Play, CheckCircle, Clock } from 'lucide-react';
 
 export default function Academy() {
     const navigate = useNavigate();
     const { market } = useMarket();
+    const { lessons: cmsLessons, loading } = useCMS();
     const [selectedCategory, setSelectedCategory] = useState('All');
+
+    // Mock user progress
+    const [completedLessons] = useState(['lesson-1', 'lesson-2']);
 
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    const categories = ['All', 'Beginner', 'Strategy', 'Analysis', 'Advanced'];
+    const categories = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
-    const lessons = [
+    // Fallback lessons if CMS is empty
+    const fallbackLessons = [
         {
-            id: 1,
+            id: 'lesson-1',
             title: 'Stock Market Basics',
-            desc: 'Learn the fundamentals of stock trading',
-            duration: '10 min',
-            category: 'Beginner',
-            completed: true,
-            locked: false,
-            xp: 50,
+            description: 'Learn the fundamentals of stock trading',
+            duration: 10,
+            category: 'beginner',
+            xpReward: 50,
+            coinReward: 25,
             icon: '📚',
-            color: '#10b981'
+            isPublished: true
         },
         {
-            id: 2,
+            id: 'lesson-2',
             title: 'Reading Stock Charts',
-            desc: 'Understand price movements and trends',
-            duration: '15 min',
-            category: 'Beginner',
-            completed: true,
-            locked: false,
-            xp: 75,
+            description: 'Understand price movements and trends',
+            duration: 15,
+            category: 'beginner',
+            xpReward: 75,
+            coinReward: 30,
             icon: '📊',
-            color: '#06b6d4'
+            isPublished: true
         },
         {
-            id: 3,
+            id: 'lesson-3',
             title: 'Risk Management',
-            desc: 'Protect your portfolio and minimize losses',
-            duration: '12 min',
-            category: 'Strategy',
-            completed: false,
-            locked: false,
-            xp: 100,
+            description: 'Protect your portfolio and minimize losses',
+            duration: 12,
+            category: 'intermediate',
+            xpReward: 100,
+            coinReward: 50,
             icon: '🛡️',
-            color: '#f59e0b'
+            isPublished: true
         },
         {
-            id: 4,
+            id: 'lesson-4',
             title: 'Technical Indicators',
-            desc: 'Master RSI, MACD, and moving averages',
-            duration: '20 min',
-            category: 'Analysis',
-            completed: false,
-            locked: false,
-            xp: 150,
+            description: 'Master RSI, MACD, and moving averages',
+            duration: 20,
+            category: 'advanced',
+            xpReward: 150,
+            coinReward: 75,
             icon: '📈',
-            color: '#10b981'
-        },
-        {
-            id: 5,
-            title: 'Portfolio Diversification',
-            desc: 'Build a balanced investment strategy',
-            duration: '18 min',
-            category: 'Strategy',
-            completed: false,
-            locked: false,
-            xp: 125,
-            icon: '🎯',
-            color: '#06b6d4'
-        },
-        {
-            id: 6,
-            title: 'Advanced Trading Strategies',
-            desc: 'Learn swing trading and momentum plays',
-            duration: '25 min',
-            category: 'Advanced',
-            completed: false,
-            locked: true,
-            xp: 200,
-            icon: '🚀',
-            color: '#ef4444'
+            isPublished: true
         },
     ];
 
+    // Use CMS lessons if available, otherwise use fallback
+    const lessons = useMemo(() => {
+        const data = cmsLessons.length > 0 ? cmsLessons : fallbackLessons;
+        return data
+            .filter(l => l.isPublished)
+            .map((l, index) => ({
+                id: l.id,
+                title: l.title,
+                desc: l.description,
+                duration: `${l.duration} min`,
+                category: l.category.charAt(0).toUpperCase() + l.category.slice(1),
+                completed: completedLessons.includes(l.id),
+                locked: index > completedLessons.length, // Lock lessons beyond current progress
+                xp: l.xpReward,
+                icon: l.icon || '📚',
+                color: l.category === 'beginner' ? '#10b981' : l.category === 'intermediate' ? '#06b6d4' : '#f59e0b'
+            }));
+    }, [cmsLessons, completedLessons]);
+
     const achievements = [
-        { id: 1, title: 'First Lesson', desc: 'Complete your first lesson', unlocked: true, icon: '🎓' },
-        { id: 2, title: 'Quick Learner', desc: 'Complete 5 lessons', unlocked: false, icon: '⚡' },
-        { id: 3, title: 'Master Trader', desc: 'Complete all lessons', unlocked: false, icon: '👑' },
+        { id: 1, title: 'First Lesson', desc: 'Complete your first lesson', unlocked: completedLessons.length >= 1, icon: '🎓' },
+        { id: 2, title: 'Quick Learner', desc: 'Complete 5 lessons', unlocked: completedLessons.length >= 5, icon: '⚡' },
+        { id: 3, title: 'Master Trader', desc: 'Complete all lessons', unlocked: completedLessons.length >= lessons.length, icon: '👑' },
     ];
 
     const filteredLessons = selectedCategory === 'All'
