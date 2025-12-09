@@ -33,19 +33,18 @@ import ClanDetail from './screens/ClanDetail';
 
 // Player Mode Screens
 import PlayerHome from './screens/player/PlayerHome';
-// import PlayerLearn from './screens/player/PlayerLearn';
-// import PlayerChallenges from './screens/player/PlayerChallenges';
-// import PlayerAchievements from './screens/player/PlayerAchievements';
-// import PlayerShop from './screens/player/PlayerShop';
+import PlayerChallenges from './screens/player/PlayerChallenges';
+import PlayerAchievements from './screens/player/PlayerAchievements';
+import PlayerShop from './screens/player/PlayerShop';
 
 // Investor Mode Screens
 import InvestorHome from './screens/investor/InvestorHome';
-// import InvestorPortfolio from './screens/investor/InvestorPortfolio';
-// import InvestorWatchlist from './screens/investor/InvestorWatchlist';
-// import InvestorScreener from './screens/investor/InvestorScreener';
-// import InvestorAnalysis from './screens/investor/InvestorAnalysis';
-// import InvestorCalendar from './screens/investor/InvestorCalendar';
-// import InvestorAlerts from './screens/investor/InvestorAlerts';
+import InvestorPortfolio from './screens/investor/InvestorPortfolio';
+import InvestorWatchlist from './screens/investor/InvestorWatchlist';
+import InvestorScreener from './screens/investor/InvestorScreener';
+import InvestorCalendar from './screens/investor/InvestorCalendar';
+import InvestorAlerts from './screens/investor/InvestorAlerts';
+import InvestorNotes from './screens/investor/InvestorNotes';
 
 import profileImg from './assets/profile.jpg';
 
@@ -76,29 +75,27 @@ function ModeAwareRoutes() {
                 PLAYER MODE ROUTES
                 ============================================ */}
       <Route path="/player">
-        {/* Player Home - NEW GAMIFIED HOME */}
         <Route path="home" element={<PlayerHome />} />
         <Route path="pick" element={<Pick />} />
         <Route path="live" element={<Live />} />
         <Route path="learn" element={<Academy />} />
-        <Route path="challenges" element={<Home />} /> {/* Placeholder */}
-        <Route path="achievements" element={<Rewards />} /> {/* Placeholder */}
-        <Route path="shop" element={<Rewards />} /> {/* Placeholder */}
+        <Route path="challenges" element={<PlayerChallenges />} />
+        <Route path="achievements" element={<PlayerAchievements />} />
+        <Route path="shop" element={<PlayerShop />} />
       </Route>
 
       {/* ============================================
                 INVESTOR MODE ROUTES
                 ============================================ */}
       <Route path="/investor">
-        {/* Investor Home - NEW PROFESSIONAL DASHBOARD */}
         <Route path="home" element={<InvestorHome />} />
-        <Route path="portfolio" element={<Home />} /> {/* Placeholder */}
-        <Route path="watchlist" element={<MarketSummary />} /> {/* Placeholder */}
-        <Route path="screener" element={<MarketSummary />} /> {/* Placeholder */}
-        <Route path="analysis" element={<MarketSummary />} /> {/* Placeholder */}
-        <Route path="calendar" element={<MarketSummary />} /> {/* Placeholder */}
-        <Route path="alerts" element={<MarketSummary />} /> {/* Placeholder */}
-        <Route path="notes" element={<Home />} /> {/* Placeholder */}
+        <Route path="portfolio" element={<InvestorPortfolio />} />
+        <Route path="watchlist" element={<InvestorWatchlist />} />
+        <Route path="screener" element={<InvestorScreener />} />
+        <Route path="analysis" element={<MarketSummary />} />
+        <Route path="calendar" element={<InvestorCalendar />} />
+        <Route path="alerts" element={<InvestorAlerts />} />
+        <Route path="notes" element={<InvestorNotes />} />
       </Route>
 
       {/* ============================================
