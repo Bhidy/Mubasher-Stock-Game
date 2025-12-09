@@ -474,7 +474,7 @@ export default function BurgerMenu({ variant = 'default' }) {
                     </button>
                     <div style={{ textAlign: 'center', marginTop: '0.625rem' }}>
                         <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
-                            v3.1.0 • {isPlayerMode ? '🎮 Player' : '📈 Investor'} Mode
+                            v3.1.1 • {isPlayerMode ? '🎮 Player' : '📈 Investor'} Mode
                         </span>
                     </div>
                 </div>
