@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import {
+    LayoutDashboard, BookOpen, Trophy, Award, ShoppingBag, Calendar,
+    Users, Settings, ChevronRight, TrendingUp, Activity, LogOut,
+    Menu, X, Bell, Search, Plus
+} from 'lucide-react';
+
+const SIDEBAR_ITEMS = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { id: 'lessons', label: 'Lessons', icon: BookOpen, path: '/admin/lessons' },
+    { id: 'challenges', label: 'Challenges', icon: Trophy, path: '/admin/challenges' },
+    { id: 'achievements', label: 'Achievements', icon: Award, path: '/admin/achievements' },
+    { id: 'shop', label: 'Shop Items', icon: ShoppingBag, path: '/admin/shop' },
+    { id: 'contests', label: 'Contests', icon: Calendar, path: '/admin/contests' },
+    { id: 'users', label: 'Users', icon: Users, path: '/admin/users' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
+];
+
+export default function AdminLayout({ children }) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const getCurrentSection = () => {
+        const item = SIDEBAR_ITEMS.find(i => location.pathname === i.path || location.pathname.startsWith(i.path + '/'));
+        return item?.id || 'dashboard';
+    };
+
+    return (
+        <div style={{
+            display: 'flex',
+            minHeight: '100vh',
+            background: '#F1F5F9',
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+        }}>
+            {/* Sidebar */}
+            <aside style={{
+                width: sidebarOpen ? '260px' : '80px',
+                background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+                transition: 'width 0.3s ease',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                height: '100vh',
+                zIndex: 100,
+                display: 'flex',
+                flexDirection: 'column',
+            }}>
+                {/* Logo */}
+                <div style={{
+                    padding: '1.5rem',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: sidebarOpen ? 'space-between' : 'center',
+                }}>
+                    {sidebarOpen && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '10px',
+                                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.25rem',
+                            }}>
+                                🎮
+                            </div>
+                            <span style={{ color: 'white', fontWeight: 800, fontSize: '1.1rem' }}>
+                                Admin CMS
+                            </span>
+                        </div>
+                    )}
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        style={{
+                            background: 'rgba(255,255,255,0.1)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.5rem',
+                            cursor: 'pointer',
+                            color: 'white',
+                        }}
+                    >
+                        <Menu size={18} />
+                    </button>
+                </div>
+
+                {/* Nav Items */}
+                <nav style={{ flex: 1, padding: '1rem', overflowY: 'auto' }}>
+                    {SIDEBAR_ITEMS.map(item => {
+                        const isActive = getCurrentSection() === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => navigate(item.path)}
+                                style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    padding: sidebarOpen ? '0.875rem 1rem' : '0.875rem',
+                                    marginBottom: '0.375rem',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    background: isActive
+                                        ? 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)'
+                                        : 'transparent',
+                                    color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                                }}
+                            >
+                                <item.icon size={20} />
+                                {sidebarOpen && (
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                                        {item.label}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </nav>
+
+                {/* Back to App */}
+                <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <button
+                        onClick={() => navigate('/home')}
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            padding: '0.875rem 1rem',
+                            borderRadius: '10px',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            background: 'transparent',
+                            color: 'rgba(255,255,255,0.8)',
+                            cursor: 'pointer',
+                            justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                        }}
+                    >
+                        <LogOut size={18} />
+                        {sidebarOpen && <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Back to App</span>}
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main style={{
+                flex: 1,
+                marginLeft: sidebarOpen ? '260px' : '80px',
+                transition: 'margin-left 0.3s ease',
+                minHeight: '100vh',
+            }}>
+                {/* Top Bar */}
+                <header style={{
+                    background: 'white',
+                    padding: '1rem 1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid #E2E8F0',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 50,
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <h1 style={{
+                            fontSize: '1.25rem',
+                            fontWeight: 700,
+                            color: '#1E293B',
+                            textTransform: 'capitalize',
+                        }}>
+                            {getCurrentSection()}
+                        </h1>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        {/* Search */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            background: '#F1F5F9',
+                            borderRadius: '8px',
+                            minWidth: '200px',
+                        }}>
+                            <Search size={16} color="#64748B" />
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    outline: 'none',
+                                    fontSize: '0.85rem',
+                                    color: '#1E293B',
+                                    width: '100%',
+                                }}
+                            />
+                        </div>
+
+                        {/* Notifications */}
+                        <button style={{
+                            position: 'relative',
+                            background: '#F1F5F9',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.625rem',
+                            cursor: 'pointer',
+                        }}>
+                            <Bell size={18} color="#64748B" />
+                            <span style={{
+                                position: 'absolute',
+                                top: '6px',
+                                right: '6px',
+                                width: '8px',
+                                height: '8px',
+                                background: '#EF4444',
+                                borderRadius: '50%',
+                            }} />
+                        </button>
+
+                        {/* Profile */}
+                        <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '8px',
+                            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                        }}>
+                            A
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <div style={{ padding: '1.5rem' }}>
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+}

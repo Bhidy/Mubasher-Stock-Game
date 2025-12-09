@@ -46,6 +46,14 @@ import InvestorCalendar from './screens/investor/InvestorCalendar';
 import InvestorAlerts from './screens/investor/InvestorAlerts';
 import InvestorNotes from './screens/investor/InvestorNotes';
 
+// CMS Admin Screens
+import AdminLayout from './cms/AdminLayout';
+import AdminDashboard from './cms/AdminDashboard';
+import AdminLessons from './cms/AdminLessons';
+import AdminChallenges from './cms/AdminChallenges';
+import AdminAchievements from './cms/AdminAchievements';
+import AdminShop from './cms/AdminShop';
+
 import profileImg from './assets/profile.jpg';
 
 export const UserContext = createContext();
@@ -132,6 +140,15 @@ function ModeAwareRoutes() {
       {/* Education */}
       <Route path="/academy" element={<Academy />} />
       <Route path="/academy/lesson/:lessonId" element={<LessonDetail />} />
+
+      {/* ============================================
+                ADMIN CMS ROUTES
+                ============================================ */}
+      <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+      <Route path="/admin/lessons" element={<AdminLayout><AdminLessons /></AdminLayout>} />
+      <Route path="/admin/challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
+      <Route path="/admin/achievements" element={<AdminLayout><AdminAchievements /></AdminLayout>} />
+      <Route path="/admin/shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
 
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
