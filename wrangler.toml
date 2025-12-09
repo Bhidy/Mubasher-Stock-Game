@@ -1,10 +1,11 @@
 # ============================================
 # CLOUDFLARE PAGES CONFIGURATION
-# Enterprise-Grade Setup for Mubasher Stock Game
+# Enterprise-Grade Setup for Stocks Hero
 # ============================================
 
-name = "mubasher-stock-game"
+name = "stockshero"
 compatibility_date = "2024-12-01"
+
 
 # Node.js compatibility for advanced features
 compatibility_flags = ["nodejs_compat"]

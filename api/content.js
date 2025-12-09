@@ -11,11 +11,12 @@ const fetchWithGooglebot = async (url) => {
     return response.data;
 };
 
-// Helper: Extract content with Cheerio
-// Helper: Extract content with Cheerio
-const extractWithCheerio = (html) => {
+// Helper: Extract content with Cheerio - Enhanced for better coverage
+const extractWithCheerio = (html, sourceUrl = '') => {
     const $ = cheerio.load(html);
-    $('script, style, nav, footer, header, aside, .ad, .advertisement, .social-share, .related-articles, .secondary-content').remove();
+
+    // Remove non-content elements
+    $('script, style, nav, footer, header, aside, .ad, .advertisement, .social-share, .related-articles, .secondary-content, .comments, .sidebar, .widget, .share-buttons, .breadcrumb, .promo, [role="banner"], [role="navigation"]').remove();
 
     // Extract Main Image (og:image) to prepend if needed
     const ogImage = $('meta[property="og:image"]').attr('content') || $('meta[name="twitter:image"]').attr('content');
@@ -24,53 +25,69 @@ const extractWithCheerio = (html) => {
 
     // If found main image, add it at top
     if (ogImage) {
-        content += `<img src="${ogImage}" style="width:100%; border-radius:12px; margin-bottom:1rem;" alt="Main Image" /><br/>`;
+        content += `<img src="${ogImage}" style="width:100%; border-radius:12px; margin-bottom:1rem;" alt="Article Image" /><br/>`;
     }
 
+    // Enhanced selectors - ordered by specificity
     const selectors = [
-        '#articleBody', // Argaam
-        '.article-body', // Arab News, Egypt Today, Mubasher
-        '.td-post-content', // Daily News Egypt
-        '.details-body', // Zawya (Alternative)
-        '.article-text', // Zawya
-        '.WYSIWYG.articlePage', // Investing.com
-        '#article', // Investing.com (Alternative)
-        '[data-test-id="post-content"]', // Simply Wall St
-        '.caas-body', // Yahoo
-        '.news-details', // Mubasher
-        '.ArticleBody', // Bloomberg
-        '.story-text', // Reuters
-        '.story-content',
-        'article',
-        '.main-content',
-        'main'
+        // Mubasher specific
+        '.news-content', '.news-body', '.news-details', '.article-details-content',
+        '[class*="article-content"]', '[class*="news-content"]', '[class*="post-content"]',
+        // Argaam
+        '#articleBody', '.articleBody', '.article-content',
+        // Arab News, Egypt Today
+        '.article-body', '.entry-content', '.post-body',
+        // Daily News Egypt
+        '.td-post-content', '.post-content',
+        // Zawya
+        '.details-body', '.article-text', '.story-body',
+        // Investing.com
+        '.WYSIWYG.articlePage', '#article', '.articlePage',
+        // Simply Wall St
+        '[data-test-id="post-content"]',
+        // Yahoo
+        '.caas-body', '.caas-content',
+        // Bloomberg, Reuters
+        '.ArticleBody', '.story-text', '.story-content',
+        // Generic fallbacks
+        'article .content', 'article', '.main-content', 'main', '.content'
     ];
 
     for (const selector of selectors) {
-        if ($(selector).length > 0) {
-            // Updated extraction to include images and paragraphs
-            $(selector).find('p, img').each((i, el) => {
-                if (el.tagName === 'img') {
-                    const src = $(el).attr('src');
-                    // Filter out small icons/pixels
-                    if (src && !src.includes('pixel') && !src.includes('icon')) {
-                        // Ensure absolute URL if relative
-                        content += `<img src="${src}" style="max-width:100%; border-radius:8px; margin:1rem 0;" /><br/>`;
-                    }
+        const $section = $(selector);
+        if ($section.length > 0) {
+            // Get ALL paragraphs, lists, and headings
+            $section.find('p, h2, h3, h4, li').each((i, el) => {
+                const text = $(el).text().trim();
+                const tagName = el.tagName?.toLowerCase() || 'p';
+
+                // Skip short or irrelevant content
+                if (text.length < 30) return;
+                if (text.includes('©') || text.includes('Copyright')) return;
+                if (text.includes('Terms of Use') || text.includes('Privacy Policy')) return;
+                if (text.includes('Subscribe') || text.includes('Sign up')) return;
+
+                if (tagName === 'li') {
+                    content += `<p>• ${text}</p>`;
+                } else if (tagName.startsWith('h')) {
+                    content += `<h3 style="font-weight:700; margin-top:1rem;">${text}</h3>`;
                 } else {
-                    const text = $(el).text().trim();
-                    if (text.length > 40) content += `<p>${text}</p>`;
+                    content += `<p>${text}</p>`;
                 }
             });
+
             if (content.length > 500) break;
         }
     }
 
-    if (content.length < 200) {
+    // Fallback: scan all paragraphs if still not enough content
+    if (content.length < 300) {
         $('p').each((i, el) => {
             const text = $(el).text().trim();
-            if (text.length > 60 && /^[A-Z"']/.test(text) && /[.!?]$/.test(text)) {
-                if (!text.includes('Copyright') && !text.includes('Rights Reserved')) {
+            // Accept paragraphs that look like article content
+            if (text.length > 50 && text.length < 2000) {
+                if (!text.includes('Copyright') && !text.includes('©') &&
+                    !text.includes('Terms of Use') && !text.includes('Subscribe')) {
                     content += `<p>${text}</p>`;
                 }
             }

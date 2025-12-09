@@ -1,0 +1,416 @@
+/* ========================================
+   DUAL MODE THEME SYSTEM
+   Player Mode: Vibrant Purple/Pink Gamified
+   Investor Mode: Professional Blue/Green
+   Both use clean white backgrounds
+   ======================================== */
+
+/* ========================================
+   BASE RESET & TRANSITIONS
+   ======================================== */
+
+:root {
+    /* Default to Player Mode colors */
+    --primary: #8B5CF6;
+    --primary-light: #A78BFA;
+    --primary-dark: #7C3AED;
+    --secondary: #EC4899;
+    --secondary-light: #F472B6;
+    --accent: #F59E0B;
+    --accent-gold: #FBBF24;
+    
+    --background: #FFFFFF;
+    --background-secondary: #FAFAFF;
+    --background-tertiary: #F3F0FF;
+    --background-card: #FFFFFF;
+    
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+    
+    --success: #10B981;
+    --success-light: #D1FAE5;
+    --warning: #F59E0B;
+    --warning-light: #FEF3C7;
+    --danger: #EF4444;
+    --danger-light: #FEE2E2;
+    
+    --border-color: #E9E5FF;
+    --border-light: #F3F0FF;
+    
+    --shadow-sm: 0 2px 8px rgba(139, 92, 246, 0.08);
+    --shadow-md: 0 4px 16px rgba(139, 92, 246, 0.12);
+    --shadow-lg: 0 8px 32px rgba(139, 92, 246, 0.16);
+    
+    --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+    --gradient-secondary: linear-gradient(135deg, #A78BFA 0%, #F472B6 100%);
+    --gradient-gold: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
+}
+
+/* Mode transition animation */
+body.mode-transitioning {
+    pointer-events: none;
+}
+
+body.mode-transitioning * {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease, 
+                border-color 0.3s ease,
+                box-shadow 0.3s ease !important;
+}
+
+/* ========================================
+   PLAYER MODE SPECIFIC STYLES
+   ======================================== */
+
+[data-mode="player"] {
+    --primary: #8B5CF6;
+    --primary-light: #A78BFA;
+    --primary-dark: #7C3AED;
+    --secondary: #EC4899;
+    --accent: #F59E0B;
+    --background-secondary: #FAFAFF;
+    --border-color: #E9E5FF;
+}
+
+/* Player Mode - Gamified Elements */
+[data-mode="player"] .mode-header {
+    background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+}
+
+[data-mode="player"] .mode-card {
+    background: #FFFFFF;
+    border: 1px solid #E9E5FF;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.08);
+}
+
+[data-mode="player"] .mode-card:hover {
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+    transform: translateY(-2px);
+}
+
+[data-mode="player"] .mode-button-primary {
+    background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    transition: all 0.2s ease;
+}
+
+[data-mode="player"] .mode-button-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+}
+
+[data-mode="player"] .mode-badge {
+    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    color: white;
+    border-radius: var(--radius-full);
+    padding: 0.25rem 0.75rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+[data-mode="player"] .mode-progress-bar {
+    background: #F3F0FF;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+[data-mode="player"] .mode-progress-fill {
+    background: linear-gradient(90deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease;
+}
+
+[data-mode="player"] .mode-stat-card {
+    background: linear-gradient(135deg, #FAFAFF 0%, #F3F0FF 100%);
+    border: 1px solid #E9E5FF;
+    border-radius: var(--radius-lg);
+}
+
+[data-mode="player"] .mode-coin {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    animation: coin-shine 3s infinite;
+}
+
+@keyframes coin-shine {
+    0%, 100% { box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3); }
+    50% { box-shadow: 0 2px 16px rgba(245, 158, 11, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.5); }
+}
+
+[data-mode="player"] .streak-fire {
+    animation: fire-pulse 1s infinite;
+}
+
+@keyframes fire-pulse {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.1); filter: brightness(1.2); }
+}
+
+/* Player Achievement Badge Animation */
+[data-mode="player"] .achievement-unlocked {
+    animation: achievement-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes achievement-pop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ========================================
+   INVESTOR MODE SPECIFIC STYLES
+   ======================================== */
+
+[data-mode="investor"] {
+    --primary: #0EA5E9;
+    --primary-light: #38BDF8;
+    --primary-dark: #0284C7;
+    --secondary: #10B981;
+    --accent: #6366F1;
+    --background-secondary: #F8FAFC;
+    --border-color: #E2E8F0;
+}
+
+/* Investor Mode - Professional Elements */
+[data-mode="investor"] .mode-header {
+    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+}
+
+[data-mode="investor"] .mode-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+}
+
+[data-mode="investor"] .mode-card:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    border-color: #CBD5E1;
+}
+
+[data-mode="investor"] .mode-button-primary {
+    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+    transition: all 0.15s ease;
+}
+
+[data-mode="investor"] .mode-button-primary:hover {
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+}
+
+[data-mode="investor"] .mode-badge {
+    background: #F0F9FF;
+    color: #0284C7;
+    border: 1px solid #BAE6FD;
+    border-radius: var(--radius-sm);
+    padding: 0.25rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+[data-mode="investor"] .mode-stat-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-md);
+}
+
+[data-mode="investor"] .mode-gain {
+    color: #10B981;
+    font-weight: 600;
+}
+
+[data-mode="investor"] .mode-loss {
+    color: #EF4444;
+    font-weight: 600;
+}
+
+[data-mode="investor"] .mode-table {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+[data-mode="investor"] .mode-table th {
+    background: #F8FAFC;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+[data-mode="investor"] .mode-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 0.875rem;
+}
+
+[data-mode="investor"] .mode-table tr:hover {
+    background: #F8FAFC;
+}
+
+/* Investor Chart Styles */
+[data-mode="investor"] .mode-chart-container {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+[data-mode="investor"] .mode-indicator-badge {
+    background: #F0F9FF;
+    color: #0284C7;
+    font-size: 0.7rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+/* ========================================
+   SHARED MODE SWITCHER STYLES
+   ======================================== */
+
+.mode-switcher {
+    display: flex;
+    background: var(--background-secondary);
+    border-radius: var(--radius-full);
+    padding: 4px;
+    gap: 4px;
+}
+
+.mode-switcher-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: var(--radius-full);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.mode-switcher-option:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-primary);
+}
+
+.mode-switcher-option.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mode-switcher-option .mode-icon {
+    font-size: 1.25rem;
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+    .mode-switcher {
+        width: 100%;
+    }
+    
+    .mode-switcher-option {
+        flex: 1;
+        justify-content: center;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .mode-switcher-option .mode-icon {
+        font-size: 1.125rem;
+    }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.mode-animate-in {
+    animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mode-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Glassmorphism for overlays */
+.mode-glass {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth scrollbar */
+.mode-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mode-scrollbar::-webkit-scrollbar-track {
+    background: var(--background-secondary);
+    border-radius: 3px;
+}
+
+.mode-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.mode-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}

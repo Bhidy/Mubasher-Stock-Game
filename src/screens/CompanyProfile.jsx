@@ -7,7 +7,7 @@ import {
     Users, MessageCircle, Heart, Repeat2, Info, X
 } from 'lucide-react';
 import { usePrices } from '../context/PriceContext';
-import { StockLogo, SAUDI_STOCKS } from '../components/StockCard';
+import { StockLogo, SAUDI_STOCKS, US_STOCKS, EGYPT_STOCKS } from '../components/StockCard';
 import ProgressBar from '../components/ProgressBar';
 import StockMovementCard from '../components/StockMovementCard';
 
@@ -89,22 +89,133 @@ const formatPrice = (val) => {
 export default function CompanyProfile() {
     const { symbol } = useParams();
     const navigate = useNavigate();
-    const { prices, loading } = usePrices();
+    const { prices, loading: pricesLoading } = usePrices();
     const [isWatchlisted, setIsWatchlisted] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [activeTooltip, setActiveTooltip] = useState(null);
+    const [detailedStock, setDetailedStock] = useState(null);
+    const [profileLoading, setProfileLoading] = useState(true);
 
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+    // === ROBUST SYMBOL RESOLUTION ===
+    // The URL may contain just the symbol number (e.g., 2222) or with suffix (e.g., 2222.SR)
+    // We need to resolve the full symbol for API calls
+    const resolveFullSymbol = (rawSymbol) => {
+        // If already has a suffix, use as-is
+        if (rawSymbol.includes('.')) return rawSymbol;
+
+        // Check if it's a numeric Saudi symbol (most common case)
+        if (/^\d+$/.test(rawSymbol)) {
+            return rawSymbol + '.SR';
+        }
+
+        // Check if it's a known index
+        if (rawSymbol.startsWith('^')) return rawSymbol;
+
+        // For alphabetic symbols, check common patterns
+        // EGX symbols typically don't have periods in URL but end with .CA
+        // US symbols don't have periods
+        // This is a heuristic - we default to no suffix for alphabetic
+        return rawSymbol;
+    };
+
+    const fullSymbol = resolveFullSymbol(symbol);
+
+    // Fetch detailed profile data with auto-refresh
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchProfile = async () => {
+            try {
+                // Use fullSymbol (with market suffix) for API call
+                const res = await fetch(`/api/stock-profile?symbol=${fullSymbol}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (isMounted) setDetailedStock(data);
+                }
+            } catch (e) {
+                console.error("Failed to fetch profile", e);
+            } finally {
+                if (isMounted) setProfileLoading(false);
+            }
+        };
+
+        // Initial fetch
+        fetchProfile();
+
+        // Auto-refresh every 30 seconds
+        const interval = setInterval(fetchProfile, 30000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [fullSymbol]);
+
     // Get real-time stock data from API
-    // Get real-time stock data from API
-    const stockKey = Object.keys(prices).find(k => k === symbol || k.split('.')[0] === symbol) || `${symbol}.SR`;
-    const stock = prices[stockKey] || {};
-    const stockMeta = SAUDI_STOCKS[symbol] || {};
-    const staticContent = STATIC_CONTENT[symbol] || {};
+    // Dynamic stock key resolution based on market context from symbol format
+    const isSaudi = !fullSymbol.includes('.') || fullSymbol.endsWith('.SR');
+    const isEgypt = fullSymbol.endsWith('.CA');
+
+    // Try to find exact match or match without suffix in prices
+    const priceKey = Object.keys(prices).find(k => k === fullSymbol || k === symbol || k === symbol.split('.')[0] || k.startsWith(symbol));
+    const stockBasic = prices[priceKey] || {};
+
+    // Smart merge to prefer valid data over 0/N/A
+    // This prevents "Live" data error zeros from overwriting our robust Fallback data
+    const smartMerge = (detailed, basic) => {
+        const merged = { ...detailed }; // Start with detailed (fallback/rich)
+        if (!basic) return merged;
+
+        Object.keys(basic).forEach(key => {
+            const bVal = basic[key];
+            const dVal = merged[key]; // Check against current merged value
+
+            // Skip if basic value is invalid
+            if (bVal === null || bVal === undefined || bVal === 'N/A') return;
+
+            // CRITICAL: If basic is 0 but detailed has a value, keep detailed.
+            // This handles cases where "Live" API returns 0s for open/high/low/MA
+            if (bVal === 0 && dVal && dVal !== 0) return;
+
+            merged[key] = bVal;
+        });
+        return merged;
+    };
+
+    // Merge detailed data with real-time price updates using smart logic
+    const stock = smartMerge(detailedStock || {}, stockBasic);
+
+    // Unified loading state
+    const loading = pricesLoading && !stock.price; // Only block if we have NO price. Profile loading shouldn't block main view if price exists? 
+    // Actually, user complained about N/A. So maybe we should wait for profile?
+    // But blocking the whole UI for profile might feel slow.
+    // Let's stick to non-blocking profile if price is available, but the fields will pop in.
+    // Or, for the first load, wait for profile.
+
+    // Let's just use the original loading check which checks !stock.price.
+    // So if stock.price comes from detailedStock OR stockBasic, we show.
+
+    // Combine metadata sources
+    // Note: SAUDI_STOCKS is imported, but we should potentially import US_STOCKS/EGYPT_STOCKS or just use what we have in prices/fallback
+    const rawSymbol = symbol.split('.')[0];
+    const stockMeta = SAUDI_STOCKS[symbol] || SAUDI_STOCKS[rawSymbol] ||
+        US_STOCKS[symbol] || US_STOCKS[rawSymbol] ||
+        EGYPT_STOCKS[symbol] || EGYPT_STOCKS[rawSymbol] || {};
+    const staticContent = STATIC_CONTENT[symbol] || STATIC_CONTENT[symbol.split('.')[0]] || {};
+
+    // Currency helper
+    const currency = isEgypt ? 'EGP' : (isSaudi && !symbol.match(/^[A-Z]+$/) ? 'SAR' : 'USD');
+
+    // Override formatCurrency for this component instance
+    const formatCurrencyLocal = (val) => {
+        if (!val || val === 'N/A') return 'N/A';
+        return formatNumber(val) + ' ' + currency;
+    };
 
     const isPositive = (stock.change || stock.changePercent || 0) >= 0;
 
@@ -307,7 +418,7 @@ export default function CompanyProfile() {
                         </div>
                         <div>
                             <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', fontWeight: 600 }}>
-                                {stockKey}
+                                {stock.symbol || symbol}
                             </div>
                             <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>
                                 {stockMeta.name || stock.name || stock.longName || symbol}
@@ -318,21 +429,70 @@ export default function CompanyProfile() {
                     {/* Price Section */}
                     <div style={{ marginTop: '1.5rem' }}>
                         <div style={{ fontSize: '3rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                            {formatPrice(stock.price)} <span style={{ fontSize: '1.25rem', opacity: 0.8 }}>SAR</span>
+                            {formatPrice(stock.price)} <span style={{ fontSize: '1.25rem', opacity: 0.8 }}>{currency}</span>
                         </div>
+
+                        {/* Change + Exchange Badge Row */}
                         <div style={{
-                            display: 'inline-flex',
+                            display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem',
+                            justifyContent: 'space-between',
+                            gap: '0.75rem',
                             marginTop: '0.75rem',
-                            padding: '0.5rem 1rem',
-                            background: isPositive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-                            borderRadius: '8px',
-                            color: 'white',
-                            fontWeight: 700
+                            flexWrap: 'wrap'
                         }}>
-                            {isPositive ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                            {isPositive ? '+' : ''}{formatPrice(stock.change)} ({isPositive ? '+' : ''}{formatPrice(stock.changePercent)}%)
+                            {/* Change Badge */}
+                            <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 1rem',
+                                background: isPositive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
+                                borderRadius: '8px',
+                                color: 'white',
+                                fontWeight: 700
+                            }}>
+                                {isPositive ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                                {isPositive ? '+' : ''}{formatPrice(stock.change)} ({isPositive ? '+' : ''}{formatPrice(stock.changePercent)}%)
+                            </div>
+
+                            {/* Exchange Badge - Right side with glassmorphism */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 0.875rem',
+                                background: 'rgba(255, 255, 255, 0.15)',
+                                backdropFilter: 'blur(10px)',
+                                borderRadius: '10px',
+                                border: '1px solid rgba(255, 255, 255, 0.25)'
+                            }}>
+                                <span style={{ fontSize: '1.25rem' }}>
+                                    {stock.exchange === 'NMS' || stock.exchange === 'NGM' || stock.exchange === 'NYQ' ? '🇺🇸' :
+                                        stock.exchange === 'SAU' || isSaudi ? '🇸🇦' :
+                                            stock.exchange === 'CAI' || isEgypt ? '🇪🇬' :
+                                                stock.exchange === 'LSE' ? '🇬🇧' :
+                                                    stock.exchange === 'FRA' || stock.exchange === 'GER' ? '🇩🇪' :
+                                                        stock.exchange === 'TYO' ? '🇯🇵' :
+                                                            stock.exchange === 'NSI' ? '🇮🇳' :
+                                                                stock.exchange === 'TOR' ? '🇨🇦' :
+                                                                    stock.exchange === 'ASX' ? '🇦🇺' :
+                                                                        stock.exchange === 'HKG' ? '🇭🇰' : '🌐'}
+                                </span>
+                                <div>
+                                    <div style={{ color: 'white', fontSize: '0.75rem', fontWeight: 700 }}>
+                                        {stock.exchange === 'NMS' || stock.exchange === 'NGM' || stock.exchange === 'NCM' ? 'NASDAQ' :
+                                            stock.exchange === 'NYQ' ? 'NYSE' :
+                                                stock.exchange === 'SAU' || isSaudi ? 'Tadawul' :
+                                                    stock.exchange === 'CAI' || isEgypt ? 'EGX' :
+                                                        stock.exchange === 'LSE' ? 'London' :
+                                                            stock.exchange || 'Exchange'}
+                                    </div>
+                                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.65rem' }}>
+                                        Trading in {currency}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -447,10 +607,10 @@ export default function CompanyProfile() {
                         {/* Trading Info */}
                         <Card title={<CardTitleWithTooltip title="Trading Information" tooltipId="trading" tooltipIcon="📊" tooltipContent="Key trading data for the current session, including opening price, highs, lows, and volume traded." icon={<BarChart3 size={20} />} />}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Open" value={formatPrice(stock.open) + ' SAR'} />
-                                <DataCell label="Previous Close" value={formatPrice(stock.prevClose) + ' SAR'} />
-                                <DataCell label="Day High" value={formatPrice(stock.high) + ' SAR'} />
-                                <DataCell label="Day Low" value={formatPrice(stock.low) + ' SAR'} />
+                                <DataCell label="Open" value={formatPrice(stock.open) + ' ' + currency} />
+                                <DataCell label="Previous Close" value={formatPrice(stock.prevClose) + ' ' + currency} />
+                                <DataCell label="Day High" value={formatPrice(stock.high) + ' ' + currency} />
+                                <DataCell label="Day Low" value={formatPrice(stock.low) + ' ' + currency} />
                                 <DataCell label="Volume" value={formatNumber(stock.volume)} />
                                 <DataCell label="Avg Volume" value={formatNumber(stock.averageVolume)} />
                             </div>
@@ -502,11 +662,50 @@ export default function CompanyProfile() {
                         {/* Key Statistics Quick View */}
                         <Card title={<CardTitleWithTooltip title="Key Statistics" tooltipId="keystats" tooltipIcon="🔑" tooltipContent="Essential financial metrics. Market Cap is total value. P/E Ratio measures valuation. Dividend Yield is the return on investment from dividends." />}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Market Cap" value={formatCurrency(stock.marketCap)} highlight />
+                                <DataCell label="Market Cap" value={formatCurrencyLocal(stock.marketCap)} highlight />
                                 <DataCell label="P/E Ratio" value={formatPrice(stock.trailingPE || stock.peRatio)} />
-                                <DataCell label="EPS" value={formatPrice(stock.trailingEps || stock.eps) + ' SAR'} />
+                                <DataCell label="EPS" value={formatPrice(stock.trailingEps || stock.eps) + ' ' + currency} />
                                 <DataCell label="Dividend Yield" value={formatPercent(stock.trailingAnnualDividendYield || stock.dividendYield)} highlight />
                             </div>
+                        </Card>
+
+                        {/* NEW: Ownership Structure with Pie Chart Visualization */}
+                        <Card title={<CardTitleWithTooltip title="Ownership Structure" tooltipId="ownership" tooltipIcon="👥" tooltipContent="Share distribution showing outstanding shares, float (publicly tradeable), and short interest (shares sold short)." />}>
+                            <OwnershipPieChart
+                                sharesOutstanding={stock.sharesOutstanding}
+                                floatShares={stock.floatShares}
+                                sharesShort={stock.sharesShort}
+                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                                <DataCell label="Shares Outstanding" value={formatNumber(stock.sharesOutstanding)} />
+                                <DataCell label="Float Shares" value={formatNumber(stock.floatShares)} />
+                                <DataCell label="Short Interest" value={formatNumber(stock.sharesShort)} highlight />
+                                <DataCell label="Short % of Float" value={stock.floatShares ? ((stock.sharesShort / stock.floatShares) * 100).toFixed(2) + '%' : 'N/A'} />
+                            </div>
+                            {/* Short Interest Indicator */}
+                            {stock.sharesShort > 0 && stock.floatShares > 0 && (
+                                <div style={{ marginTop: '1rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>Short Interest Level</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: (stock.sharesShort / stock.floatShares) > 0.1 ? '#ef4444' : '#10b981' }}>
+                                            {((stock.sharesShort / stock.floatShares) * 100).toFixed(2)}%
+                                        </span>
+                                    </div>
+                                    <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                        <div style={{
+                                            height: '100%',
+                                            width: `${Math.min((stock.sharesShort / stock.floatShares) * 100 * 5, 100)}%`,
+                                            background: (stock.sharesShort / stock.floatShares) > 0.2 ? '#ef4444' : (stock.sharesShort / stock.floatShares) > 0.1 ? '#f59e0b' : '#10b981',
+                                            borderRadius: '4px',
+                                            transition: 'width 0.5s ease'
+                                        }} />
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.625rem', color: '#94a3b8' }}>
+                                        <span>Low</span>
+                                        <span>High</span>
+                                    </div>
+                                </div>
+                            )}
                         </Card>
                     </div>
                 )}
@@ -555,7 +754,16 @@ export default function CompanyProfile() {
                                 <DataCell label="Total Debt" value={formatCurrency(stock.totalDebt)} />
                                 <DataCell label="Debt to Equity" value={formatPrice(stock.debtToEquity) + '%'} />
                                 <DataCell label="Current Ratio" value={formatPrice(stock.currentRatio)} />
-                                <DataCell label="Book Value" value={formatPrice(stock.bookValue) + ' SAR'} />
+                                <DataCell label="Book Value" value={formatPrice(stock.bookValue) + ' ' + currency} />
+                            </div>
+                        </Card>
+
+                        {/* NEW: Liquidity Gauge - Current Ratio vs Quick Ratio */}
+                        <Card title={<CardTitleWithTooltip title="Liquidity Analysis" tooltipId="liquidity" tooltipIcon="💧" tooltipContent="Current Ratio measures ability to pay short-term obligations. Quick Ratio excludes inventory for stricter liquidity assessment. Values above 1 indicate good liquidity." />}>
+                            <LiquidityGauge currentRatio={stock.currentRatio} quickRatio={stock.quickRatio} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                                <DataCell label="Current Ratio" value={formatPrice(stock.currentRatio)} highlight />
+                                <DataCell label="Quick Ratio" value={formatPrice(stock.quickRatio)} />
                             </div>
                         </Card>
                     </div>
@@ -568,7 +776,7 @@ export default function CompanyProfile() {
                         <Card title={<CardTitleWithTooltip title="Valuation Metrics" tooltipId="valuation" tooltipIcon="⚖️" tooltipContent="Metrics to evaluate if a stock is overvalued or undervalued. P/E and EV/EBITDA are common multiples used for comparison." icon={<PieChart size={20} />} />}>
                             {/* P/E Comparison Visualization */}
                             <div style={{ marginBottom: '1.5rem' }}>
-                                <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem', fontWeight: 600 }}>P/E Ratio vs Market Avg</div>
+                                <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1.5rem', fontWeight: 600 }}>P/E Ratio vs Market Avg</div>
                                 <div style={{ height: '40px', background: '#f1f5f9', borderRadius: '8px', position: 'relative', display: 'flex', alignItems: 'center' }}>
                                     {/* Market Avg Marker (approx 20) */}
                                     <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', background: '#94a3b8', zIndex: 1 }}></div>
@@ -590,21 +798,27 @@ export default function CompanyProfile() {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Market Cap" value={formatCurrency(stock.marketCap)} highlight />
-                                <DataCell label="Enterprise Value" value={formatCurrency(stock.enterpriseValue)} />
+                                <DataCell label="Market Cap" value={formatCurrencyLocal(stock.marketCap)} highlight />
+                                <DataCell label="Enterprise Value" value={formatCurrencyLocal(stock.enterpriseValue)} />
                                 <DataCell label="Trailing P/E" value={formatPrice(stock.trailingPE)} />
                                 <DataCell label="Forward P/E" value={formatPrice(stock.forwardPE)} highlight />
                                 <DataCell label="Price to Book" value={formatPrice(stock.priceToBook)} />
                                 <DataCell label="EV/EBITDA" value={formatPrice(stock.enterpriseToEbitda)} />
+                                <DataCell label="Price to Sales" value={formatPrice(stock.priceToSalesTrailing12Months)} highlight />
                             </div>
                         </Card>
 
-                        <Card title={<CardTitleWithTooltip title="Earnings Per Share" tooltipId="eps" tooltipIcon="📈" tooltipContent="EPS indicates a company's profitability. Higher EPS and earnings growth are generally positive signs." />}>
+                        <Card title={<CardTitleWithTooltip title="Earnings & Returns" tooltipId="eps" tooltipIcon="📈" tooltipContent="EPS indicates a company's profitability. ROE measures return on shareholder equity. ROA measures efficiency of total assets." />}>
+                            {/* ROE vs ROA Comparison Chart */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <RoaRoeChart roe={stock.returnOnEquity} roa={stock.returnOnAssets} />
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Trailing EPS" value={formatPrice(stock.trailingEps) + ' SAR'} highlight />
-                                <DataCell label="Forward EPS" value={formatPrice(stock.forwardEps) + ' SAR'} />
+                                <DataCell label="Trailing EPS" value={formatPrice(stock.trailingEps) + ' ' + currency} highlight />
+                                <DataCell label="Forward EPS" value={formatPrice(stock.forwardEps) + ' ' + currency} />
                                 <DataCell label="Earnings Growth" value={formatPercent(stock.earningsGrowth)} />
                                 <DataCell label="ROE" value={formatPercent(stock.returnOnEquity)} highlight />
+                                <DataCell label="ROA" value={formatPercent(stock.returnOnAssets)} />
                             </div>
                         </Card>
 
@@ -623,16 +837,31 @@ export default function CompanyProfile() {
                                 <div>
                                     <div style={{ fontWeight: 700, color: '#166534' }}>Annual Yield</div>
                                     <div style={{ fontSize: '0.875rem', color: '#15803d' }}>
-                                        Pays {formatPrice(stock.trailingAnnualDividendRate)} SAR per share
+                                        Pays {formatPrice(stock.trailingAnnualDividendRate)} {currency} per share
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Last Dividend Timeline */}
+                            {stock.lastDividendDate && (
+                                <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Last Dividend Paid</div>
+                                            <div style={{ fontWeight: 700, color: '#1f2937' }}>
+                                                {formatPrice(stock.lastDividendValue)} {currency} on {new Date(stock.lastDividendDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Dividend Rate" value={formatPrice(stock.trailingAnnualDividendRate) + ' SAR'} />
+                                <DataCell label="Dividend Rate" value={formatPrice(stock.trailingAnnualDividendRate) + ' ' + currency} />
                                 <DataCell label="Payout Ratio" value={formatPercent(stock.payoutRatio)} />
-                                <DataCell label="Last Dividend" value={formatPrice(stock.lastDividendValue) + ' SAR'} />
-                                <DataCell label="Ex-Div Date" value={stock.exDividendDate ? new Date(stock.exDividendDate * 1000).toLocaleDateString() : 'N/A'} />
+                                <DataCell label="Last Dividend" value={formatPrice(stock.lastDividendValue) + ' ' + currency} highlight />
+                                <DataCell label="Last Div Date" value={stock.lastDividendDate ? new Date(stock.lastDividendDate).toLocaleDateString() : 'N/A'} />
                             </div>
                         </Card>
                     </div>
@@ -653,8 +882,29 @@ export default function CompanyProfile() {
                             flexDirection: 'column',
                             alignItems: 'center'
                         }}>
-                            <div style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 600 }}>
+                            <div style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
                                 Analyst Consensus
+                                <span
+                                    data-tooltip-id="analyst_consensus_tooltip"
+                                    style={{
+                                        cursor: 'help',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '18px',
+                                        height: '18px',
+                                        borderRadius: '50%',
+                                        background: '#f1f5f9',
+                                        color: '#64748b',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 700
+                                    }}
+                                >ⓘ</span>
+                                <Tooltip id="analyst_consensus_tooltip" place="bottom" style={{ maxWidth: '280px', fontSize: '0.8rem', zIndex: 9999 }}>
+                                    <div><strong>📈 Analyst Consensus</strong></div>
+                                    <div style={{ marginTop: '0.5rem' }}>Aggregated rating from professional Wall Street analysts. Scale: 1 (Strong Buy) to 5 (Strong Sell).</div>
+                                    <div style={{ marginTop: '0.5rem', opacity: 0.8, fontSize: '0.75rem' }}>Source: Yahoo Finance via institutional analyst reports</div>
+                                </Tooltip>
                             </div>
 
                             <TechnicalGauge
@@ -714,10 +964,11 @@ export default function CompanyProfile() {
                                 high={stock.targetHighPrice}
                             />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>
-                                <DataCell label="Current Price" value={formatPrice(stock.price) + ' SAR'} />
-                                <DataCell label="Target Mean" value={formatPrice(stock.targetMeanPrice) + ' SAR'} highlight />
-                                <DataCell label="Target High" value={formatPrice(stock.targetHighPrice) + ' SAR'} />
-                                <DataCell label="Target Low" value={formatPrice(stock.targetLowPrice) + ' SAR'} />
+                                <DataCell label="Current Price" value={formatPrice(stock.price) + ' ' + currency} />
+                                <DataCell label="Target Mean" value={formatPrice(stock.targetMeanPrice) + ' ' + currency} highlight />
+                                <DataCell label="Target Median" value={formatPrice(stock.targetMedianPrice) + ' ' + currency} />
+                                <DataCell label="Target High" value={formatPrice(stock.targetHighPrice) + ' ' + currency} />
+                                <DataCell label="Target Low" value={formatPrice(stock.targetLowPrice) + ' ' + currency} />
                                 <DataCell
                                     label="Upside Potential"
                                     value={stock.targetMeanPrice && stock.price
@@ -736,14 +987,16 @@ export default function CompanyProfile() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <Card title="Company Profile" icon={<Building2 size={20} />}>
                             <p style={{ lineHeight: 1.8, color: '#475569', fontSize: '0.9375rem' }}>
-                                {stock.longBusinessSummary || "Saudi Aramco is the world's largest integrated oil and gas company. It explores, produces, refines, and distributes petroleum and chemical products. The company is a key player in the global energy market and is expanding into renewables and advanced materials."}
+                                {stock.description || stock.longBusinessSummary || "No company description available."}
                             </p>
 
                             <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <DataCell label="Sector" value={stock.sector || 'Energy'} />
-                                <DataCell label="Industry" value={stock.industry || 'Oil & Gas Integrated'} />
-                                <DataCell label="Employees" value={stock.fullTimeEmployees?.toLocaleString() || 'N/A'} />
-                                <DataCell label="Country" value={stock.country || 'Saudi Arabia'} />
+                                <DataCell label="Sector" value={stock.sector} />
+                                <DataCell label="Industry" value={stock.industry} />
+                                <DataCell label="Employees" value={stock.fullTimeEmployees || stock.employees ? (stock.fullTimeEmployees || stock.employees).toLocaleString() : null} />
+                                <DataCell label="Country" value={stock.country} />
+                                <DataCell label="City" value={stock.city} />
+                                <DataCell label="Exchange" value={stock.exchange || (isSaudi ? 'Tadawul' : isEgypt ? 'EGX' : 'NYSE/NASDAQ')} highlight />
                             </div>
 
                             {stock.website && (
@@ -770,24 +1023,6 @@ export default function CompanyProfile() {
                                     <ChevronRight size={18} />
                                 </a>
                             )}
-                        </Card>
-
-                        {/* News Feed */}
-                        <Card title="Latest News">
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {(staticContent.news || []).map((news, i) => (
-                                    <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                        <img src={news.image} alt="" style={{ width: '80px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
-                                        <div>
-                                            <div style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.4, marginBottom: '0.25rem' }}>{news.title}</div>
-                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{news.time}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {(!staticContent.news || staticContent.news.length === 0) && (
-                                    <div style={{ textAlign: 'center', color: '#94a3b8', padding: '1rem' }}>No recent news</div>
-                                )}
-                            </div>
                         </Card>
                     </div>
                 )}
@@ -826,7 +1061,11 @@ function Card({ title, icon, children }) {
 }
 
 // Data Cell Component
+// Data Cell Component
 function DataCell({ label, value, highlight }) {
+    // If value is missing/null/undefined, show N/A
+    const displayValue = (value === null || value === undefined || value === '') ? 'N/A' : value;
+
     return (
         <div style={{
             background: highlight
@@ -849,9 +1088,9 @@ function DataCell({ label, value, highlight }) {
             <div style={{
                 fontSize: '1rem',
                 fontWeight: 700,
-                color: highlight ? '#10b981' : '#1f2937'
+                color: (highlight && displayValue !== 'N/A') ? '#10b981' : (displayValue === 'N/A' ? '#94a3b8' : '#1f2937')
             }}>
-                {value}
+                {displayValue}
             </div>
         </div>
     );
@@ -952,62 +1191,76 @@ function TechnicalGauge({ value, inverse = false, label }) {
     );
 }
 
-// Price Target Chart Component
+// Price Target Chart Component - Visualizes current price vs analyst targets
 function PriceTargetChart({ current, low, mean, high }) {
-    if (!current || !low || !high) return null;
+    // Safety check for missing data
+    if (!low && !high && !mean) {
+        return (
+            <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.875rem', background: '#f8fafc', borderRadius: '12px' }}>
+                No analyst price targets available
+            </div>
+        );
+    }
 
-    // Normalize values to 0-100 range based on low and high with some padding
-    const min = Math.min(current, low) * 0.9;
-    const max = Math.max(current, high) * 1.1;
-    const range = max - min;
+    // Default values to prevent NaN
+    const safeLow = low || current || 0;
+    const safeHigh = high || current || safeLow * 1.5; // Fallback structure
+    const safeMean = mean || (safeLow + safeHigh) / 2;
+    const safeCurrent = current || 0;
 
-    const getPos = (val) => ((val - min) / range) * 100;
+    const min = Math.min(safeCurrent, safeLow) * 0.9;
+    const max = Math.max(safeCurrent, safeHigh) * 1.1;
+    const range = max - min; // Ensure range is not 0
+    const safeRange = range === 0 ? 1 : range; // Prevent division by zero
+
+    const getPos = (val) => Math.max(0, Math.min(100, ((val - min) / safeRange) * 100));
 
     return (
-        <div style={{ position: 'relative', height: '60px', marginTop: '20px' }}>
+        <div style={{ position: 'relative', height: '80px', marginTop: '30px', marginBottom: '10px' }}>
             {/* Range Bar */}
             <div style={{
                 position: 'absolute',
-                left: `${getPos(low)}%`,
-                right: `${100 - getPos(high)}%`,
-                top: '25px',
+                left: `${getPos(safeLow)}%`,
+                right: `${100 - getPos(safeHigh)}%`,
+                top: '35px',
                 height: '10px',
                 background: '#e2e8f0',
                 borderRadius: '5px'
             }} />
 
-            {/* Low Marker */}
-            <div style={{ position: 'absolute', left: `${getPos(low)}%`, top: '10px', transform: 'translateX(-50%)', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{low}</div>
-                <div style={{ width: '2px', height: '40px', background: '#94a3b8', margin: '0 auto' }} />
+            {/* Low Marker - Label moved below bar */}
+            <div style={{ position: 'absolute', left: `${getPos(safeLow)}%`, top: '25px', transform: 'translateX(-50%)', textAlign: 'center' }}>
+                <div style={{ width: '2px', height: '30px', background: '#94a3b8', margin: '0 auto' }} />
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>{safeLow.toFixed(2)}</div>
             </div>
 
-            {/* High Marker */}
-            <div style={{ position: 'absolute', left: `${getPos(high)}%`, top: '10px', transform: 'translateX(-50%)', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{high}</div>
-                <div style={{ width: '2px', height: '40px', background: '#94a3b8', margin: '0 auto' }} />
+            {/* High Marker - Label moved below bar */}
+            <div style={{ position: 'absolute', left: `${getPos(safeHigh)}%`, top: '25px', transform: 'translateX(-50%)', textAlign: 'center' }}>
+                <div style={{ width: '2px', height: '30px', background: '#94a3b8', margin: '0 auto' }} />
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>{safeHigh.toFixed(2)}</div>
             </div>
 
             {/* Mean Marker */}
-            <div style={{ position: 'absolute', left: `${getPos(mean)}%`, top: '15px', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 1 }}>
+            <div style={{ position: 'absolute', left: `${getPos(safeMean)}%`, top: '28px', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 1 }}>
                 <div style={{ width: '12px', height: '12px', background: '#3b82f6', borderRadius: '50%', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                <div style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: 700, marginTop: '4px' }}>Avg</div>
+                <div style={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 700, marginTop: '18px' }}>Avg</div>
             </div>
 
-            {/* Current Price Marker */}
-            <div style={{ position: 'absolute', left: `${getPos(current)}%`, top: '0', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 2 }}>
+            {/* Current Price Marker - Positioned above everything */}
+            <div style={{ position: 'absolute', left: `${getPos(safeCurrent)}%`, top: '0', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 2 }}>
                 <div style={{
                     background: '#10b981',
                     color: 'white',
-                    padding: '2px 6px',
+                    padding: '2px 8px',
                     borderRadius: '4px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                    whiteSpace: 'nowrap'
                 }}>
-                    {current}
+                    {safeCurrent.toFixed(2)}
                 </div>
-                <div style={{ width: '2px', height: '30px', background: '#10b981', margin: '0 auto' }} />
+                <div style={{ width: '2px', height: '24px', background: '#10b981', margin: '0 auto' }} />
             </div>
         </div>
     );
@@ -1036,6 +1289,291 @@ function SimpleBarChart({ data, height = 100 }) {
                     </div>
                 </div>
             ))}
+        </div>
+    );
+}
+
+// NEW: Ownership Pie Chart Component - Donut visualization for share distribution
+function OwnershipPieChart({ sharesOutstanding, floatShares, sharesShort }) {
+    if (!sharesOutstanding || sharesOutstanding === 0) {
+        return <div style={{ textAlign: 'center', color: '#94a3b8', padding: '1rem' }}>No ownership data available</div>;
+    }
+
+    const insiderShares = sharesOutstanding - (floatShares || 0);
+    const shortPercent = floatShares ? (sharesShort / floatShares) * 100 : 0;
+    const floatPercent = (floatShares / sharesOutstanding) * 100 || 0;
+    const insiderPercent = 100 - floatPercent;
+
+    // SVG Donut Chart
+    const size = 160;
+    const strokeWidth = 24;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', padding: '1rem 0' }}>
+            {/* Donut Chart */}
+            <div style={{ position: 'relative' }}>
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                    {/* Background circle */}
+                    <circle
+                        cx={size / 2} cy={size / 2} r={radius}
+                        fill="none" stroke="#e2e8f0" strokeWidth={strokeWidth}
+                    />
+                    {/* Float shares (public) */}
+                    <circle
+                        cx={size / 2} cy={size / 2} r={radius}
+                        fill="none" stroke="#10b981" strokeWidth={strokeWidth}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={circumference - (floatPercent / 100) * circumference}
+                        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                    />
+                    {/* Insider shares */}
+                    <circle
+                        cx={size / 2} cy={size / 2} r={radius}
+                        fill="none" stroke="#3b82f6" strokeWidth={strokeWidth}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={circumference - (insiderPercent / 100) * circumference}
+                        transform={`rotate(${-90 + (floatPercent / 100) * 360} ${size / 2} ${size / 2})`}
+                        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                    />
+                </svg>
+                {/* Center text */}
+                <div style={{
+                    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1f2937' }}>{floatPercent.toFixed(0)}%</div>
+                    <div style={{ fontSize: '0.625rem', color: '#64748b', fontWeight: 600 }}>Float</div>
+                </div>
+            </div>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#10b981' }} />
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Float ({floatPercent.toFixed(1)}%)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#3b82f6' }} />
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Insider ({insiderPercent.toFixed(1)}%)</span>
+                </div>
+                {shortPercent > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#ef4444' }} />
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Short Interest ({shortPercent.toFixed(2)}%)</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// NEW: Liquidity Gauge Component - Visual comparison of Current vs Quick Ratio
+function LiquidityGauge({ currentRatio, quickRatio }) {
+    const formatRatio = (val) => val ? Number(val).toFixed(2) : 'N/A';
+    const getColor = (val) => {
+        if (!val) return '#94a3b8';
+        if (val >= 2) return '#10b981';
+        if (val >= 1) return '#f59e0b';
+        return '#ef4444';
+    };
+
+    const maxRatio = 3; // Scale max
+    const currentWidth = Math.min((currentRatio || 0) / maxRatio * 100, 100);
+    const quickWidth = Math.min((quickRatio || 0) / maxRatio * 100, 100);
+
+    return (
+        <div style={{ padding: '0.5rem 0' }}>
+            {/* Current Ratio Bar */}
+            <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>Current Ratio</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: getColor(currentRatio) }}>{formatRatio(currentRatio)}</span>
+                </div>
+                <div style={{ height: '12px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{
+                        height: '100%', width: `${currentWidth}%`,
+                        background: `linear-gradient(90deg, ${getColor(currentRatio)} 0%, ${getColor(currentRatio)}dd 100%)`,
+                        borderRadius: '6px', transition: 'width 0.5s ease'
+                    }} />
+                    {/* 1.0 marker */}
+                    <div style={{ position: 'absolute', left: '33.3%', top: 0, bottom: 0, width: '2px', background: '#94a3b8' }} />
+                </div>
+            </div>
+
+            {/* Quick Ratio Bar */}
+            <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>Quick Ratio</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: getColor(quickRatio) }}>{formatRatio(quickRatio)}</span>
+                </div>
+                <div style={{ height: '12px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{
+                        height: '100%', width: `${quickWidth}%`,
+                        background: `linear-gradient(90deg, ${getColor(quickRatio)} 0%, ${getColor(quickRatio)}dd 100%)`,
+                        borderRadius: '6px', transition: 'width 0.5s ease'
+                    }} />
+                    {/* 1.0 marker */}
+                    <div style={{ position: 'absolute', left: '33.3%', top: 0, bottom: 0, width: '2px', background: '#94a3b8' }} />
+                </div>
+            </div>
+
+            {/* Scale labels */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.625rem', color: '#94a3b8' }}>
+                <span>0</span>
+                <span>1.0 (Healthy)</span>
+                <span>2.0</span>
+                <span>3.0+</span>
+            </div>
+        </div>
+    );
+}
+
+// NEW: ROA vs ROE Comparison Chart
+function RoaRoeChart({ roe, roa }) {
+    const formatPercent = (val) => val ? (val * 100).toFixed(1) + '%' : 'N/A';
+    const maxVal = 1; // 100%
+    const roeWidth = Math.min((roe || 0) / maxVal * 100, 100);
+    const roaWidth = Math.min((roa || 0) / maxVal * 100, 100);
+
+    return (
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            {/* ROE Column */}
+            <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ height: '100px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#3b82f6', marginBottom: '0.25rem' }}>{formatPercent(roe)}</div>
+                    <div style={{
+                        width: '50px',
+                        height: `${Math.max(roeWidth, 5)}%`,
+                        background: 'linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%)',
+                        borderRadius: '8px 8px 4px 4px',
+                        transition: 'height 0.5s ease'
+                    }} />
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginTop: '0.5rem' }}>ROE</div>
+                <div style={{ fontSize: '0.625rem', color: '#94a3b8' }}>Return on Equity</div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ width: '1px', height: '120px', background: '#e2e8f0' }} />
+
+            {/* ROA Column */}
+            <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ height: '100px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#8b5cf6', marginBottom: '0.25rem' }}>{formatPercent(roa)}</div>
+                    <div style={{
+                        width: '50px',
+                        height: `${Math.max(roaWidth, 5)}%`,
+                        background: 'linear-gradient(180deg, #8b5cf6 0%, #a78bfa 100%)',
+                        borderRadius: '8px 8px 4px 4px',
+                        transition: 'height 0.5s ease'
+                    }} />
+                </div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginTop: '0.5rem' }}>ROA</div>
+                <div style={{ fontSize: '0.625rem', color: '#94a3b8' }}>Return on Assets</div>
+            </div>
+        </div>
+    );
+}
+
+// NEW: Exchange Badge Component
+function ExchangeBadge({ exchange, currency }) {
+    const getExchangeInfo = (ex) => {
+        const exchanges = {
+            // US
+            'NMS': { name: 'NASDAQ', color: '#0066b2', icon: '🇺🇸' },
+            'NGM': { name: 'NASDAQ', color: '#0066b2', icon: '🇺🇸' },
+            'NCM': { name: 'NASDAQ', color: '#0066b2', icon: '🇺🇸' },
+            'NYQ': { name: 'NYSE', color: '#0047ab', icon: '🇺🇸' },
+            'NYSE': { name: 'NYSE', color: '#0047ab', icon: '🇺🇸' },
+            'NASDAQ': { name: 'NASDAQ', color: '#0066b2', icon: '🇺🇸' },
+            // Saudi
+            'SAU': { name: 'Tadawul', color: '#006c35', icon: '🇸🇦' },
+            'Tadawul': { name: 'Tadawul', color: '#006c35', icon: '🇸🇦' },
+            // Egypt
+            'CAI': { name: 'EGX', color: '#c09300', icon: '🇪🇬' },
+            'EGX': { name: 'EGX', color: '#c09300', icon: '🇪🇬' },
+            // UK
+            'LSE': { name: 'London', color: '#c41e3a', icon: '🇬🇧' },
+            'London': { name: 'London', color: '#c41e3a', icon: '🇬🇧' },
+            'LON': { name: 'London', color: '#c41e3a', icon: '🇬🇧' },
+            // Germany
+            'GER': { name: 'Frankfurt', color: '#ffcc00', icon: '🇩🇪' },
+            'FRA': { name: 'Frankfurt', color: '#ffcc00', icon: '🇩🇪' },
+            'XETRA': { name: 'XETRA', color: '#003399', icon: '🇩🇪' },
+            // Japan
+            'JPX': { name: 'Tokyo', color: '#bc002d', icon: '🇯🇵' },
+            'TYO': { name: 'Tokyo', color: '#bc002d', icon: '🇯🇵' },
+            'Tokyo': { name: 'Tokyo', color: '#bc002d', icon: '🇯🇵' },
+            // India
+            'NSI': { name: 'NSE India', color: '#ff6600', icon: '🇮🇳' },
+            'BSE': { name: 'BSE India', color: '#ff6600', icon: '🇮🇳' },
+            // Canada
+            'TOR': { name: 'Toronto', color: '#d52b1e', icon: '🇨🇦' },
+            'TSX': { name: 'Toronto', color: '#d52b1e', icon: '🇨🇦' },
+            // Australia
+            'ASX': { name: 'Sydney', color: '#002776', icon: '🇦🇺' },
+            // Hong Kong
+            'HKG': { name: 'Hong Kong', color: '#de2910', icon: '🇭🇰' },
+            // UAE
+            'DFM': { name: 'Dubai', color: '#00732f', icon: '🇦🇪' },
+            'ADX': { name: 'Abu Dhabi', color: '#00732f', icon: '🇦🇪' },
+            // South Africa
+            'JSE': { name: 'Johannesburg', color: '#007a4d', icon: '🇿🇦' },
+            // Qatar
+            'QSE': { name: 'Qatar', color: '#8d1b3d', icon: '🇶🇦' },
+            // === PHASE 2 TIER 1 MARKETS ===
+            // France
+            'PAR': { name: 'Euronext Paris', color: '#002654', icon: '🇫🇷' },
+            'Paris': { name: 'Paris', color: '#002654', icon: '🇫🇷' },
+            'ENX': { name: 'Euronext', color: '#002654', icon: '🇫🇷' },
+            // Switzerland
+            'SWX': { name: 'SIX Swiss', color: '#ff0000', icon: '🇨🇭' },
+            'VTX': { name: 'SIX Swiss', color: '#ff0000', icon: '🇨🇭' },
+            'EBS': { name: 'SIX Swiss', color: '#ff0000', icon: '🇨🇭' },
+            // Netherlands
+            'AMS': { name: 'Amsterdam', color: '#ff6600', icon: '🇳🇱' },
+            // Spain
+            'MCE': { name: 'Madrid', color: '#c60b1e', icon: '🇪🇸' },
+            'BME': { name: 'BME Spanish', color: '#c60b1e', icon: '🇪🇸' },
+            // Italy
+            'MIL': { name: 'Milan', color: '#008c45', icon: '🇮🇹' },
+            'BIT': { name: 'Borsa Italiana', color: '#008c45', icon: '🇮🇹' },
+            // Brazil
+            'SAO': { name: 'B3 São Paulo', color: '#009c3b', icon: '🇧🇷' },
+            'BVMF': { name: 'B3', color: '#009c3b', icon: '🇧🇷' },
+            // Mexico
+            'MEX': { name: 'BMV Mexico', color: '#006847', icon: '🇲🇽' },
+            // South Korea
+            'KSC': { name: 'Korea Stock', color: '#003478', icon: '🇰🇷' },
+            'KRX': { name: 'Korea Exchange', color: '#003478', icon: '🇰🇷' },
+            'KOE': { name: 'Korea Exchange', color: '#003478', icon: '🇰🇷' },
+            // Taiwan
+            'TAI': { name: 'Taiwan Stock', color: '#fe0000', icon: '🇹🇼' },
+            'TPE': { name: 'Taipei Exchange', color: '#fe0000', icon: '🇹🇼' },
+            'TWO': { name: 'Taipei Exchange', color: '#fe0000', icon: '🇹🇼' },
+            // Singapore
+            'SES': { name: 'Singapore', color: '#ee2536', icon: '🇸🇬' },
+            'SGX': { name: 'SGX', color: '#ee2536', icon: '🇸🇬' },
+        };
+        return exchanges[ex] || { name: ex || 'Exchange', color: '#64748b', icon: '🌐' };
+    };
+
+    const info = getExchangeInfo(exchange);
+
+    return (
+        <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.75rem',
+            padding: '0.75rem 1rem', background: `${info.color}10`,
+            borderRadius: '12px', border: `1px solid ${info.color}30`
+        }}>
+            <span style={{ fontSize: '1.5rem' }}>{info.icon}</span>
+            <div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: info.color }}>{info.name}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Trading in {currency}</div>
+            </div>
         </div>
     );
 }

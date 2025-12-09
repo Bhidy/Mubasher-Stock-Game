@@ -5,6 +5,7 @@ import { Clock, Filter, Newspaper, Search, ChevronDown, Calendar } from 'lucide-
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
+import { useMarket } from '../context/MarketContext';
 
 const timeAgo = (dateString) => {
     if (!dateString) return '';
@@ -29,8 +30,12 @@ export default function NewsFeed() {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const { market: globalMarket, selectMarket } = useMarket();
+    // Use global market ID
+    const market = globalMarket.id;
+
     // Initialize state from navigation state if available (for Back button support)
-    const [market, setMarket] = useState(location.state?.market || 'EG');
+    // const [market, setMarket] = useState(location.state?.market || 'EG'); // REMOVED
     const [newsItems, setNewsItems] = useState([]);
     const [filteredNews, setFilteredNews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,10 +47,12 @@ export default function NewsFeed() {
 
     // Helper: Check date range
     const isWithinDateRange = (itemDateStr, filter) => {
-        if (!itemDateStr) return false;
         if (filter === 'All') return true;
+        if (!itemDateStr) return true; // Keep items without date if 'All' (safety)
 
         const date = new Date(itemDateStr);
+        if (isNaN(date.getTime())) return true; // Keep invalid dates in 'All' view
+
         const now = new Date();
         const diffTime = now - date; // millis
         const diffHours = diffTime / (1000 * 60 * 60);
@@ -72,6 +79,7 @@ export default function NewsFeed() {
             setNewsItems([]); // Reset if no cache
             setLoading(true);
         }
+        setSelectedSource('All'); // Reset filter on market change
     }, [market]);
 
     const fetchNews = async () => {
@@ -242,40 +250,7 @@ export default function NewsFeed() {
                 </div>
             </div>
 
-            {/* Market Switcher - Reordered SA, EG, US + Flags */}
-            <div style={{ padding: '0 1.5rem 1rem 1.5rem', display: 'flex', gap: '0.5rem' }}>
-                {[
-                    { id: 'SA', label: 'Saudi', flag: 'https://flagcdn.com/w40/sa.png', color: '#17c89b' },
-                    { id: 'EG', label: 'Egypt', flag: 'https://flagcdn.com/w40/eg.png', color: '#e74c3c' },
-                    { id: 'US', label: 'US', flag: 'https://flagcdn.com/w40/us.png', color: '#2c3e50' }
-                ].map((m) => (
-                    <button
-                        key={m.id}
-                        onClick={() => {
-                            setMarket(m.id);
-                            setSelectedSource('All'); // Reset filter on market switch
-                        }}
-                        className="flex-center animate-scale"
-                        style={{
-                            flex: 1,
-                            padding: '0.6rem',
-                            borderRadius: '12px',
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
-                            background: market === m.id ? m.color : '#f1f5f9',
-                            color: market === m.id ? '#fff' : '#64748b',
-                            border: 'none',
-                            cursor: 'pointer',
-                            boxShadow: market === m.id ? `0 4px 12px ${m.color}40` : 'none',
-                            transition: 'all 0.2s ease',
-                            gap: '0.5rem'
-                        }}
-                    >
-                        <img src={m.flag} alt={m.label} style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px' }} />
-                        {m.label}
-                    </button>
-                ))}
-            </div>
+
 
             {/* Source Filter with Counts */}
             <div style={{ padding: '0 1.5rem 0.5rem 1.5rem' }}>

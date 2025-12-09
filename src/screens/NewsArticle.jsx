@@ -102,7 +102,7 @@ export default function NewsArticle() {
         // Fetch full content if link is available
         if (article?.link) {
             setFullContentLoading(true);
-            fetch(`/api/news/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
+            fetch(`/api/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.content) {
@@ -162,9 +162,17 @@ export default function NewsArticle() {
             color: #334155;
             line-height: 1.8;
             font-size: 1.05rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         .article-content p {
             margin-bottom: 1.5rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
         }
         .article-content h1, .article-content h2, .article-content h3 {
             color: #0f172a;
@@ -352,7 +360,12 @@ export default function NewsArticle() {
                         <span>Loading article...</span>
                     </div>
                 ) : (
-                    <div className="article-content" style={{ direction: isTranslated ? 'rtl' : 'ltr', textAlign: isTranslated ? 'right' : 'left' }}>
+                    <div className="article-content" style={{
+                        direction: isTranslated ? 'rtl' : 'ltr',
+                        textAlign: isTranslated ? 'right' : 'left',
+                        overflowX: 'hidden',
+                        wordWrap: 'break-word'
+                    }}>
                         {isTranslated && translatedContent ? (
                             <div dangerouslySetInnerHTML={{ __html: translatedContent }} />
                         ) : fullContent ? (

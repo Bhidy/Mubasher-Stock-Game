@@ -260,7 +260,7 @@ const SentimentDashboard = ({ sentiment, tickers }) => {
     return (
         <div className="animate-fade-in" style={{
             background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)',
-            borderRadius: '24px', padding: '1.5rem', marginBottom: '2rem',
+            borderRadius: '24px', padding: '1rem', marginBottom: '1rem',
             border: '1px solid rgba(255,255,255,0.08)',
             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
             position: 'relative', overflow: 'hidden'
@@ -279,7 +279,7 @@ const SentimentDashboard = ({ sentiment, tickers }) => {
                         <Zap size={22} color={moodColor} fill={moodColor} style={{ filter: `drop-shadow(0 0 6px ${moodColor})` }} />
                         Market Pulse
                     </h3>
-                    <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '4px' }}>
+                    <p style={{ color: 'white', fontSize: '0.8rem', marginTop: '4px' }}>
                         Live Analysis of <span style={{ color: 'white', fontWeight: 700 }}>{sentiment.bullish + sentiment.bearish + sentiment.neutral}</span> Elite Insights
                     </p>
                 </div>
@@ -300,7 +300,7 @@ const SentimentDashboard = ({ sentiment, tickers }) => {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '1.5rem', alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '0.75rem', alignItems: 'center' }}>
 
                 {/* LEFT: Gauge */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -339,7 +339,7 @@ const SentimentDashboard = ({ sentiment, tickers }) => {
                     </div>
 
                     {/* Mood Labels */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'white', fontWeight: 600 }}>
                         <span>Extreme Fear</span>
                         <span>Neutral</span>
                         <span>Extreme Greed</span>
@@ -353,7 +353,7 @@ const SentimentDashboard = ({ sentiment, tickers }) => {
                     border: '1px solid rgba(255,255,255,0.08)',
                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2)'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', color: 'white', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         <Flame size={14} color="#f97316" fill="#f97316" style={{ filter: 'drop-shadow(0 0 4px #f97316)' }} /> HOT TICKERS
                         {tickers.length > 0 && <div style={{ width: '5px', height: '5px', background: '#10b981', borderRadius: '50%', marginLeft: 'auto', boxShadow: '0 0 6px #10b981' }} />}
                     </div>
@@ -374,7 +374,7 @@ const SentimentDashboard = ({ sentiment, tickers }) => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>{activeTicker.name}</span>
-                                    <span style={{ color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{activeTicker.symbol}</span>
+                                    <span style={{ color: '#e2e8f0', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{activeTicker.symbol}</span>
                                 </div>
                                 <span style={{
                                     background: 'rgba(16, 185, 129, 0.15)', color: '#10b981',
@@ -478,6 +478,8 @@ const TweetCard = ({ tweet, index, showRank = false, rankNumber = 0 }) => {
 
     const openTweet = () => window.open(tweet.url, '_blank', 'noopener,noreferrer');
 
+    const isArabic = /[\u0600-\u06FF]/.test(displayContent);
+
     return (
         <Card className="animate-slide-up" style={{
             padding: 0, overflow: 'hidden', animationDelay: `${index * 0.03}s`, cursor: 'default',
@@ -500,7 +502,7 @@ const TweetCard = ({ tweet, index, showRank = false, rankNumber = 0 }) => {
             )}
 
             {/* Header */}
-            <div style={{ padding: '1rem 1rem 0.75rem', display: 'flex', gap: '12px' }}>
+            <div style={{ padding: '0.75rem 0.75rem 0.5rem', display: 'flex', gap: '10px' }}>
                 <ProfileAvatar username={tweet.username} displayName={tweet.displayName} profileImage={tweet.profileImage} size={48} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -538,10 +540,13 @@ const TweetCard = ({ tweet, index, showRank = false, rankNumber = 0 }) => {
             </div>
 
             {/* Content */}
-            <div style={{ padding: '0 1rem' }}>
+            <div style={{ padding: '0 0.75rem' }}>
                 <p style={{
                     fontSize: '0.95rem', lineHeight: 1.6, color: '#1e293b',
-                    whiteSpace: 'pre-wrap', wordBreak: 'break-word', direction: showOriginal ? 'rtl' : 'ltr', textAlign: showOriginal ? 'right' : 'left'
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    direction: isArabic ? 'rtl' : 'ltr',
+                    textAlign: isArabic ? 'right' : 'left',
+                    fontFamily: isArabic ? 'Noto Sans Arabic, sans-serif' : 'inherit'
                 }} dangerouslySetInnerHTML={{
                     __html: displayContent.replace(/(\b\d{4}\b|\$[A-Z]{2,5})/g, '<span style="color: #2563eb; font-weight: 700; background: rgba(37,99,235,0.1); padding: 0 4px; border-radius: 4px; cursor: pointer;">$1</span>')
                 }} />
@@ -558,8 +563,8 @@ const TweetCard = ({ tweet, index, showRank = false, rankNumber = 0 }) => {
 
             {/* Engagement Stats */}
             <div style={{
-                display: 'flex', justifyContent: 'space-around', padding: '0.75rem 1rem',
-                marginTop: '0.75rem', borderTop: '1px solid #f1f5f9', background: '#fafafa'
+                display: 'flex', justifyContent: 'space-around', padding: '0.5rem 0.75rem',
+                marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', background: '#fafafa'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444' }}>
                     <Heart size={16} fill={isLiked ? '#ef4444' : 'none'} />
@@ -792,7 +797,7 @@ export default function XCommunity() {
 
     return (
         <ErrorBoundary>
-            <div className="flex-col" style={{ padding: '1.5rem', gap: '1.5rem', paddingBottom: '6rem' }}>
+            <div className="flex-col" style={{ padding: '0.75rem', gap: '0.75rem', paddingBottom: '6rem' }}>
                 <style>{`
                 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
                 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -800,7 +805,7 @@ export default function XCommunity() {
 
                 {/* Header */}
                 <div className="animate-fade-in">
-                    <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <div style={{
                                 width: 52, height: 52, borderRadius: '16px',
@@ -857,10 +862,11 @@ export default function XCommunity() {
                         return (
                             <div key={tab.id} style={{ position: 'relative' }}>
                                 <button onClick={() => handleTabChange(tab.id)} style={{
-                                    padding: '12px 8px', borderRadius: '16px', border: 'none', width: '100%',
+                                    padding: '12px 8px', borderRadius: '16px', border: 'none', width: '100%', height: '100%', minHeight: '80px',
                                     background: isActive ? 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)' : 'white',
                                     color: isActive ? 'white' : '#64748b', fontWeight: 700, fontSize: '0.7rem',
                                     cursor: 'pointer', display: 'flex', flexDirection: 'column',
+                                    justifyContent: 'center',
                                     alignItems: 'center', gap: '6px', transition: 'all 0.2s',
                                     boxShadow: isActive ? '0 8px 24px rgba(15, 23, 42, 0.3)' : '0 2px 8px rgba(0,0,0,0.05)'
                                 }}>

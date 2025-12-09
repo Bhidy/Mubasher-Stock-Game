@@ -1,8 +1,10 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield, Zap, BarChart3, Newspaper, Gamepad2, ChevronDown, ChevronUp, Check, MessageCircle, Sparkles, Globe, Settings, Bell, User } from 'lucide-react';
+import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield, Zap, BarChart3, Newspaper, Gamepad2, ChevronDown, ChevronUp, Check, MessageCircle, Sparkles, Globe, Settings, Bell, User, Briefcase, Target, PieChart, LineChart, AlertCircle, Calendar, FileText, Star, Wallet } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../App';
 import { useMarket, MARKETS } from '../context/MarketContext';
+import { useMode } from '../context/ModeContext';
+import ModeSwitcher from './shared/ModeSwitcher';
 
 // X Logo SVG Component for menu
 const XLogoIcon = ({ size = 20, color = 'currentColor' }) => (
@@ -18,6 +20,7 @@ export default function BurgerMenu({ variant = 'default' }) {
     const location = useLocation();
     const { setShowChat, userProfile } = useContext(UserContext);
     const { market, selectMarket } = useMarket();
+    const { mode, isPlayerMode, isInvestorMode, currentMode } = useMode();
     const dropdownRef = useRef(null);
 
     // Listen for openSidebar event (from Market Summary page)
@@ -48,22 +51,58 @@ export default function BurgerMenu({ variant = 'default' }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Flat menu items - no headers, clean list
-    const menuItems = [
-        { icon: Home, label: 'Home', path: '/home' },
-        { icon: BarChart3, label: 'Market Summary', path: '/market' },
-        { icon: Newspaper, label: 'News Feed', path: '/news-feed' },
-        { icon: TrendingUp, label: 'Pick Stocks', path: '/pick' },
-        { icon: Activity, label: 'Live Contest', path: '/live' },
-        { icon: Award, label: 'Leaderboard', path: '/leaderboard' },
-        { icon: Users, label: 'Community', path: '/community' },
-        { icon: XLogoIcon, label: 'X Intelligence', path: '/x-community' },
-        { icon: Bot, label: 'AI Assistant', action: () => setShowChat(true) },
-        { icon: BookOpen, label: 'Academy', path: '/academy' },
-        { icon: Trophy, label: 'Rewards', path: '/rewards' },
-        { icon: Shield, label: 'Clans', path: '/clans' },
-        { icon: Gift, label: 'Invite Friends', path: '/invite' },
-    ];
+    // Dynamic menu items based on mode
+    const getMenuItems = () => {
+        const commonItems = [
+            { icon: BarChart3, label: 'Market Summary', path: '/market' },
+            { icon: Newspaper, label: 'News Feed', path: '/news-feed' },
+            { icon: XLogoIcon, label: 'X Intelligence', path: '/x-community' },
+            { icon: Bot, label: 'AI Assistant', action: () => setShowChat(true) },
+        ];
+
+        if (isPlayerMode) {
+            return [
+                { icon: Home, label: 'Home', path: '/player/home', highlight: true },
+                ...commonItems,
+                { divider: true, label: 'Game' },
+                { icon: TrendingUp, label: 'Pick Stocks', path: '/player/pick' },
+                { icon: Activity, label: 'Live Contest', path: '/player/live' },
+                { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
+                { icon: Target, label: 'Challenges', path: '/player/challenges' },
+                { divider: true, label: 'Progress' },
+                { icon: Star, label: 'Achievements', path: '/player/achievements' },
+                { icon: Gift, label: 'Rewards', path: '/rewards' },
+                { icon: Wallet, label: 'Coin Shop', path: '/player/shop' },
+                { divider: true, label: 'Social' },
+                { icon: Shield, label: 'Clans', path: '/clans' },
+                { icon: Users, label: 'Community', path: '/community' },
+                { icon: Gift, label: 'Invite Friends', path: '/invite' },
+                { divider: true, label: 'Learn' },
+                { icon: BookOpen, label: 'Academy', path: '/player/learn' },
+            ];
+        } else {
+            // Investor Mode
+            return [
+                { icon: Home, label: 'Dashboard', path: '/investor/home', highlight: true },
+                ...commonItems,
+                { divider: true, label: 'Portfolio' },
+                { icon: Briefcase, label: 'My Portfolio', path: '/investor/portfolio' },
+                { icon: Star, label: 'Watchlist', path: '/investor/watchlist' },
+                { icon: AlertCircle, label: 'Price Alerts', path: '/investor/alerts' },
+                { divider: true, label: 'Analysis' },
+                { icon: LineChart, label: 'Stock Screener', path: '/investor/screener' },
+                { icon: PieChart, label: 'Technical Analysis', path: '/investor/analysis' },
+                { icon: Calendar, label: 'Economic Calendar', path: '/investor/calendar' },
+                { divider: true, label: 'Research' },
+                { icon: FileText, label: 'Research Notes', path: '/investor/notes' },
+                { icon: BookOpen, label: 'Education', path: '/academy' },
+                { divider: true, label: 'Competition' },
+                { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
+            ];
+        }
+    };
+
+    const menuItems = getMenuItems();
 
     const handleNavigate = (path) => {
         navigate(path);
@@ -73,8 +112,15 @@ export default function BurgerMenu({ variant = 'default' }) {
     const handleSelectMarket = (marketId) => {
         selectMarket(marketId);
         setMarketDropdownOpen(false);
-        setIsOpen(false);
-        navigate('/market');
+        setTimeout(() => setIsOpen(false), 50);
+    };
+
+    // Get header gradient based on mode
+    const getHeaderGradient = () => {
+        if (isPlayerMode) {
+            return 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #EC4899 100%)';
+        }
+        return 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 50%, #10B981 100%)';
     };
 
     const menuContent = isOpen && (
@@ -106,11 +152,11 @@ export default function BurgerMenu({ variant = 'default' }) {
                 boxShadow: '4px 0 30px rgba(0,0,0,0.12)',
             }} className="animate-slide-in-left">
 
-                {/* Header - User Profile Style */}
+                {/* Header - Mode-aware gradient */}
                 <div style={{
                     padding: '1.5rem',
-                    paddingBottom: marketDropdownOpen ? '0.5rem' : '1.5rem',
-                    background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%)',
+                    paddingBottom: '1rem',
+                    background: getHeaderGradient(),
                     position: 'relative',
                     zIndex: 20
                 }}>
@@ -118,6 +164,7 @@ export default function BurgerMenu({ variant = 'default' }) {
                     <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
                     <div style={{ position: 'absolute', bottom: '-30px', left: '20%', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
 
+                    {/* User Info & Close */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                             <div style={{
@@ -134,7 +181,7 @@ export default function BurgerMenu({ variant = 'default' }) {
                                     {userProfile?.displayName || 'Welcome!'}
                                 </div>
                                 <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.8rem', fontWeight: 500 }}>
-                                    Stock Game Player
+                                    Mohamed Bhidy
                                 </div>
                             </div>
                         </div>
@@ -154,8 +201,13 @@ export default function BurgerMenu({ variant = 'default' }) {
                         </button>
                     </div>
 
-                    {/* Market Dropdown - Premium Style */}
-                    <div ref={dropdownRef} style={{ marginTop: '1.25rem', position: 'relative', zIndex: 30 }}>
+                    {/* Mode Switcher */}
+                    <div style={{ marginTop: '1.25rem', position: 'relative', zIndex: 25 }}>
+                        <ModeSwitcher />
+                    </div>
+
+                    {/* Market Dropdown */}
+                    <div ref={dropdownRef} style={{ marginTop: '1rem', position: 'relative', zIndex: 30 }}>
                         <button
                             onClick={() => setMarketDropdownOpen(!marketDropdownOpen)}
                             style={{
@@ -163,24 +215,24 @@ export default function BurgerMenu({ variant = 'default' }) {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
-                                padding: '0.75rem 1rem',
-                                background: 'rgba(255,255,255,0.15)',
+                                padding: '0.625rem 0.875rem',
+                                background: 'rgba(255,255,255,0.12)',
                                 backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255,255,255,0.25)',
-                                borderRadius: marketDropdownOpen ? '12px 12px 0 0' : '12px',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                borderRadius: marketDropdownOpen ? '10px 10px 0 0' : '10px',
                                 cursor: 'pointer',
                                 color: 'white'
                             }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <span style={{ fontSize: '1.25rem' }}>{market.flag}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                <span style={{ fontSize: '1.125rem' }}>{market.flag}</span>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{market.name}</div>
-                                    <div style={{ fontSize: '0.7rem', opacity: 0.75 }}>Selected Market</div>
+                                    <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{market.name}</div>
+                                    <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>Selected Market</div>
                                 </div>
                             </div>
                             <ChevronDown
-                                size={18}
+                                size={16}
                                 style={{
                                     transform: marketDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                                     transition: 'transform 0.2s ease'
@@ -188,13 +240,15 @@ export default function BurgerMenu({ variant = 'default' }) {
                             />
                         </button>
 
-                        {/* Dropdown Options - Inline below the button */}
+                        {/* Dropdown Options */}
                         {marketDropdownOpen && (
                             <div style={{
                                 background: 'white',
-                                borderRadius: '0 0 12px 12px',
+                                borderRadius: '0 0 10px 10px',
                                 boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                maxHeight: '240px',
+                                overflowY: 'auto'
                             }} className="animate-fade-in">
                                 {MARKETS.map((m, idx) => {
                                     const isActive = market.id === m.id;
@@ -207,22 +261,22 @@ export default function BurgerMenu({ variant = 'default' }) {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'space-between',
-                                                padding: '0.875rem 1rem',
-                                                background: isActive ? '#eff6ff' : 'white',
+                                                padding: '0.75rem 0.875rem',
+                                                background: isActive ? (isPlayerMode ? '#FAF5FF' : '#F0F9FF') : 'white',
                                                 border: 'none',
                                                 borderBottom: idx < MARKETS.length - 1 ? '1px solid #f1f5f9' : 'none',
                                                 cursor: 'pointer',
                                                 transition: 'background 0.15s'
                                             }}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <span style={{ fontSize: '1.5rem' }}>{m.flag}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                                <span style={{ fontSize: '1.25rem' }}>{m.flag}</span>
                                                 <div style={{ textAlign: 'left' }}>
-                                                    <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '0.9rem' }}>{m.name}</div>
-                                                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{m.exchange || m.name}</div>
+                                                    <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '0.85rem' }}>{m.name}</div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{m.exchange || m.name}</div>
                                                 </div>
                                             </div>
-                                            {isActive && <Check size={18} color="#3b82f6" strokeWidth={3} />}
+                                            {isActive && <Check size={16} color={isPlayerMode ? '#8B5CF6' : '#0EA5E9'} strokeWidth={3} />}
                                         </button>
                                     );
                                 })}
@@ -235,13 +289,35 @@ export default function BurgerMenu({ variant = 'default' }) {
                 <div style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '1rem',
+                    padding: '0.75rem',
                     scrollbarWidth: 'thin'
                 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
                         {menuItems.map((item, index) => {
+                            // Divider
+                            if (item.divider) {
+                                return (
+                                    <div key={`divider-${index}`} style={{
+                                        padding: '0.75rem 0.75rem 0.375rem',
+                                        marginTop: index > 0 ? '0.25rem' : 0,
+                                    }}>
+                                        <span style={{
+                                            fontSize: '0.65rem',
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.08em',
+                                            color: '#94a3b8',
+                                        }}>{item.label}</span>
+                                    </div>
+                                );
+                            }
+
                             const isActive = location.pathname === item.path;
                             const Icon = item.icon;
+                            const activeColor = isPlayerMode ? '#8B5CF6' : '#0EA5E9';
+                            const activeBg = isPlayerMode
+                                ? 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)'
+                                : 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)';
 
                             return (
                                 <button
@@ -257,11 +333,11 @@ export default function BurgerMenu({ variant = 'default' }) {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.875rem',
-                                        padding: '0.8rem 1rem',
-                                        borderRadius: '12px',
+                                        gap: '0.75rem',
+                                        padding: '0.7rem 0.875rem',
+                                        borderRadius: '10px',
                                         border: 'none',
-                                        background: isActive ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'transparent',
+                                        background: isActive ? activeBg : 'transparent',
                                         cursor: 'pointer',
                                         textAlign: 'left',
                                         width: '100%',
@@ -289,36 +365,57 @@ export default function BurgerMenu({ variant = 'default' }) {
                                             left: 0,
                                             top: '20%',
                                             bottom: '20%',
-                                            width: '4px',
-                                            background: 'linear-gradient(180deg, #3b82f6, #1d4ed8)',
-                                            borderRadius: '0 4px 4px 0'
+                                            width: '3px',
+                                            background: isPlayerMode
+                                                ? 'linear-gradient(180deg, #8B5CF6, #EC4899)'
+                                                : 'linear-gradient(180deg, #0EA5E9, #10B981)',
+                                            borderRadius: '0 3px 3px 0'
                                         }} />
                                     )}
 
                                     <div style={{
-                                        width: '36px',
-                                        height: '36px',
-                                        borderRadius: '10px',
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '8px',
                                         background: isActive ? 'white' : '#f1f5f9',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        boxShadow: isActive ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none',
+                                        boxShadow: isActive ? `0 2px 6px ${activeColor}20` : 'none',
                                         transition: 'all 0.15s'
                                     }}>
                                         <Icon
-                                            size={18}
-                                            color={isActive ? '#3b82f6' : '#64748b'}
+                                            size={16}
+                                            color={isActive ? activeColor : '#64748b'}
                                             strokeWidth={isActive ? 2.5 : 2}
                                         />
                                     </div>
                                     <span style={{
                                         fontWeight: isActive ? 700 : 500,
-                                        color: isActive ? '#1e40af' : '#475569',
-                                        fontSize: '0.925rem'
+                                        color: isActive ? (isPlayerMode ? '#7C3AED' : '#0284C7') : '#475569',
+                                        fontSize: '0.875rem'
                                     }}>
                                         {item.label}
                                     </span>
+
+                                    {/* Highlight badge for main home */}
+                                    {item.highlight && (
+                                        <div style={{
+                                            marginLeft: 'auto',
+                                            background: isPlayerMode
+                                                ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                                                : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
+                                            color: 'white',
+                                            fontSize: '0.6rem',
+                                            fontWeight: 700,
+                                            padding: '0.2rem 0.5rem',
+                                            borderRadius: '999px',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.03em',
+                                        }}>
+                                            {isPlayerMode ? 'Play' : 'Pro'}
+                                        </div>
+                                    )}
                                 </button>
                             );
                         })}
@@ -327,7 +424,7 @@ export default function BurgerMenu({ variant = 'default' }) {
 
                 {/* Footer */}
                 <div style={{
-                    padding: '1rem 1.25rem',
+                    padding: '0.875rem 1rem',
                     borderTop: '1px solid #e2e8f0',
                     background: '#f8fafc'
                 }}>
@@ -342,14 +439,14 @@ export default function BurgerMenu({ variant = 'default' }) {
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '0.5rem',
-                            padding: '0.875rem',
-                            borderRadius: '12px',
+                            padding: '0.75rem',
+                            borderRadius: '10px',
                             border: '1px solid #fecaca',
                             background: 'white',
                             cursor: 'pointer',
                             color: '#dc2626',
                             fontWeight: 600,
-                            fontSize: '0.9rem',
+                            fontSize: '0.85rem',
                             transition: 'all 0.15s'
                         }}
                         onMouseEnter={(e) => {
@@ -359,11 +456,13 @@ export default function BurgerMenu({ variant = 'default' }) {
                             e.currentTarget.style.background = 'white';
                         }}
                     >
-                        <LogOut size={18} />
+                        <LogOut size={16} />
                         Log Out
                     </button>
-                    <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>v2.5.0 • Stock Game</span>
+                    <div style={{ textAlign: 'center', marginTop: '0.625rem' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                            v3.0.0 • {isPlayerMode ? '🎮 Player' : '📈 Investor'} Mode
+                        </span>
                     </div>
                 </div>
             </div>

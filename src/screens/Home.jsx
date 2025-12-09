@@ -2,20 +2,30 @@ import React, { useContext, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../App';
+import { useMarket } from '../context/MarketContext';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
-import { Clock, Trophy, TrendingUp, Zap, Star, Gift, Target, Award, Flame, BookOpen, Users, Info, X, Shield, ChevronLeft, ChevronRight, PieChart } from 'lucide-react';
+import { Clock, Trophy, TrendingUp, Zap, Star, Gift, Target, Award, Flame, BookOpen, Users, Info, X, Shield, ChevronLeft, ChevronRight, PieChart, Newspaper, Twitter, Check, Globe } from 'lucide-react';
 
 import BurgerMenu from '../components/BurgerMenu';
 import DailySpinModal from '../components/DailySpinModal';
 
+const MARKET_CODES = {
+    'SA': 'KSA', 'EG': 'EGY', 'US': 'USA', 'IN': 'IND', 'UK': 'GBR', 'CA': 'CAN', 'AU': 'AUS',
+    'HK': 'HKG', 'DE': 'DEU', 'JP': 'JPN', 'AE': 'UAE', 'ZA': 'RSA', 'QA': 'QAT', 'FR': 'FRA',
+    'CH': 'SUI', 'NL': 'NLD', 'ES': 'ESP', 'IT': 'ITA', 'BR': 'BRA', 'MX': 'MEX', 'KR': 'KOR',
+    'TW': 'TWN', 'SG': 'SGP'
+};
+
 export default function Home() {
     const { user, setUser } = useContext(UserContext);
+    const { market, selectMarket, MARKETS } = useMarket();
     const navigate = useNavigate();
     const [showStreakInfo, setShowStreakInfo] = useState(false);
     const [activeTooltip, setActiveTooltip] = useState(null);
     const [showDailySpin, setShowDailySpin] = useState(false);
+    const [marketDropdownOpen, setMarketDropdownOpen] = useState(false);
     const [activeSlide, setActiveSlide] = useState(0);
 
     // Scroll to top on mount
@@ -178,113 +188,144 @@ export default function Home() {
     };
 
     return (
-        <div className="flex-col" style={{ padding: '1.5rem', gap: '1.5rem', paddingBottom: '6rem' }}>
+        <div className="flex-col" style={{ padding: '1rem', gap: '1rem', paddingBottom: '6rem' }}>
 
-            {/* Header with Avatar */}
-            <div className="flex-between animate-fade-in">
-                <div
-                    className="flex-center"
-                    style={{ gap: '1rem', cursor: 'pointer' }}
-                    onClick={() => navigate('/rewards')}
-                >
-                    <div style={{
-                        width: '72px',
-                        height: '72px',
-                        borderRadius: '50%',
-                        background: 'var(--gradient-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.5rem',
-                        fontWeight: 800,
-                        color: 'white',
-                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
-                        border: '3px solid white',
-                        overflow: 'hidden'
-                    }}>
-                        <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <div>
-                        <p className="caption" style={{ marginBottom: '2px' }}>Welcome back,</p>
-                        <h2 className="h3" style={{ fontSize: '1.25rem' }}>{user.name}</h2>
-                    </div>
-                </div>
-                <div className="flex-center" style={{ gap: '0.75rem' }}>
+            {/* Header with Avatar & Coins */}
+            <div className="flex-between animate-fade-in" style={{ marginBottom: '0.5rem' }}>
+                <div className="flex-center" style={{ gap: '12px' }}>
+                    <BurgerMenu />
                     <div
-                        className="coin-shine"
                         onClick={() => navigate('/rewards')}
                         style={{
-                            background: 'var(--gradient-gold)',
-                            padding: '0.5rem 1rem',
-                            borderRadius: 'var(--radius-full)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                            width: '56px',
+                            height: '56px',
+                            borderRadius: '50%',
+                            padding: '2px', // White border gap
+                            background: 'white',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                             cursor: 'pointer',
-                            transition: 'transform 0.2s, box-shadow 0.2s'
+                            position: 'relative'
                         }}
                     >
-                        <span style={{ fontSize: '1.25rem' }}>🪙</span>
-                        <span style={{ fontWeight: 800, fontSize: '1rem', color: 'white' }}>{user.coins}</span>
-                        <TooltipIcon
-                            id="coins"
-                            title="Mubasher Coins"
-                            icon="🪙"
-                            content="Coins are earned by making successful stock picks, maintaining streaks, and completing challenges. Use them to unlock premium features and rewards!"
+                        <img
+                            src={user.avatar}
+                            alt={user.name}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '50%'
+                            }}
                         />
                     </div>
-                    <BurgerMenu />
+                    <div>
+                        <p className="caption" style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '2px' }}>Welcome back,</p>
+                        <h2 className="h2" style={{ fontSize: '1.5rem', lineHeight: 1 }}>{user.name}</h2>
+                    </div>
+                </div>
+
+                <div className="flex-center" style={{ gap: '10px' }}>
+                    {/* Market Selection Dropdown */}
+                    <div style={{ position: 'relative' }}>
+                        <div
+                            onClick={() => setMarketDropdownOpen(!marketDropdownOpen)}
+                            style={{
+                                background: 'white',
+                                padding: '6px 16px 6px 10px',
+                                borderRadius: '999px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                border: '1px solid #e2e8f0',
+                                cursor: 'pointer',
+                                height: '42px',
+                                minWidth: 'auto',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{market.flag}</span>
+                            <span style={{ color: '#1f2937', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                                {MARKET_CODES[market.id] || market.id}
+                            </span>
+                            <ChevronRight
+                                size={16}
+                                color="#94a3b8"
+                                style={{
+                                    transform: marketDropdownOpen ? 'rotate(90deg)' : 'none',
+                                    transition: 'transform 0.2s',
+                                    marginLeft: 'auto'
+                                }}
+                            />
+                        </div>
+
+                        {/* Dropdown Menu */}
+                        {marketDropdownOpen && (
+                            <>
+                                <div
+                                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }}
+                                    onClick={() => setMarketDropdownOpen(false)}
+                                />
+                                <div className="animate-fade-in" style={{
+                                    position: 'absolute',
+                                    top: '110%',
+                                    right: 0,
+                                    background: 'white',
+                                    borderRadius: '16px',
+                                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                                    padding: '0.5rem',
+                                    zIndex: 100,
+                                    minWidth: '220px',
+                                    maxHeight: '400px',
+                                    overflowY: 'auto',
+                                    border: '1px solid #f1f5f9'
+                                }}>
+                                    <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Select Market</div>
+                                    {MARKETS.map((m) => (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => {
+                                                selectMarket(m.id);
+                                                setMarketDropdownOpen(false);
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                width: '100%',
+                                                padding: '0.75rem 1rem',
+                                                border: 'none',
+                                                background: market.id === m.id ? '#f0f9ff' : 'transparent',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                textAlign: 'left',
+                                                transition: 'background 0.2s',
+                                                marginBottom: '2px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (market.id !== m.id) e.currentTarget.style.background = '#f8fafc';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (market.id !== m.id) e.currentTarget.style.background = 'transparent';
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '1.5rem' }}>{m.flag}</span>
+                                            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: market.id === m.id ? '#0284c7' : '#1f2937' }}>{m.name}</span>
+                                            {market.id === m.id && <Check size={16} color="#0284c7" style={{ marginLeft: 'auto' }} />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                 </div>
             </div>
 
-            {/* Market Summary Entry - MOVED TO TOP */}
-            <Card className="animate-slide-up" style={{
-                background: 'linear-gradient(135deg, #0D85D8 0%, #0ea5e9 100%)',
-                color: 'white',
-                padding: '1.5rem',
-                cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(13, 133, 216, 0.3)'
-            }} onClick={() => navigate('/market')}>
-                {/* Background Pattern */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0, right: 0, bottom: 0, left: 0,
-                    background: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E")',
-                    opacity: 0.3
-                }} />
-
-                <div className="flex-between" style={{ position: 'relative', zIndex: 1 }}>
-                    <div className="flex-col" style={{ gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                padding: '0.5rem',
-                                borderRadius: '12px',
-                                display: 'flex',
-                                backdropFilter: 'blur(4px)'
-                            }}>
-                                <PieChart size={20} color="white" />
-                            </div>
-                            <h3 style={{ fontSize: '1.125rem', fontWeight: 800, margin: 0 }}>Market Summary</h3>
-                        </div>
-                        <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.9, paddingLeft: '0.25rem' }}>
-                            Global indices, sectors & top movers
-                        </p>
-                    </div>
-                    <div style={{
-                        width: '40px', height: '40px',
-                        background: 'rgba(255,255,255,0.2)',
-                        borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        backdropFilter: 'blur(4px)'
-                    }}>
-                        <ChevronRight size={20} color="white" />
-                    </div>
-                </div>
-            </Card>
+            {/* Navigation Carousel */}
+            <div className="animate-slide-up">
+                <NavigationCarousel market={market} navigate={navigate} />
+            </div>
 
             {/* Today's Contest */}
             <Card className="card-gradient animate-slide-up" style={{
@@ -310,7 +351,7 @@ export default function Home() {
                 </div>
 
                 <div>
-                    <h1 className="h2" style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Today's Contest</h1>
+                    <h1 className="h2" style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Today's {market.name} Contest</h1>
                     <p className="body-sm" style={{ lineHeight: 1.6 }}>Pick 3 stocks and compete for the daily prize pool of <span style={{ fontWeight: 700, color: 'var(--warning)' }}>10,000 coins</span></p>
                 </div>
 
@@ -346,18 +387,20 @@ export default function Home() {
                     </div>
                 </div>
 
-                {user.isLocked ? (
-                    <Button variant="outline" onClick={() => navigate('/live')} style={{ marginTop: '1rem' }}>
-                        View Live Status 📊
-                    </Button>
-                ) : (
-                    <Button onClick={() => navigate('/pick')} style={{ marginTop: '1rem' }}>
-                        Pick Your 3 Stocks 🎯
-                    </Button>
-                )}
+                {
+                    user.isLocked ? (
+                        <Button variant="outline" onClick={() => navigate('/live')} style={{ marginTop: '1rem' }}>
+                            View Live Status 📊
+                        </Button>
+                    ) : (
+                        <Button onClick={() => navigate('/pick')} style={{ marginTop: '1rem' }}>
+                            Pick Your 3 Stocks 🎯
+                        </Button>
+                    )
+                }
             </Card>
 
-            {/* Streak & Daily Challenge & Invite Carousel - MOVED BELOW CONTEST */}
+            {/* Streak & Daily Challenge & Invite Carousel */}
             <div className="animate-slide-up" style={{ position: 'relative' }}>
                 <div style={{
                     overflow: 'hidden',
@@ -490,7 +533,7 @@ export default function Home() {
                     display: 'flex',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    marginTop: '0.75rem'
+                    marginTop: '0.5rem'
                 }}>
                     {carouselSlides.map((_, index) => (
                         <button
@@ -523,17 +566,25 @@ export default function Home() {
                     <span className="h2" style={{ color: '#92400e' }}>#{Math.floor(user.rank * 0.8)}</span>
                 </Card>
 
-                <Card className="flex-col animate-slide-up" padding="1.25rem" style={{ background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', position: 'relative' }}>
+                <Card
+                    className="flex-col animate-slide-up"
+                    padding="1.25rem"
+                    style={{
+                        background: 'var(--gradient-gold)',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)'
+                    }}
+                    onClick={() => navigate('/rewards')}
+                >
                     <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem' }}>
-                        <TooltipIcon id="winrate" title="Win Rate" icon="📈" content="Percentage of contests where your picks outperformed the market average." />
+                        <TooltipIcon id="points" title="Mubasher Points" icon="🪙" content="Use points to unlock rewards and climb the leaderboard!" />
                     </div>
-                    <Award size={24} color="#10b981" style={{ marginBottom: '0.5rem' }} />
-                    <span className="caption">Win Rate</span>
-                    <span className="h2" style={{ color: '#065f46' }}>67%</span>
+                    <span style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🪙</span>
+                    <span className="caption" style={{ color: 'white', opacity: 0.9 }}>Points</span>
+                    <span className="h2" style={{ color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{user.coins.toLocaleString()}</span>
                 </Card>
             </div>
-
-
 
             {/* Quick Actions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -580,75 +631,212 @@ export default function Home() {
             </div>
 
             {/* Streak Info Modal */}
-            {showStreakInfo && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '1rem',
-                    backdropFilter: 'blur(4px)'
-                }} onClick={() => setShowStreakInfo(false)}>
+            {
+                showStreakInfo && (
                     <div style={{
-                        background: 'white',
-                        borderRadius: '20px',
-                        padding: '2rem',
-                        maxWidth: '400px',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                        position: 'relative'
-                    }} onClick={(e) => e.stopPropagation()}>
-                        <button
-                            onClick={() => setShowStreakInfo(false)}
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                padding: '4px'
-                            }}
-                        >
-                            <X size={24} />
-                        </button>
-                        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                            <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>🔥</div>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Streak Rewards</h2>
-                            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Keep your streak alive to earn bonus coins!</p>
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '1rem',
+                        backdropFilter: 'blur(4px)'
+                    }} onClick={() => setShowStreakInfo(false)}>
+                        <div style={{
+                            background: 'white',
+                            borderRadius: '20px',
+                            padding: '2rem',
+                            maxWidth: '400px',
+                            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                            position: 'relative'
+                        }} onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => setShowStreakInfo(false)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1rem',
+                                    right: '1rem',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    padding: '4px'
+                                }}
+                            >
+                                <X size={24} />
+                            </button>
+                            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                                <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>🔥</div>
+                                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Streak Rewards</h2>
+                                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Keep your streak alive to earn bonus coins!</p>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
+                                    <span style={{ fontWeight: 600 }}>3 Days</span>
+                                    <span style={{ color: '#f59e0b', fontWeight: 700 }}>+10 🪙</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
+                                    <span style={{ fontWeight: 600 }}>7 Days</span>
+                                    <span style={{ color: '#f59e0b', fontWeight: 700 }}>+25 🪙</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
+                                    <span style={{ fontWeight: 600 }}>14 Days</span>
+                                    <span style={{ color: '#f59e0b', fontWeight: 700 }}>+50 🪙</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
+                                    <span style={{ fontWeight: 600 }}>30 Days</span>
+                                    <span style={{ color: '#f59e0b', fontWeight: 700 }}>+100 🪙</span>
+                                </div>
+                            </div>
+                            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center' }}>
+                                Play at least once per day to maintain your streak!
+                            </p>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
-                                <span style={{ fontWeight: 600 }}>3 Days</span>
-                                <span style={{ color: '#f59e0b', fontWeight: 700 }}>+10 🪙</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
-                                <span style={{ fontWeight: 600 }}>7 Days</span>
-                                <span style={{ color: '#f59e0b', fontWeight: 700 }}>+25 🪙</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
-                                <span style={{ fontWeight: 600 }}>14 Days</span>
-                                <span style={{ color: '#f59e0b', fontWeight: 700 }}>+50 🪙</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
-                                <span style={{ fontWeight: 600 }}>30 Days</span>
-                                <span style={{ color: '#f59e0b', fontWeight: 700 }}>+100 🪙</span>
-                            </div>
-                        </div>
-                        <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center' }}>
-                            Play at least once per day to maintain your streak!
-                        </p>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Daily Spin Modal */}
             <DailySpinModal isOpen={showDailySpin} onClose={handleCloseDailySpin} />
-        </div >
+        </div>
+    );
+}
+// Helper Component: Navigation Carousel
+function NavigationCarousel({ market, navigate }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    // Market Themes (Matched with MarketSummary.jsx)
+    const MARKET_THEMES = {
+        'SA': 'linear-gradient(135deg, #0D85D8 0%, #0ea5e9 100%)',
+        'EG': 'linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)',
+        'US': 'linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%)',
+        'IN': 'linear-gradient(135deg, #ff6b35 0%, #f7c45f 100%)',
+        'UK': 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+        'CA': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+        'AU': 'linear-gradient(135deg, #1e40af 0%, #60a5fa 100%)',
+        'HK': 'linear-gradient(135deg, #dc2626 0%, #f59e0b 100%)',
+        'DE': 'linear-gradient(135deg, #000000 0%, #ffc107 100%)',
+        'JP': 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)', // Adjusted slightly for white text visibility
+        'AE': 'linear-gradient(135deg, #00732f 0%, #ef4444 100%)',
+        'ZA': 'linear-gradient(135deg, #007749 0%, #ffd700 100%)',
+        'QA': 'linear-gradient(135deg, #8b1538 0%, #a02040 100%)', // Adjusted end color for text readability
+    };
+
+    const slides = [
+        {
+            id: 'market',
+            title: `${market.name} Market Summary`,
+            subtitle: 'View Global & Local Indices',
+            icon: <span style={{ fontSize: '32px' }}>{market.flag}</span>,
+            bg: MARKET_THEMES[market.id] || 'linear-gradient(135deg, #0D85D8 0%, #0ea5e9 100%)',
+            onClick: () => navigate('/market')
+        },
+        {
+            id: 'community',
+            title: 'X Community',
+            subtitle: 'Join the Conversation',
+            icon: <Twitter size={24} color="white" />,
+            bg: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
+            onClick: () => navigate('/x-community')
+        },
+        {
+            id: 'news',
+            title: 'News Feed',
+            subtitle: 'Latest Market Updates',
+            icon: <Newspaper size={24} color="white" />,
+            bg: 'linear-gradient(135deg, #FF5722 0%, #FF8A65 100%)',
+            onClick: () => navigate('/news-feed')
+        }
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % slides.length);
+        }, 10000); // 10 seconds
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{
+                display: 'flex',
+                transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: `translateX(-${currentIndex * 100}%)`
+            }}>
+                {slides.map((slide) => (
+                    <div
+                        key={slide.id}
+                        onClick={slide.onClick}
+                        style={{
+                            minWidth: '100%',
+                            background: slide.bg,
+                            padding: '1.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backdropFilter: 'blur(4px)'
+                            }}>
+                                {slide.icon}
+                            </div>
+                            <div>
+                                <h3 className="h3" style={{ color: 'white', marginBottom: '0.125rem', fontSize: '1.125rem' }}>{slide.title}</h3>
+                                <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>{slide.subtitle}</p>
+                            </div>
+                        </div>
+                        <div style={{
+                            background: 'rgba(255,255,255,0.2)',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <ChevronRight size={18} color="white" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Dots */}
+            <div style={{
+                position: 'absolute',
+                bottom: '0.75rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: '0.375rem'
+            }}>
+                {slides.map((_, idx) => (
+                    <div
+                        key={idx}
+                        style={{
+                            width: idx === currentIndex ? '16px' : '6px',
+                            height: '6px',
+                            borderRadius: '3px',
+                            background: 'rgba(255,255,255,0.8)',
+                            opacity: idx === currentIndex ? 1 : 0.4,
+                            transition: 'all 0.3s'
+                        }}
+                    />
+                ))}
+            </div>
+        </div>
     );
 }

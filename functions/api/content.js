@@ -1,23 +1,22 @@
-// Cloudflare Pages Function - Chart Proxy
+// Cloudflare Pages Function - News Content Proxy
 // Proxies requests to Vercel backend
 
 export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
 
-    const symbol = url.searchParams.get('symbol');
-    const range = url.searchParams.get('range') || '1d';
-    const interval = url.searchParams.get('interval') || '5m';
+    const articleUrl = url.searchParams.get('url');
+    const title = url.searchParams.get('title') || '';
 
-    if (!symbol) {
-        return new Response(JSON.stringify({ error: 'Symbol required' }), {
+    if (!articleUrl) {
+        return new Response(JSON.stringify({ error: 'URL required' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
         });
     }
 
     try {
-        const vercelUrl = `https://bhidy.vercel.app/api/chart?symbol=${encodeURIComponent(symbol)}&range=${range}&interval=${interval}`;
+        const vercelUrl = `https://bhidy.vercel.app/api/content?url=${encodeURIComponent(articleUrl)}&title=${encodeURIComponent(title)}`;
 
         const response = await fetch(vercelUrl, {
             headers: {
@@ -33,13 +32,15 @@ export async function onRequest(context) {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=60'
+                'Cache-Control': 'public, max-age=3600'
             }
         });
 
     } catch (error) {
-        console.error('Chart Proxy Error:', error);
-        return new Response(JSON.stringify([]), {
+        console.error('Content Proxy Error:', error);
+        return new Response(JSON.stringify({
+            content: '<p>Unable to load content.</p>'
+        }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMarket } from '../context/MarketContext';
 import {
     ChevronLeft, TrendingUp, TrendingDown, Globe, BarChart3,
     Activity, Clock, RefreshCw, Building, DollarSign, Briefcase,
@@ -11,6 +12,7 @@ import Badge from '../components/Badge';
 import { usePrices } from '../context/PriceContext';
 import IndexChart from '../components/IndexChart';
 import { StockLogo, SAUDI_STOCKS } from '../components/StockCard';
+import BurgerMenu from '../components/BurgerMenu';
 
 // ... (other imports)
 
@@ -67,7 +69,7 @@ const TopMoversSection = ({ gainers, losers, navigate }) => {
                     const ticker = stock.symbol?.split('.')[0];
                     const stockData = SAUDI_STOCKS[ticker] || stock;
                     return (
-                        <div key={i} onClick={() => navigate(`/company/${stock.symbol}`)} className="flex-between" style={{ padding: '1rem 1.25rem', borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none', cursor: 'pointer' }}>
+                        <div key={i} onClick={() => navigate(`/company/${stock.symbol}`)} className="flex-between" style={{ padding: '0.875rem 1.25rem', borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none', cursor: 'pointer' }}>
                             <div className="flex-center" style={{ gap: '0.75rem' }}>
                                 <div style={{ fontWeight: 800, color: isGainers ? '#10b981' : '#ef4444', width: '24px' }}>#{i + 1}</div>
                                 <StockLogo ticker={ticker} logoUrl={stock.logo} size={40} />
@@ -76,14 +78,24 @@ const TopMoversSection = ({ gainers, losers, navigate }) => {
                                     <div className="caption" style={{ fontSize: '0.75rem' }}>{stockData.name || stock.name}</div>
                                 </div>
                             </div>
-                            <div style={{
-                                background: isGainers ? '#dcfce7' : '#fee2e2',
-                                padding: '0.375rem 0.875rem',
-                                borderRadius: '999px',
-                                color: isGainers ? '#10b981' : '#ef4444',
-                                fontWeight: 800
-                            }}>
-                                {isGainers ? '+' : ''}{stock.changePercent?.toFixed(2)}%
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                                    {stock.price?.toFixed(2)}
+                                </div>
+                                <div style={{
+                                    background: isGainers ? '#dcfce7' : '#fee2e2',
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    color: isGainers ? '#15803d' : '#b91c1c',
+                                    fontWeight: 700,
+                                    fontSize: '0.75rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '2px'
+                                }}>
+                                    {isGainers ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                    {Math.abs(stock.changePercent || 0).toFixed(2)}%
+                                </div>
                             </div>
                         </div>
                     );
@@ -113,7 +125,7 @@ const StockList = ({ items, navigate, color, type }) => (
             }
 
             return (
-                <div key={i} onClick={() => navigate(`/company/${stock.symbol}`)} className="flex-between" style={{ padding: '1rem 1.25rem', borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none', cursor: 'pointer' }}>
+                <div key={i} onClick={() => navigate(`/company/${stock.symbol}`)} className="flex-between" style={{ padding: '0.875rem 1.25rem', borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none', cursor: 'pointer' }}>
                     <div className="flex-center" style={{ gap: '0.75rem' }}>
                         <div style={{ fontWeight: 800, color: '#64748b', width: '24px' }}>#{i + 1}</div>
                         <StockLogo ticker={ticker} logoUrl={stock.logo} size={40} />
@@ -122,15 +134,20 @@ const StockList = ({ items, navigate, color, type }) => (
                             <div className="caption" style={{ fontSize: '0.75rem' }}>{stockData.name || stock.name}</div>
                         </div>
                     </div>
-                    <div style={{
-                        background: `${color}15`,
-                        padding: '0.375rem 0.875rem',
-                        borderRadius: '999px',
-                        color: color,
-                        fontWeight: 800,
-                        fontSize: '0.875rem'
-                    }}>
-                        {valueDisplay}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                            {stock.price?.toFixed(2)}
+                        </div>
+                        <div style={{
+                            background: `${color}15`,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            color: color,
+                            fontWeight: 700,
+                            fontSize: '0.75rem'
+                        }}>
+                            {valueDisplay}
+                        </div>
                     </div>
                 </div>
             );
@@ -141,48 +158,52 @@ const StockList = ({ items, navigate, color, type }) => (
 export default function MarketSummary() {
     const navigate = useNavigate();
     const { prices, loading } = usePrices();
+    const { market, selectMarket } = useMarket();
+    const activeMarket = market.id;
     const [activeTab, setActiveTab] = useState('overview');
     const [activeCategory, setActiveCategory] = useState('movers'); // movers, dividend, active, marketCap, value
-    const [activeMarket, setActiveMarket] = useState(() => localStorage.getItem('activeMarket') || 'SA'); // Persist selection
+    // removed local activeMarket state
     const [lastUpdated, setLastUpdated] = useState(new Date());
+    const [showMarketDropdown, setShowMarketDropdown] = useState(false);
 
-    // Persist market selection
-    useEffect(() => {
-        localStorage.setItem('activeMarket', activeMarket);
-    }, [activeMarket]);
+
+    // removed useEffect for localStorage
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    const getMarketStatus = (market) => {
+    const getMarketStatus = (marketId) => {
         const now = new Date();
         const getMinutes = (d) => d.getHours() * 60 + d.getMinutes();
 
-        if (market === 'SA') {
-            const saudiTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }));
-            const day = saudiTime.getDay();
-            const mins = getMinutes(saudiTime);
-            const isOpen = day >= 0 && day <= 4 && mins >= 600 && mins <= 920;
-            return { isOpen, text: isOpen ? 'Market Open' : 'Market Closed', time: saudiTime };
-        }
-        if (market === 'EG') {
-            const egyptTime = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Cairo' }));
-            const day = egyptTime.getDay();
-            const mins = getMinutes(egyptTime);
-            const isOpen = day >= 0 && day <= 4 && mins >= 600 && mins <= 870;
-            return { isOpen, text: isOpen ? 'Market Open' : 'Market Closed', time: egyptTime };
-        }
-        if (market === 'US') {
-            const nyTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-            const day = nyTime.getDay();
-            const mins = getMinutes(nyTime);
-            const isOpen = day >= 1 && day <= 5 && mins >= 570 && mins <= 960;
-            return { isOpen, text: isOpen ? 'Market Open' : 'Market Closed', time: nyTime };
-        }
-        return { isOpen: true, text: 'Market Open', time: now };
+        // Market hours configuration
+        const marketHours = {
+            'SA': { tz: 'Asia/Riyadh', days: [0, 1, 2, 3, 4], openMin: 600, closeMin: 920 },
+            'EG': { tz: 'Africa/Cairo', days: [0, 1, 2, 3, 4], openMin: 600, closeMin: 870 },
+            'US': { tz: 'America/New_York', days: [1, 2, 3, 4, 5], openMin: 570, closeMin: 960 },
+            'IN': { tz: 'Asia/Kolkata', days: [1, 2, 3, 4, 5], openMin: 555, closeMin: 930 },
+            'UK': { tz: 'Europe/London', days: [1, 2, 3, 4, 5], openMin: 480, closeMin: 990 },
+            'CA': { tz: 'America/Toronto', days: [1, 2, 3, 4, 5], openMin: 570, closeMin: 960 },
+            'AU': { tz: 'Australia/Sydney', days: [1, 2, 3, 4, 5], openMin: 600, closeMin: 960 },
+            'HK': { tz: 'Asia/Hong_Kong', days: [1, 2, 3, 4, 5], openMin: 570, closeMin: 960 },
+            'DE': { tz: 'Europe/Berlin', days: [1, 2, 3, 4, 5], openMin: 540, closeMin: 1050 },
+            'JP': { tz: 'Asia/Tokyo', days: [1, 2, 3, 4, 5], openMin: 540, closeMin: 900 },
+            'AE': { tz: 'Asia/Dubai', days: [0, 1, 2, 3, 4], openMin: 600, closeMin: 840 },
+            'ZA': { tz: 'Africa/Johannesburg', days: [1, 2, 3, 4, 5], openMin: 540, closeMin: 1020 },
+            'QA': { tz: 'Asia/Qatar', days: [0, 1, 2, 3, 4], openMin: 570, closeMin: 795 }
+        };
+
+        const config = marketHours[marketId] || marketHours['US'];
+        const localTime = new Date(now.toLocaleString('en-US', { timeZone: config.tz }));
+        const day = localTime.getDay();
+        const mins = getMinutes(localTime);
+        const isOpen = config.days.includes(day) && mins >= config.openMin && mins <= config.closeMin;
+
+        return { isOpen, text: isOpen ? 'Market Open' : 'Market Closed', time: localTime };
     };
 
+    // Complete market configuration for all 13 markets
     const marketConfig = {
         'SA': {
             name: 'Saudi',
@@ -191,7 +212,7 @@ export default function MarketSummary() {
             currency: 'SAR',
             color: 'linear-gradient(135deg, #0D85D8 0%, #0ea5e9 100%)',
             chartColor: '#0D85D8',
-            filter: (s) => s.category === 'SA' || s.symbol.endsWith('.SR')
+            filter: (s) => s.category === 'SA' || s.symbol?.endsWith('.SR')
         },
         'EG': {
             name: 'EGX',
@@ -200,7 +221,7 @@ export default function MarketSummary() {
             currency: 'EGP',
             color: 'linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)',
             chartColor: '#c0392b',
-            filter: (s) => s.category === 'EG' || s.symbol.endsWith('.CA')
+            filter: (s) => s.category === 'EG' || s.symbol?.endsWith('.CA')
         },
         'US': {
             name: 'US',
@@ -209,7 +230,188 @@ export default function MarketSummary() {
             currency: 'USD',
             color: 'linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%)',
             chartColor: '#2c3e50',
-            filter: (s) => s.category === 'Global' && !s.symbol.startsWith('^')
+            filter: (s) => s.category === 'Global' || s.category === 'US' || (!s.symbol?.includes('.') && !s.symbol?.startsWith('^'))
+        },
+        'IN': {
+            name: 'NSE',
+            indexTicker: '^NSEI',
+            flag: 'https://flagcdn.com/w40/in.png',
+            currency: 'INR',
+            color: 'linear-gradient(135deg, #ff6b35 0%, #f7c45f 100%)',
+            chartColor: '#ff6b35',
+            filter: (s) => s.category === 'IN' || s.symbol?.endsWith('.NS')
+        },
+        'UK': {
+            name: 'LSE',
+            indexTicker: '^FTSE',
+            flag: 'https://flagcdn.com/w40/gb.png',
+            currency: 'GBP',
+            color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+            chartColor: '#1e3a8a',
+            filter: (s) => s.category === 'UK' || s.symbol?.endsWith('.L')
+        },
+        'CA': {
+            name: 'TSX',
+            indexTicker: '^GSPTSE',
+            flag: 'https://flagcdn.com/w40/ca.png',
+            currency: 'CAD',
+            color: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            chartColor: '#ef4444',
+            filter: (s) => s.category === 'CA' || s.symbol?.endsWith('.TO')
+        },
+        'AU': {
+            name: 'ASX',
+            indexTicker: '^AXJO',
+            flag: 'https://flagcdn.com/w40/au.png',
+            currency: 'AUD',
+            color: 'linear-gradient(135deg, #1e40af 0%, #60a5fa 100%)',
+            chartColor: '#1e40af',
+            filter: (s) => s.category === 'AU' || s.symbol?.endsWith('.AX')
+        },
+        'HK': {
+            name: 'HKEX',
+            indexTicker: '^HSI',
+            flag: 'https://flagcdn.com/w40/hk.png',
+            currency: 'HKD',
+            color: 'linear-gradient(135deg, #dc2626 0%, #f59e0b 100%)',
+            chartColor: '#dc2626',
+            filter: (s) => s.category === 'HK' || s.symbol?.endsWith('.HK')
+        },
+        'DE': {
+            name: 'XETRA',
+            indexTicker: '^GDAXI',
+            flag: 'https://flagcdn.com/w40/de.png',
+            currency: 'EUR',
+            color: 'linear-gradient(135deg, #000000 0%, #ffc107 100%)',
+            chartColor: '#000000',
+            filter: (s) => s.category === 'DE' || s.symbol?.endsWith('.DE')
+        },
+        'JP': {
+            name: 'Nikkei',
+            indexTicker: '^N225',
+            flag: 'https://flagcdn.com/w40/jp.png',
+            currency: 'JPY',
+            color: 'linear-gradient(135deg, #dc2626 0%, #ffffff 100%)',
+            chartColor: '#dc2626',
+            filter: (s) => s.category === 'JP' || s.symbol?.endsWith('.T')
+        },
+        'AE': {
+            name: 'ADX',
+            indexTicker: 'EMAAR.AE', // Using Emaar as index proxy (^ADI unavailable)
+            flag: 'https://flagcdn.com/w40/ae.png',
+            currency: 'AED',
+            color: 'linear-gradient(135deg, #00732f 0%, #ef4444 100%)',
+            chartColor: '#00732f',
+            filter: (s) => s.category === 'AE' || s.symbol?.endsWith('.AE')
+        },
+        'ZA': {
+            name: 'JSE',
+            indexTicker: 'JSE.JO', // Using JSE Ltd as index proxy (^J203 unavailable)
+            flag: 'https://flagcdn.com/w40/za.png',
+            currency: 'ZAR',
+            color: 'linear-gradient(135deg, #007749 0%, #ffd700 100%)',
+            chartColor: '#007749',
+            filter: (s) => s.category === 'ZA' || s.symbol?.endsWith('.JO')
+        },
+        'QA': {
+            name: 'QSE',
+            indexTicker: 'QNBK.QA', // Using QNB as index proxy (^QSI unavailable)
+            flag: 'https://flagcdn.com/w40/qa.png',
+            currency: 'QAR',
+            color: 'linear-gradient(135deg, #8b1538 0%, #ffffff 100%)',
+            chartColor: '#8b1538',
+            filter: (s) => s.category === 'QA' || s.symbol?.endsWith('.QA')
+        },
+        // ============= PHASE 2 TIER 1 MARKETS =============
+        'FR': {
+            name: 'CAC 40',
+            indexTicker: '^FCHI',
+            flag: 'https://flagcdn.com/w40/fr.png',
+            currency: 'EUR',
+            color: 'linear-gradient(135deg, #002654 0%, #ce1126 100%)',
+            chartColor: '#002654',
+            filter: (s) => s.category === 'FR' || s.symbol?.endsWith('.PA')
+        },
+        'CH': {
+            name: 'SMI',
+            indexTicker: '^SSMI',
+            flag: 'https://flagcdn.com/w40/ch.png',
+            currency: 'CHF',
+            color: 'linear-gradient(135deg, #ff0000 0%, #ffffff 100%)',
+            chartColor: '#ff0000',
+            filter: (s) => s.category === 'CH' || s.symbol?.endsWith('.SW')
+        },
+        'NL': {
+            name: 'AEX',
+            indexTicker: '^AEX',
+            flag: 'https://flagcdn.com/w40/nl.png',
+            currency: 'EUR',
+            color: 'linear-gradient(135deg, #21468b 0%, #ff6600 100%)',
+            chartColor: '#ff6600',
+            filter: (s) => s.category === 'NL' || s.symbol?.endsWith('.AS')
+        },
+        'ES': {
+            name: 'IBEX 35',
+            indexTicker: '^IBEX',
+            flag: 'https://flagcdn.com/w40/es.png',
+            currency: 'EUR',
+            color: 'linear-gradient(135deg, #c60b1e 0%, #ffc400 100%)',
+            chartColor: '#c60b1e',
+            filter: (s) => s.category === 'ES' || s.symbol?.endsWith('.MC')
+        },
+        'IT': {
+            name: 'FTSE MIB',
+            indexTicker: 'FTSEMIB.MI', // Using ETF proxy (^FTMIB unavailable)
+            flag: 'https://flagcdn.com/w40/it.png',
+            currency: 'EUR',
+            color: 'linear-gradient(135deg, #008c45 0%, #ce2b37 100%)',
+            chartColor: '#008c45',
+            filter: (s) => s.category === 'IT' || s.symbol?.endsWith('.MI')
+        },
+        'BR': {
+            name: 'Bovespa',
+            indexTicker: '^BVSP',
+            flag: 'https://flagcdn.com/w40/br.png',
+            currency: 'BRL',
+            color: 'linear-gradient(135deg, #009c3b 0%, #ffdf00 100%)',
+            chartColor: '#009c3b',
+            filter: (s) => s.category === 'BR' || s.symbol?.endsWith('.SA')
+        },
+        'MX': {
+            name: 'IPC Mexico',
+            indexTicker: '^MXX',
+            flag: 'https://flagcdn.com/w40/mx.png',
+            currency: 'MXN',
+            color: 'linear-gradient(135deg, #006847 0%, #ce1126 100%)',
+            chartColor: '#006847',
+            filter: (s) => s.category === 'MX' || s.symbol?.endsWith('.MX')
+        },
+        'KR': {
+            name: 'KOSPI',
+            indexTicker: '^KS11',
+            flag: 'https://flagcdn.com/w40/kr.png',
+            currency: 'KRW',
+            color: 'linear-gradient(135deg, #003478 0%, #c60c30 100%)',
+            chartColor: '#003478',
+            filter: (s) => s.category === 'KR' || s.symbol?.endsWith('.KS')
+        },
+        'TW': {
+            name: 'TAIEX',
+            indexTicker: '^TWII',
+            flag: 'https://flagcdn.com/w40/tw.png',
+            currency: 'TWD',
+            color: 'linear-gradient(135deg, #fe0000 0%, #000095 100%)',
+            chartColor: '#fe0000',
+            filter: (s) => s.category === 'TW' || s.symbol?.endsWith('.TW')
+        },
+        'SG': {
+            name: 'STI',
+            indexTicker: '^STI',
+            flag: 'https://flagcdn.com/w40/sg.png',
+            currency: 'SGD',
+            color: 'linear-gradient(135deg, #ee2536 0%, #ffffff 100%)',
+            chartColor: '#ee2536',
+            filter: (s) => s.category === 'SG' || s.symbol?.endsWith('.SI')
         }
     };
 
@@ -327,46 +529,96 @@ export default function MarketSummary() {
             paddingBottom: '6rem'
         }}>
             <div style={{ padding: '1rem 1rem 0.5rem' }}>
+                {/* Header with Burger Menu */}
                 <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '0.5rem',
-                    background: '#f1f5f9',
-                    padding: '4px',
-                    borderRadius: '16px'
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '1rem'
                 }}>
-                    {Object.entries(marketConfig).map(([key, config]) => {
-                        const words = config.name.split(' ');
-                        const firstLine = words[0];
-                        const secondLine = words.slice(1).join(' ');
-                        const isActive = activeMarket === key;
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <BurgerMenu />
+                        <div>
+                            <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#1f2937' }}>Market Summary</h1>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Real-time market data</div>
+                        </div>
+                    </div>
 
-                        return (
-                            <button
-                                key={key}
-                                onClick={() => setActiveMarket(key)}
-                                style={{
-                                    padding: '0.6rem 0.75rem',
+                    {/* Current Market Indicator - Clickable to open sidebar */}
+                    {/* Market Dropdown */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setShowMarketDropdown(!showMarketDropdown)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                background: currentMarket.color,
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '0.5rem 1rem',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                minWidth: '110px',
+                                justifyContent: 'space-between'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <img src={currentMarket.flag} style={{ width: '20px', borderRadius: '3px' }} alt="" />
+                                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white' }}>{currentMarket.name}</span>
+                            </div>
+                            <ChevronRight size={14} color="white" style={{ transform: showMarketDropdown ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showMarketDropdown && (
+                            <>
+                                <div
+                                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40 }}
+                                    onClick={() => setShowMarketDropdown(false)}
+                                />
+                                <div className="animate-fade-in" style={{
+                                    position: 'absolute',
+                                    top: '110%',
+                                    right: 0,
+                                    background: 'white',
                                     borderRadius: '12px',
-                                    border: 'none',
-                                    background: isActive ? '#0284c7' : 'transparent',
-                                    color: isActive ? 'white' : '#475569',
-                                    fontWeight: 700,
-                                    boxShadow: isActive ? '0 2px 8px rgba(2, 132, 199, 0.3)' : 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    transition: 'all 0.2s ease'
-                                }}
-                            >
-                                <img src={config.flag} style={{ width: '20px', borderRadius: '3px' }} alt="" />
-                                <span style={{ fontSize: '0.85rem', fontWeight: 800 }}>{config.name}</span>
-                            </button>
-                        );
-                    })}
+                                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                                    padding: '0.5rem',
+                                    zIndex: 50,
+                                    minWidth: '180px',
+                                    maxHeight: '400px',
+                                    overflowY: 'auto'
+                                }}>
+                                    {Object.entries(marketConfig).map(([id, config]) => (
+                                        <button
+                                            key={id}
+                                            onClick={() => {
+                                                selectMarket(id);
+                                                setShowMarketDropdown(false);
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                border: 'none',
+                                                background: market.id === id ? '#f1f5f9' : 'transparent',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                textAlign: 'left'
+                                            }}
+                                        >
+                                            <img src={config.flag} style={{ width: '20px', borderRadius: '3px' }} alt="" />
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1f2937' }}>{config.name}</span>
+                                            {market.id === id && <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -407,7 +659,7 @@ export default function MarketSummary() {
                     <IndexChart
                         symbol={currentMarket.indexTicker}
                         color={currentMarket.chartColor}
-                        visibleRanges={activeMarket === 'EG' ? ['1D', '5D', '1M'] : undefined}
+                    // All markets now get all range options
                     />
                 </Card>
             </div>
@@ -557,7 +809,31 @@ export default function MarketSummary() {
                                 <Card style={{ padding: '0', overflow: 'hidden' }}>
                                     {newsItems.slice(0, 5).map((news, i) => (
                                         <div key={i} onClick={() => navigate('/news', { state: { article: news } })} style={{ padding: '1rem', borderBottom: i === 0 ? '1px solid #f1f5f9' : 'none', cursor: 'pointer', display: 'flex', gap: '1rem' }}>
-                                            {news.thumbnail && <img src={news.thumbnail.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(news.thumbnail)}` : news.thumbnail} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} alt="" />}
+                                            <div style={{
+                                                width: '60px',
+                                                height: '60px',
+                                                borderRadius: '8px',
+                                                overflow: 'hidden',
+                                                background: '#f1f5f9',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}>
+                                                {news.thumbnail ? (
+                                                    <img
+                                                        src={news.thumbnail.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(news.thumbnail)}` : news.thumbnail}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                        alt=""
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentNode.innerHTML = '<span style="font-size:1.5rem">📰</span>';
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <span style={{ fontSize: '1.5rem' }}>📰</span>
+                                                )}
+                                            </div>
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem', lineHeight: 1.3 }}>{news.title}</div>
                                                 <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{news.publisher} • {timeAgo(news.time)}</div>

@@ -1,60 +1,27 @@
 {
-    "functions": {
-        "api/news.js": {
-            "maxDuration": 30
+    "version": 2,
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build"
         },
-        "api/x-community.js": {
-            "maxDuration": 30
+        {
+            "src": "api/*.js",
+            "use": "@vercel/node"
         }
-    },
-    "rewrites": [
+    ],
+    "routes": [
         {
-            "source": "/api/x-community",
-            "destination": "/api/x-community.js"
+            "src": "/api/(.*)",
+            "dest": "/api/$1.js"
         },
         {
-            "source": "/api/stocks",
-            "destination": "/api/stocks.js"
+            "handle": "filesystem"
         },
         {
-            "source": "/api/news",
-            "destination": "/api/news.js"
-        },
-        {
-            "source": "/api/chart",
-            "destination": "/api/chart.js"
-        },
-        {
-            "source": "/api/proxy-image",
-            "destination": "/api/proxy-image.js"
-        },
-        {
-            "source": "/api/debug",
-            "destination": "/api/debug.js"
-        },
-        {
-            "source": "/api/news/content",
-            "destination": "/api/content.js"
-        },
-        {
-            "source": "/api/translate",
-            "destination": "/api/translate.js"
-        },
-        {
-            "source": "/api/ai-insight",
-            "destination": "/api/ai-insight.js"
-        },
-        {
-            "source": "/api/stock-profile",
-            "destination": "/api/stock-profile.js"
-        },
-        {
-            "source": "/api/chatbot",
-            "destination": "/api/chatbot.js"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
-    ]
+    ],
+    "outputDirectory": "dist"
 }

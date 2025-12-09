@@ -31,13 +31,21 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
                 if (json.quotes && json.quotes.length > 0) {
                     let quotes = json.quotes;
 
+                    // NORMALIZE: API may return 'close' (OHLC) or 'price' field - unify to 'price'
+                    quotes = quotes.map(q => ({
+                        ...q,
+                        price: q.price ?? q.close ?? null
+                    }));
+
                     // Simple calc for range change
                     const first = quotes[0].price;
                     const last = quotes[quotes.length - 1].price;
-                    setStats({
-                        change: last - first,
-                        percent: ((last - first) / first) * 100
-                    });
+                    if (first && last) {
+                        setStats({
+                            change: last - first,
+                            percent: ((last - first) / first) * 100
+                        });
+                    }
 
                     // --- ENHANCEMENT: Add Future Period Markers ---
                     // We add 2 extra empty points to extend the X-axis

@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
+import { useMarket } from '../context/MarketContext';
 import { BookOpen, TrendingUp, Target, Award, Lock, Play, CheckCircle, Clock } from 'lucide-react';
 
 export default function Academy() {
     const navigate = useNavigate();
+    const { market } = useMarket();
     const [selectedCategory, setSelectedCategory] = useState('All');
 
     // Scroll to top on mount
@@ -110,7 +112,7 @@ export default function Academy() {
             {/* Header */}
             <div className="animate-fade-in">
                 <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                    <h1 className="h1" style={{ fontSize: '2.5rem' }}>📚 Academy</h1>
+                    <h1 className="h1" style={{ fontSize: '2.5rem' }}>{market.flag} Academy</h1>
                     <BurgerMenu />
                 </div>
                 <p className="body-sm">Master the markets. Level up your skills.</p>

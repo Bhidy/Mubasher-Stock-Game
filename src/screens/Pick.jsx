@@ -3,16 +3,33 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Info, Check, Lock, AlertTriangle, X } from 'lucide-react';
 import { UserContext } from '../App';
 import { usePrices } from '../context/PriceContext';
-import StockCard from '../components/StockCard';
+import StockCard, {
+    SAUDI_STOCKS,
+    US_STOCKS,
+    EGYPT_STOCKS,
+    INDIA_STOCKS,
+    UK_STOCKS,
+    CANADA_STOCKS,
+    AUSTRALIA_STOCKS,
+    HONGKONG_STOCKS,
+    GERMANY_STOCKS,
+    JAPAN_STOCKS,
+    UAE_STOCKS,
+    SOUTHAFRICA_STOCKS,
+    QATAR_STOCKS
+} from '../components/StockCard';
 import BurgerMenu from '../components/BurgerMenu';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Badge from '../components/Badge';
 import Toast from '../components/Toast';
 
+import { useMarket } from '../context/MarketContext';
+
 export default function Pick() {
     const { user, setUser } = useContext(UserContext);
     const { prices } = usePrices();
+    const { market } = useMarket();
     const navigate = useNavigate();
     const [selected, setSelected] = useState([]);
     const [filter, setFilter] = useState('All');
@@ -23,55 +40,64 @@ export default function Pick() {
         window.scrollTo(0, 0);
     }, []);
 
+    // Reset selection when market changes
+    useEffect(() => {
+        setSelected([]);
+        setFilter('All');
+    }, [market.id]);
 
     const filters = ['All', '🔥 Trending', '🛡️ Safe', '⚡ Volatile'];
 
-    // Import stock data from StockCard
-    const STOCK_DATA = {
-        '2222': { name: 'Saudi Aramco', tag: 'safe' },
-        '1120': { name: 'Al Rajhi Bank', tag: 'safe' },
-        '2010': { name: 'SABIC', tag: 'trending' },
-        '7010': { name: 'STC', tag: 'safe' },
-        '2082': { name: 'ACWA Power', tag: 'volatile' },
-        '1180': { name: 'SNB', tag: 'safe' },
-        '2380': { name: 'Petro Rabigh', tag: 'volatile' },
-        '4030': { name: 'Al Babtain', tag: 'trending' },
-        '2350': { name: 'SIDC', tag: 'volatile' },
-        '4200': { name: 'Aldrees', tag: 'trending' },
-        '1211': { name: 'Alinma Bank', tag: 'safe' },
-        '4001': { name: 'Abdullah Al-Othaim', tag: 'trending' },
-        '2310': { name: 'Sipchem', tag: 'volatile' },
-        '4003': { name: 'Extra', tag: 'trending' },
-        '2050': { name: 'Savola', tag: 'safe' },
-        '1150': { name: 'Amlak', tag: 'volatile' },
-        '4190': { name: 'Jarir', tag: 'trending' },
-        '2290': { name: 'Yanbu Cement', tag: 'safe' },
-        '4002': { name: 'Mouwasat', tag: 'safe' },
-        '1010': { name: 'Riyad Bank', tag: 'safe' },
+    // Get stock data for current market
+    const getStockDataForMarket = (marketId) => {
+        const marketStockMap = {
+            'SA': SAUDI_STOCKS,
+            'EG': EGYPT_STOCKS,
+            'US': US_STOCKS,
+            'IN': INDIA_STOCKS,
+            'UK': UK_STOCKS,
+            'CA': CANADA_STOCKS,
+            'AU': AUSTRALIA_STOCKS,
+            'HK': HONGKONG_STOCKS,
+            'DE': GERMANY_STOCKS,
+            'JP': JAPAN_STOCKS,
+            'AE': UAE_STOCKS,
+            'ZA': SOUTHAFRICA_STOCKS,
+            'QA': QATAR_STOCKS
+        };
+        return marketStockMap[marketId] || SAUDI_STOCKS;
     };
 
-    // Map context prices to component format (20 stocks)
-    // Merge API prices with static data to ensure all 20 stocks are shown
+    const STOCK_DATA = getStockDataForMarket(market.id);
+
+    // Map context prices to component format
+    // Merge API prices with static data to ensure stocks are shown
     const availableStocks = Object.entries(STOCK_DATA)
-        .sort(([tickerA], [tickerB]) => {
-            if (tickerA === '2222') return -1;
-            if (tickerB === '2222') return 1;
-            return 0;
-        })
         .map(([ticker, data], index) => {
             // Find price data for this ticker if available
-            const priceKey = Object.keys(prices).find(k => k.startsWith(ticker));
+            // This fuzzy matching handles both '2222' -> '2222.SR' and 'AAPL' -> 'AAPL'
+            const priceKey = Object.keys(prices).find(k => k.startsWith(ticker) || k === ticker + market.suffix);
             const priceData = priceKey ? prices[priceKey] : null;
 
             return {
-                id: index + 1,
+                id: getMarketIdPrefix(market.id) + index, // Unique ID across markets
                 ticker: ticker,
                 name: data.name,
                 price: priceData ? priceData.price : (50 + Math.random() * 150), // Fallback price
                 change: priceData ? priceData.changePercent : ((Math.random() - 0.5) * 4), // Fallback change
-                tag: data.tag
+                tag: data.tag || 'safe'
             };
         });
+
+    // Simple helper to generate unique IDs per market
+    function getMarketIdPrefix(marketId) {
+        const prefixMap = {
+            'SA': 0, 'EG': 1000, 'US': 2000, 'IN': 3000, 'UK': 4000,
+            'CA': 5000, 'AU': 6000, 'HK': 7000, 'DE': 8000, 'JP': 9000,
+            'AE': 10000, 'ZA': 11000, 'QA': 12000
+        };
+        return prefixMap[marketId] || 0;
+    }
 
     const toggleStock = (stock) => {
         if (selected.find(s => s.id === stock.id)) {

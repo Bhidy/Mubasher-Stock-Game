@@ -7,9 +7,12 @@ import { Users, MessageCircle, ThumbsUp, TrendingUp, Share2, Award, Flame, Targe
 import { StockLogo, SAUDI_STOCKS } from '../components/StockCard';
 import { usePrices } from '../context/PriceContext';
 
+import { useMarket } from '../context/MarketContext';
+
 export default function Community() {
     const navigate = useNavigate();
     const { prices } = usePrices();
+    const { market } = useMarket();
     const [activeTab, setActiveTab] = useState('Feed');
     const [likedPosts, setLikedPosts] = useState([]);
     const [activeCommentsPostId, setActiveCommentsPostId] = useState(null);
@@ -20,67 +23,58 @@ export default function Community() {
     }, []);
 
     const dummyComments = [
-        { id: 1, author: 'Faisal', text: 'Great analysis! I agree with 2222.', time: '10m ago' },
-        { id: 2, author: 'Noura', text: 'What is your target price for 1120?', time: '5m ago' },
+        { id: 1, author: 'Faisal', text: 'Great analysis! I agree.', time: '10m ago' },
+        { id: 2, author: 'Noura', text: 'What is your target price?', time: '5m ago' },
         { id: 3, author: 'Salem', text: 'Following this strategy. Thanks!', time: '1m ago' },
     ];
 
     const tabs = ['Feed', 'Top Picks', 'Discussions'];
 
-    const posts = [
-        {
-            id: 1,
-            author: 'Yasser Al-Qahtani',
-            avatar: '👑',
-            time: '2h ago',
-            content: 'Just locked in 2222, 1120, and 2010 for today. Feeling bullish! 🚀',
-            likes: 124,
-            comments: 18,
-            picks: ['2222', '1120', '2010'],
-            badge: 'Top 1%'
-        },
-        {
-            id: 2,
-            author: 'Saad Al-Harbi',
-            avatar: '💎',
-            time: '4h ago',
-            content: 'My 7-day streak strategy: Always pick one safe stock, one volatile, and one trending. Works like magic! ✨',
-            likes: 89,
-            comments: 12,
-            badge: 'Streak Master'
-        },
-        {
-            id: 3,
-            author: 'Majed Abdullah',
-            avatar: '🚀',
-            time: '6h ago',
-            content: 'ACWA Power is looking spicy today! Who else is riding the wave? 🌊',
-            likes: 156,
-            comments: 34,
-            picks: ['4061'],
-            badge: 'Risk Taker'
-        },
-    ];
+    const POSTS_DATA = {
+        'SA': [
+            { id: 1, author: 'Yasser Al-Qahtani', avatar: '👑', time: '2h ago', content: 'Just locked in 2222, 1120, and 2010 for today. Feeling bullish! 🚀', likes: 124, comments: 18, picks: ['2222', '1120', '2010'], badge: 'Top 1%' },
+            { id: 2, author: 'Saad Al-Harbi', avatar: '💎', time: '4h ago', content: 'My 7-day streak strategy: Always pick one safe stock, one volatile, and one trending. Works like magic! ✨', likes: 89, comments: 12, badge: 'Streak Master' },
+            { id: 3, author: 'Majed Abdullah', avatar: '🚀', time: '6h ago', content: 'ACWA Power is looking spicy today! Who else is riding the wave? 🌊', likes: 156, comments: 34, picks: ['4061'], badge: 'Risk Taker' },
+        ],
+        'EG': [
+            { id: 1, author: 'Ahmed Hassan', avatar: '🦅', time: '1h ago', content: 'CIB (COMI) is looking very strong today. Breakout imminent!', likes: 230, comments: 45, picks: ['COMI'], badge: 'Expert' },
+            { id: 2, author: 'Mona El-Said', avatar: '💼', time: '3h ago', content: 'Watching HRHO closely. Volumes are increasing.', likes: 112, comments: 20, picks: ['HRHO'], badge: 'Analyst' },
+        ],
+        'US': [
+            { id: 1, author: 'John Smith', avatar: '🇺🇸', time: '30m ago', content: 'Tesla (TSLA) earnings play? Who is in?', likes: 540, comments: 120, picks: ['TSLA'], badge: 'Pro' },
+            { id: 2, author: 'Sarah Connor', avatar: '🤖', time: '2h ago', content: 'NVDA still has room to run. AI revolution is just starting.', likes: 890, comments: 210, picks: ['NVDA'], badge: 'Visionary' },
+        ]
+    };
 
-    // Top Picks - Using REAL prices from API (picks count is simulated for now as it comes from user data)
-    const topPicksBase = [
-        { ticker: '2222', picks: 4291 },
-        { ticker: '1120', picks: 3847 },
-        { ticker: '2010', picks: 2156 },
-        { ticker: '7010', picks: 1892 },
-        { ticker: '2082', picks: 1534 },
-        { ticker: '1180', picks: 1423 },
-        { ticker: '2380', picks: 1287 },
-        { ticker: '4030', picks: 1156 },
-        { ticker: '2350', picks: 1089 },
-        { ticker: '4200', picks: 998 },
-    ];
+    const posts = POSTS_DATA[market.id] || POSTS_DATA['SA'];
+
+    // Top Picks - Using REAL prices from API
+    const TOP_PICKS_DATA = {
+        'SA': [
+            { ticker: '2222', picks: 4291 }, { ticker: '1120', picks: 3847 }, { ticker: '2010', picks: 2156 },
+            { ticker: '7010', picks: 1892 }, { ticker: '2082', picks: 1534 }, { ticker: '1180', picks: 1423 },
+            { ticker: '2380', picks: 1287 }, { ticker: '4030', picks: 1156 }, { ticker: '2350', picks: 1089 }, { ticker: '4200', picks: 998 }
+        ],
+        'EG': [
+            { ticker: 'COMI', picks: 5200 }, { ticker: 'HRHO', picks: 3100 }, { ticker: 'ESRS', picks: 2800 },
+            { ticker: 'EAST', picks: 2500 }, { ticker: 'TMGH', picks: 2100 }
+        ],
+        'US': [
+            { ticker: 'NVDA', picks: 15400 }, { ticker: 'TSLA', picks: 12300 }, { ticker: 'AAPL', picks: 11000 },
+            { ticker: 'AMD', picks: 9800 }, { ticker: 'AMZN', picks: 8500 }
+        ]
+    };
+
+    const topPicksBase = TOP_PICKS_DATA[market.id] || TOP_PICKS_DATA['SA'];
 
     const topPicks = topPicksBase.map(pick => {
-        const stockData = prices[`${pick.ticker}.SR`] || {};
-        const stockMeta = SAUDI_STOCKS[pick.ticker] || {};
+        const suffix = market.suffix || (market.id === 'SA' ? '.SR' : market.id === 'EG' ? '.CA' : '');
+        const fullTicker = pick.ticker.includes('.') ? pick.ticker : `${pick.ticker}${suffix}`;
+        const stockData = prices[fullTicker] || {};
+        const stockMeta = SAUDI_STOCKS[pick.ticker] || {}; // Fallback for names
         return {
-            ticker: pick.ticker,
+            ticker: pick.ticker, // Display ticker
+            fullTicker: fullTicker, // Navigation ticker
             name: stockMeta.name || stockData.name || pick.ticker,
             price: stockData.price || stockData.regularMarketPrice || 0,
             picks: pick.picks,
@@ -361,7 +355,7 @@ export default function Community() {
                     <h3 className="h3" style={{ marginBottom: '1rem' }}>Most Popular Picks Today</h3>
                     <div className="flex-col" style={{ gap: '0.75rem' }}>
                         {topPicks.map((stock, index) => (
-                            <Card key={stock.ticker} onClick={() => navigate(`/company/${stock.ticker}`)} style={{
+                            <Card key={stock.ticker} onClick={() => navigate(`/company/${stock.fullTicker || stock.ticker}`)} style={{
                                 padding: '1rem 1.25rem',
                                 animationDelay: `${index * 0.05}s`,
                                 cursor: 'pointer',

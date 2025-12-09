@@ -286,200 +286,203 @@ export default function Chatbot() {
                 <Sparkles size={24} color="white" />
             </button>
 
-            {/* Chat Window */}
-            <div style={{
-                position: 'fixed',
-                bottom: 'calc(var(--nav-height) + 1rem)',
-                right: '1rem',
-                width: 'min(380px, calc(100vw - 2rem))',
-                height: 'min(560px, calc(100vh - var(--nav-height) - 3rem))',
-                background: 'white',
-                borderRadius: '24px',
-                boxShadow: '0 25px 80px rgba(0,0,0,0.25)',
-                display: 'flex',
-                flexDirection: 'column',
-                zIndex: 100,
-                overflow: 'hidden',
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                transform: showChat ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(20px)',
-                opacity: showChat ? 1 : 0,
-                pointerEvents: showChat ? 'auto' : 'none',
-                border: '1px solid rgba(0,0,0,0.08)'
-            }}>
-                {/* Header */}
+            {/* Chat Window - Only render when visible to prevent click interference */}
+            {showChat && (
                 <div style={{
-                    padding: '1rem 1.25rem',
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{
-                        position: 'absolute', right: -20, top: -20,
-                        width: 100, height: 100, borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(16,185,129,0.3) 0%, transparent 70%)'
-                    }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 1 }}>
-                        <div style={{
-                            width: 44, height: 44, borderRadius: '14px',
-                            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                        }}>
-                            <Sparkles size={22} color="white" />
-                        </div>
-                        <div>
-                            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Hero Ai</h3>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div style={{
-                                    width: 8, height: 8, borderRadius: '50%',
-                                    background: '#22c55e', boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)'
-                                }} />
-                                <p style={{ fontSize: '0.7rem', opacity: 0.9 }}>Online • Powered by Groq</p>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setShowChat(false)}
-                        style={{
-                            background: 'rgba(255,255,255,0.1)', border: 'none',
-                            width: 36, height: 36, borderRadius: '10px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', color: 'white', zIndex: 1
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-
-                {/* Messages */}
-                <div style={{
-                    flex: 1,
-                    padding: '1.25rem',
-                    overflowY: 'auto',
+                    position: 'fixed',
+                    bottom: 'calc(var(--nav-height) + 1rem)',
+                    right: '1rem',
+                    width: 'min(380px, calc(100vw - 2rem))',
+                    height: 'min(560px, calc(100vh - var(--nav-height) - 3rem))',
+                    background: 'white',
+                    borderRadius: '24px',
+                    boxShadow: '0 25px 80px rgba(0,0,0,0.25)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '1rem',
-                    background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+                    zIndex: 100,
+                    overflow: 'hidden',
+                    animation: 'chatSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    border: '1px solid rgba(0,0,0,0.08)'
                 }}>
-                    {messages.map(msg => (
-                        <MessageBubble key={msg.id} message={msg} />
-                    ))}
-                    {isLoading && <TypingIndicator />}
-                    <div ref={messagesEndRef} />
-                </div>
-
-                {/* Input Area */}
-                <div style={{
-                    padding: '1rem',
-                    background: 'white',
-                    borderTop: '1px solid #e2e8f0'
-                }}>
-                    {/* Suggested Questions */}
-                    {messages.length <= 2 && !isLoading && (
+                    {/* Header */}
+                    <div style={{
+                        padding: '1rem 1.25rem',
+                        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        color: 'white',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
                         <div style={{
-                            display: 'flex',
-                            gap: '8px',
-                            overflowX: 'auto',
-                            paddingBottom: '12px',
-                            scrollbarWidth: 'none'
-                        }}>
-                            {suggestedQuestions.map((q, i) => {
-                                const Icon = q.icon;
-                                return (
-                                    <button
-                                        key={i}
-                                        onClick={() => sendMessage(q.text)}
-                                        style={{
-                                            padding: '8px 14px',
-                                            borderRadius: '12px',
-                                            border: '1px solid #e2e8f0',
-                                            background: 'white',
-                                            color: '#475569',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 600,
-                                            whiteSpace: 'nowrap',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.borderColor = '#10b981';
-                                            e.currentTarget.style.background = '#f0fdf4';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.borderColor = '#e2e8f0';
-                                            e.currentTarget.style.background = 'white';
-                                        }}
-                                    >
-                                        <Icon size={14} color="#10b981" />
-                                        {q.text}
-                                    </button>
-                                );
-                            })}
+                            position: 'absolute', right: -20, top: -20,
+                            width: 100, height: 100, borderRadius: '50%',
+                            background: 'radial-gradient(circle, rgba(16,185,129,0.3) 0%, transparent 70%)'
+                        }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 1 }}>
+                            <div style={{
+                                width: 44, height: 44, borderRadius: '14px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                            }}>
+                                <Sparkles size={22} color="white" />
+                            </div>
+                            <div>
+                                <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Hero Ai</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{
+                                        width: 8, height: 8, borderRadius: '50%',
+                                        background: '#22c55e', boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)'
+                                    }} />
+                                    <p style={{ fontSize: '0.7rem', opacity: 0.9 }}>Online • Powered by Groq</p>
+                                </div>
+                            </div>
                         </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyPress}
-                            placeholder={isLoading ? "AI is thinking..." : "Ask about any stock..."}
-                            disabled={isLoading}
-                            style={{
-                                flex: 1,
-                                padding: '14px 18px',
-                                borderRadius: '16px',
-                                border: '2px solid #e2e8f0',
-                                fontSize: '0.9375rem',
-                                outline: 'none',
-                                transition: 'all 0.2s',
-                                background: isLoading ? '#f8fafc' : 'white'
-                            }}
-                            onFocus={e => e.target.style.borderColor = '#10b981'}
-                            onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                        />
                         <button
-                            onClick={() => sendMessage(input)}
-                            disabled={isLoading || !input.trim()}
+                            onClick={() => setShowChat(false)}
                             style={{
-                                width: '52px',
-                                height: '52px',
-                                borderRadius: '16px',
-                                background: isLoading || !input.trim()
-                                    ? '#e2e8f0'
-                                    : 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-                                border: 'none',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
-                                color: 'white',
-                                boxShadow: isLoading || !input.trim() ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.3)',
-                                transition: 'all 0.2s'
+                                background: 'rgba(255,255,255,0.1)', border: 'none',
+                                width: 36, height: 36, borderRadius: '10px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', color: 'white', zIndex: 1
                             }}
                         >
-                            {isLoading ? (
-                                <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
-                            ) : (
-                                <Send size={22} />
-                            )}
+                            <X size={20} />
                         </button>
                     </div>
+
+                    {/* Messages */}
+                    <div style={{
+                        flex: 1,
+                        padding: '1.25rem',
+                        overflowY: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                        background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+                    }}>
+                        {messages.map(msg => (
+                            <MessageBubble key={msg.id} message={msg} />
+                        ))}
+                        {isLoading && <TypingIndicator />}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input Area */}
+                    <div style={{
+                        padding: '1rem',
+                        background: 'white',
+                        borderTop: '1px solid #e2e8f0'
+                    }}>
+                        {/* Suggested Questions */}
+                        {messages.length <= 2 && !isLoading && (
+                            <div style={{
+                                display: 'flex',
+                                gap: '8px',
+                                overflowX: 'auto',
+                                paddingBottom: '12px',
+                                scrollbarWidth: 'none'
+                            }}>
+                                {suggestedQuestions.map((q, i) => {
+                                    const Icon = q.icon;
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => sendMessage(q.text)}
+                                            style={{
+                                                padding: '8px 14px',
+                                                borderRadius: '12px',
+                                                border: '1px solid #e2e8f0',
+                                                background: 'white',
+                                                color: '#475569',
+                                                fontSize: '0.8rem',
+                                                fontWeight: 600,
+                                                whiteSpace: 'nowrap',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.borderColor = '#10b981';
+                                                e.currentTarget.style.background = '#f0fdf4';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.borderColor = '#e2e8f0';
+                                                e.currentTarget.style.background = 'white';
+                                            }}
+                                        >
+                                            <Icon size={14} color="#10b981" />
+                                            {q.text}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyPress}
+                                placeholder={isLoading ? "AI is thinking..." : "Ask about any stock..."}
+                                disabled={isLoading}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px 18px',
+                                    borderRadius: '16px',
+                                    border: '2px solid #e2e8f0',
+                                    fontSize: '0.9375rem',
+                                    outline: 'none',
+                                    transition: 'all 0.2s',
+                                    background: isLoading ? '#f8fafc' : 'white'
+                                }}
+                                onFocus={e => e.target.style.borderColor = '#10b981'}
+                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                            />
+                            <button
+                                onClick={() => sendMessage(input)}
+                                disabled={isLoading || !input.trim()}
+                                style={{
+                                    width: '52px',
+                                    height: '52px',
+                                    borderRadius: '16px',
+                                    background: isLoading || !input.trim()
+                                        ? '#e2e8f0'
+                                        : 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                                    border: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
+                                    color: 'white',
+                                    boxShadow: isLoading || !input.trim() ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.3)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {isLoading ? (
+                                    <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
+                                ) : (
+                                    <Send size={22} />
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
 
             <style>{`
                 @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
+                }
+                @keyframes chatSlideIn {
+                    from { transform: scale(0.9) translateY(20px); opacity: 0; }
+                    to { transform: scale(1) translateY(0); opacity: 1; }
                 }
             `}</style>
         </>

@@ -1,214 +1,251 @@
+// Stock Profile API - Full Company Data from Yahoo Finance
+// Version: 2.0.1 - ES Module Format
+
 import YahooFinance from 'yahoo-finance2';
 
-// Version: 1.0.0 - Stock Profile API with Full Fundamentals
-// Deployed: 2025-12-08
-
-// Initialize Yahoo Finance
 const yahooFinance = new YahooFinance();
 
-// Stock name metadata
-const STOCK_NAMES = {
-    // Saudi Stocks
-    '2222.SR': 'Saudi Aramco', '1120.SR': 'Al Rajhi Bank', '2010.SR': 'SABIC',
-    '7010.SR': 'STC', '2082.SR': 'ACWA Power', '1180.SR': 'Saudi National Bank',
-    '2050.SR': 'Savola', '1150.SR': 'Alinma', '1010.SR': 'Riyad Bank',
-    '1211.SR': "Ma'aden", '4200.SR': 'Aldrees', '4002.SR': 'Mouwasat',
-    // Egypt Stocks
-    'COMI.CA': 'CIB Bank', 'HRHO.CA': 'EFG Hermes', 'TMGH.CA': 'TMG Holding',
-    'SWDY.CA': 'Elsewedy', 'ETEL.CA': 'Telecom Egypt', 'FWRY.CA': 'Fawry',
-    // US Stocks
-    'AAPL': 'Apple', 'MSFT': 'Microsoft', 'GOOG': 'Alphabet', 'AMZN': 'Amazon',
-    'TSLA': 'Tesla', 'NVDA': 'Nvidia', 'META': 'Meta'
+// Robust Vercel Cache
+const cache = new Map();
+const CACHE_TTL = 60 * 1000; // 1 minute cache
+
+// Helper to safely get raw values from Yahoo Finance response objects
+const getVal = (obj, key) => {
+    if (!obj || !key) return null;
+    const val = obj[key];
+    if (val === undefined || val === null) return null;
+    // Yahoo sometimes returns { raw: number, fmt: string }
+    if (typeof val === 'object' && val.raw !== undefined) return val.raw;
+    return val;
 };
 
-// List of modules to fetch for complete data
-const QUOTE_MODULES = [
-    'price',
-    'summaryDetail',
-    'summaryProfile',
-    'financialData',
-    'defaultKeyStatistics',
-    'recommendationTrend',
-    'upgradeDowngradeHistory',
-    'earningsTrend'
-];
-
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Credentials', true);
+    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
     const { symbol } = req.query;
-    if (!symbol) {
-        return res.status(400).json({ error: 'Symbol required' });
+    if (!symbol) return res.status(400).json({ error: 'Symbol required' });
+
+    // Cache Check
+    if (cache.has(symbol)) {
+        const c = cache.get(symbol);
+        if (Date.now() - c.ts < CACHE_TTL) {
+            return res.status(200).json(c.data);
+        }
     }
 
     try {
-        // Suppress warnings
-        if (typeof yahooFinance.suppressNotices === 'function') {
-            yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
-        }
+        // STRATEGY: Fetch Quote and QuoteSummary in parallel
+        // Quote gives us real-time price data
+        // QuoteSummary gives us detailed fundamentals
 
-        console.log(`📊 Fetching full profile for ${symbol}...`);
-
-        // Fetch comprehensive data using quoteSummary
-        const [quoteSummary, quote] = await Promise.all([
-            yahooFinance.quoteSummary(symbol, { modules: QUOTE_MODULES }).catch(e => {
-                console.error(`quoteSummary error for ${symbol}:`, e.message);
-                return null;
-            }),
-            yahooFinance.quote(symbol).catch(e => {
-                console.error(`quote error for ${symbol}:`, e.message);
-                return null;
+        const [quoteResult, summaryResult] = await Promise.allSettled([
+            yahooFinance.quote(symbol),
+            yahooFinance.quoteSummary(symbol, {
+                modules: [
+                    'assetProfile',
+                    'summaryDetail',
+                    'defaultKeyStatistics',
+                    'financialData',
+                    'earnings'
+                ]
             })
         ]);
 
-        if (!quoteSummary && !quote) {
-            return res.status(404).json({
-                error: 'Stock not found',
-                symbol
-            });
+        // Extract results (use empty object if failed)
+        const q = quoteResult.status === 'fulfilled' ? quoteResult.value : {};
+        const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : {};
+
+        // Log any failures for debugging
+        if (quoteResult.status === 'rejected') {
+            console.error(`Quote failed for ${symbol}:`, quoteResult.reason?.message);
+        }
+        if (summaryResult.status === 'rejected') {
+            console.error(`Summary failed for ${symbol}:`, summaryResult.reason?.message);
         }
 
-        // Merge all data sources
-        const price = quoteSummary?.price || {};
-        const summaryDetail = quoteSummary?.summaryDetail || {};
-        const summaryProfile = quoteSummary?.summaryProfile || {};
-        const financialData = quoteSummary?.financialData || {};
-        const keyStats = quoteSummary?.defaultKeyStatistics || {};
-        const recommendation = quoteSummary?.recommendationTrend?.trend || [];
+        // Destructure summary modules
+        const p = summary.assetProfile || {};
+        const s = summary.summaryDetail || {};
+        const d = summary.defaultKeyStatistics || {};
+        const f = summary.financialData || {};
+        const e = summary.earnings || {};
 
-        // Build comprehensive response
-        const stockData = {
+        // === SMART CALCULATIONS FOR MISSING DATA ===
+        const price = q.regularMarketPrice || getVal(s, 'previousClose') || 0;
+        const mktCap = q.marketCap || getVal(s, 'marketCap') || 0;
+        const pe = q.trailingPE || getVal(s, 'trailingPE') || 0;
+
+        // Calculate Shares Outstanding if missing
+        let shares = getVal(d, 'sharesOutstanding');
+        if (!shares && price > 0 && mktCap > 0) {
+            shares = Math.round(mktCap / price);
+        }
+
+        // Calculate EPS if missing
+        let eps = q.epsTrailingTwelveMonths || getVal(d, 'trailingEps');
+        if (!eps && price > 0 && pe > 0) {
+            eps = price / pe;
+        }
+
+        // Calculate Revenue if missing (using P/S ratio)
+        let revenue = getVal(f, 'totalRevenue');
+        const psRatio = getVal(s, 'priceToSalesTrailing12Months');
+        if (!revenue && psRatio && mktCap > 0) {
+            revenue = mktCap / psRatio;
+        }
+
+        // Calculate Dividend info
+        let divYield = q.trailingAnnualDividendYield || getVal(s, 'dividendYield');
+        let divRate = q.trailingAnnualDividendRate || getVal(s, 'trailingAnnualDividendRate');
+        if (!divRate && divYield && price > 0) {
+            divRate = price * divYield;
+        }
+        if (!divYield && divRate && price > 0) {
+            divYield = divRate / price;
+        }
+
+        // Calculate Price to Book
+        let priceToBook = q.priceToBook || getVal(d, 'priceToBook');
+        const bookValue = q.bookValue || getVal(d, 'bookValue');
+        if (!priceToBook && price > 0 && bookValue > 0) {
+            priceToBook = price / bookValue;
+        }
+
+        // Calculate Enterprise Value
+        let enterpriseValue = getVal(d, 'enterpriseValue');
+        const totalDebt = getVal(f, 'totalDebt');
+        const totalCash = getVal(f, 'totalCash');
+        if (!enterpriseValue && mktCap > 0) {
+            enterpriseValue = mktCap + (totalDebt || 0) - (totalCash || 0);
+        }
+
+        // === BUILD COMPLETE PROFILE OBJECT ===
+        const profile = {
             // Basic Info
             symbol: symbol,
-            shortName: quote?.shortName || price?.shortName || STOCK_NAMES[symbol] || symbol,
-            longName: quote?.longName || price?.longName || STOCK_NAMES[symbol] || symbol,
-            exchange: quote?.exchange || price?.exchange || 'Unknown',
-            currency: quote?.currency || price?.currency || (symbol.includes('.SR') ? 'SAR' : (symbol.includes('.CA') ? 'EGP' : 'USD')),
+            name: q.longName || q.shortName || p.longName || symbol,
+            description: p.longBusinessSummary || 'No company description available.',
+            sector: p.sector || q.sector || 'N/A',
+            industry: p.industry || q.industry || 'N/A',
+            employees: p.fullTimeEmployees || null,
+            website: p.website || null,
+            city: p.city || null,
+            country: p.country || null,
+            currency: q.currency || f.financialCurrency || 'USD',
+            exchange: q.exchange || 'Unknown',
 
-            // Price Data (Real-time)
-            price: quote?.regularMarketPrice || price?.regularMarketPrice || 0,
-            change: quote?.regularMarketChange || price?.regularMarketChange || 0,
-            changePercent: quote?.regularMarketChangePercent || price?.regularMarketChangePercent || 0,
-            prevClose: quote?.regularMarketPreviousClose || summaryDetail?.previousClose || 0,
-            open: quote?.regularMarketOpen || summaryDetail?.open || 0,
-            high: quote?.regularMarketDayHigh || summaryDetail?.dayHigh || 0,
-            low: quote?.regularMarketDayLow || summaryDetail?.dayLow || 0,
-            volume: quote?.regularMarketVolume || summaryDetail?.volume || 0,
-            averageVolume: summaryDetail?.averageVolume || summaryDetail?.averageDailyVolume10Day || 0,
+            // === PRICE & TRADING (Overview Tab - Trading Information) ===
+            price: q.regularMarketPrice || 0,
+            change: q.regularMarketChange || 0,
+            changePercent: q.regularMarketChangePercent || 0,
+            open: q.regularMarketOpen || getVal(s, 'open') || null,
+            high: q.regularMarketDayHigh || getVal(s, 'dayHigh') || null,
+            low: q.regularMarketDayLow || getVal(s, 'dayLow') || null,
+            prevClose: q.regularMarketPreviousClose || getVal(s, 'previousClose') || null,
+            volume: q.regularMarketVolume || getVal(s, 'volume') || null,
+            averageVolume: q.averageDailyVolume10Day || q.averageDailyVolume3Month || getVal(s, 'averageVolume') || null,
 
-            // 52-Week Range
-            fiftyTwoWeekHigh: summaryDetail?.fiftyTwoWeekHigh || keyStats?.fiftyTwoWeekHigh || 0,
-            fiftyTwoWeekLow: summaryDetail?.fiftyTwoWeekLow || keyStats?.fiftyTwoWeekLow || 0,
-            fiftyTwoWeekChange: keyStats?.['52WeekChange'] || 0,
+            // === 52-WEEK RANGE (Overview Tab) ===
+            fiftyTwoWeekHigh: q.fiftyTwoWeekHigh || getVal(s, 'fiftyTwoWeekHigh') || null,
+            fiftyTwoWeekLow: q.fiftyTwoWeekLow || getVal(s, 'fiftyTwoWeekLow') || null,
+            fiftyDayAverage: q.fiftyDayAverage || getVal(s, 'fiftyDayAverage') || null,
+            twoHundredDayAverage: q.twoHundredDayAverage || getVal(s, 'twoHundredDayAverage') || null,
+            fiftyTwoWeekChange: q.fiftyTwoWeekChange || getVal(d, '52WeekChange') || null,
+            beta: getVal(d, 'beta') || q.beta || null,
 
-            // Moving Averages
-            fiftyDayAverage: summaryDetail?.fiftyDayAverage || keyStats?.fiftyDayAverage || 0,
-            twoHundredDayAverage: summaryDetail?.twoHundredDayAverage || keyStats?.twoHundredDayAverage || 0,
+            // === KEY STATISTICS (Overview Tab) ===
+            marketCap: mktCap || null,
+            trailingPE: pe || null,
+            forwardPE: q.forwardPE || getVal(d, 'forwardPE') || null,
+            trailingEps: eps || null,
+            forwardEps: q.epsForward || getVal(d, 'forwardEps') || null,
 
-            // Risk Metrics
-            beta: summaryDetail?.beta || keyStats?.beta || 0,
+            // Dividend (Overview & Valuation)
+            dividendYield: divYield || null,
+            trailingAnnualDividendYield: divYield || null,
+            trailingAnnualDividendRate: divRate || null,
 
-            // Valuation Metrics
-            marketCap: quote?.marketCap || summaryDetail?.marketCap || price?.marketCap || 0,
-            enterpriseValue: keyStats?.enterpriseValue || 0,
-            trailingPE: summaryDetail?.trailingPE || keyStats?.trailingPE || 0,
-            forwardPE: summaryDetail?.forwardPE || keyStats?.forwardPE || 0,
-            priceToBook: keyStats?.priceToBook || 0,
-            enterpriseToEbitda: keyStats?.enterpriseToEbitda || 0,
-            priceToSalesTrailing12Months: summaryDetail?.priceToSalesTrailing12Months || 0,
+            // === OWNERSHIP STRUCTURE (Overview Tab) ===
+            sharesOutstanding: shares || null,
+            floatShares: getVal(d, 'floatShares') || null,
+            sharesShort: getVal(d, 'sharesShort') || null,
+            shortRatio: getVal(d, 'shortRatio') || null,
+            shortPercentOfFloat: getVal(d, 'shortPercentOfFloat') || null,
 
-            // Earnings
-            trailingEps: keyStats?.trailingEps || 0,
-            forwardEps: keyStats?.forwardEps || 0,
-            earningsGrowth: financialData?.earningsGrowth || 0,
+            // === FINANCIALS TAB - Revenue & Profitability ===
+            totalRevenue: revenue || null,
+            revenuePerShare: getVal(f, 'revenuePerShare') || null,
+            revenueGrowth: getVal(f, 'revenueGrowth') || null,
+            grossProfits: getVal(f, 'grossProfits') || null,
+            ebitda: getVal(f, 'ebitda') || null,
+            netIncomeToCommon: getVal(f, 'netIncomeToCommon') || getVal(d, 'netIncomeToCommon') || null,
 
-            // Profitability
-            profitMargins: financialData?.profitMargins || keyStats?.profitMargins || 0,
-            grossMargins: financialData?.grossMargins || 0,
-            operatingMargins: financialData?.operatingMargins || 0,
-            ebitdaMargins: financialData?.ebitdaMargins || 0,
-            returnOnEquity: financialData?.returnOnEquity || 0,
-            returnOnAssets: financialData?.returnOnAssets || 0,
+            // === FINANCIALS TAB - Margins ===
+            profitMargins: getVal(f, 'profitMargins') || null,
+            grossMargins: getVal(f, 'grossMargins') || null,
+            operatingMargins: getVal(f, 'operatingMargins') || null,
+            ebitdaMargins: getVal(f, 'ebitdaMargins') || null,
 
-            // Revenue & Income
-            totalRevenue: financialData?.totalRevenue || 0,
-            revenuePerShare: financialData?.revenuePerShare || 0,
-            revenueGrowth: financialData?.revenueGrowth || 0,
-            grossProfits: financialData?.grossProfits || 0,
-            ebitda: financialData?.ebitda || 0,
-            netIncomeToCommon: keyStats?.netIncomeToCommon || 0,
+            // === FINANCIALS TAB - Cash Flow ===
+            operatingCashflow: getVal(f, 'operatingCashflow') || null,
+            freeCashflow: getVal(f, 'freeCashflow') || null,
+            totalCash: totalCash || null,
+            totalCashPerShare: getVal(f, 'totalCashPerShare') || null,
 
-            // Cash Flow
-            operatingCashflow: financialData?.operatingCashflow || 0,
-            freeCashflow: financialData?.freeCashflow || 0,
-            totalCash: financialData?.totalCash || 0,
-            totalCashPerShare: financialData?.totalCashPerShare || 0,
+            // === FINANCIALS TAB - Balance Sheet ===
+            totalDebt: totalDebt || null,
+            debtToEquity: getVal(f, 'debtToEquity') || null,
+            bookValue: bookValue || null,
+            currentRatio: getVal(f, 'currentRatio') || null,
+            quickRatio: getVal(f, 'quickRatio') || null,
 
-            // Debt
-            totalDebt: financialData?.totalDebt || 0,
-            debtToEquity: financialData?.debtToEquity || 0,
-            currentRatio: financialData?.currentRatio || 0,
-            quickRatio: financialData?.quickRatio || 0,
+            // === VALUATION TAB ===
+            enterpriseValue: enterpriseValue || null,
+            enterpriseToRevenue: getVal(d, 'enterpriseToRevenue') || null,
+            enterpriseToEbitda: getVal(d, 'enterpriseToEbitda') || null,
+            priceToBook: priceToBook || null,
+            priceToSalesTrailing12Months: psRatio || null,
+            pegRatio: getVal(d, 'pegRatio') || null,
 
-            // Book Value
-            bookValue: keyStats?.bookValue || 0,
+            // === VALUATION TAB - Earnings & Returns ===
+            earningsGrowth: getVal(f, 'earningsGrowth') || null,
+            earningsQuarterlyGrowth: getVal(d, 'earningsQuarterlyGrowth') || null,
+            returnOnEquity: getVal(f, 'returnOnEquity') || null,
+            returnOnAssets: getVal(f, 'returnOnAssets') || null,
 
-            // Dividends
-            trailingAnnualDividendRate: summaryDetail?.trailingAnnualDividendRate || 0,
-            trailingAnnualDividendYield: summaryDetail?.trailingAnnualDividendYield || 0,
-            dividendYield: summaryDetail?.dividendYield || 0,
-            payoutRatio: summaryDetail?.payoutRatio || keyStats?.payoutRatio || 0,
-            lastDividendValue: keyStats?.lastDividendValue || 0,
-            lastDividendDate: keyStats?.lastDividendDate || null,
+            // === VALUATION TAB - Dividends ===
+            payoutRatio: getVal(s, 'payoutRatio') || getVal(d, 'payoutRatio') || null,
+            exDividendDate: q.exDividendDate || getVal(s, 'exDividendDate') || null,
+            lastDividendValue: getVal(d, 'lastDividendValue') || null,
+            lastDividendDate: getVal(d, 'lastDividendDate') || null,
 
-            // Shares
-            sharesOutstanding: keyStats?.sharesOutstanding || 0,
-            floatShares: keyStats?.floatShares || 0,
-            sharesShort: keyStats?.sharesShort || 0,
-
-            // Analyst Targets
-            targetHighPrice: financialData?.targetHighPrice || 0,
-            targetLowPrice: financialData?.targetLowPrice || 0,
-            targetMeanPrice: financialData?.targetMeanPrice || 0,
-            targetMedianPrice: financialData?.targetMedianPrice || 0,
-            numberOfAnalystOpinions: financialData?.numberOfAnalystOpinions || 0,
-            recommendationKey: financialData?.recommendationKey || 'none',
-            recommendationMean: financialData?.recommendationMean || 0,
-            recommendationTrend: recommendation,
-
-            // Company Profile
-            sector: summaryProfile?.sector || quote?.sector || 'Unknown',
-            industry: summaryProfile?.industry || quote?.industry || 'Unknown',
-            country: summaryProfile?.country || 'Unknown',
-            city: summaryProfile?.city || '',
-            website: summaryProfile?.website || '',
-            description: summaryProfile?.longBusinessSummary || '',
-            fullTimeEmployees: summaryProfile?.fullTimeEmployees || 0,
-
-            // Metadata
-            lastUpdated: new Date().toISOString(),
-            source: 'yahoo-finance'
+            // === ANALYSTS TAB ===
+            targetMeanPrice: getVal(f, 'targetMeanPrice') || null,
+            targetHighPrice: getVal(f, 'targetHighPrice') || null,
+            targetLowPrice: getVal(f, 'targetLowPrice') || null,
+            targetMedianPrice: getVal(f, 'targetMedianPrice') || null,
+            recommendationKey: f.recommendationKey || null,
+            recommendationMean: getVal(f, 'recommendationMean') || null,
+            numberOfAnalystOpinions: getVal(f, 'numberOfAnalystOpinions') || null,
         };
 
-        // Cache for 60 seconds
-        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
+        // Cache the result
+        cache.set(symbol, { data: profile, ts: Date.now() });
 
-        console.log(`✅ Stock profile fetched for ${symbol}`);
-        return res.status(200).json(stockData);
+        res.status(200).json(profile);
 
-    } catch (error) {
-        console.error(`❌ Stock Profile API Error for ${symbol}:`, error.message);
-        return res.status(500).json({
-            error: 'Failed to fetch stock profile',
-            message: error.message,
-            symbol
+    } catch (e) {
+        console.error(`Stock Profile API Error for ${symbol}:`, e);
+        // Return minimal data rather than error
+        res.status(200).json({
+            symbol,
+            name: symbol,
+            description: 'Data temporarily unavailable.',
+            sector: 'N/A',
+            price: 0
         });
     }
 }

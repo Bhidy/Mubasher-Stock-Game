@@ -1,17 +1,35 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useMarket, MARKETS } from './MarketContext';
 
 const PriceContext = createContext();
 
 export function PriceProvider({ children }) {
     const [prices, setPrices] = useState({}); // { "2222.SR": { price: 28.5, change: ... } }
     const [loading, setLoading] = useState(true);
+    const { market } = useMarket();
 
     const fetchPrices = async () => {
         try {
-            // Parallel fetch for different markets to avoid timeouts
-            const markets = ['SA', 'EG', 'Global'];
+            // Fetch prices for current market + US + Global indices
+            const marketsToFetch = [market.id];
+
+            // Always also fetch US for index data
+            if (market.id !== 'US') {
+                marketsToFetch.push('US');
+            }
+
+            // Fetch additional markets for Global tab (UK, Germany, Japan indices)
+            // These will be available for the Global tab
+            if (!marketsToFetch.includes('UK')) marketsToFetch.push('UK');
+            if (!marketsToFetch.includes('DE')) marketsToFetch.push('DE');
+            if (!marketsToFetch.includes('JP')) marketsToFetch.push('JP');
+
             const results = await Promise.allSettled(
-                markets.map(m => fetch(`/api/stocks?market=${m}`).then(r => r.json()))
+                marketsToFetch.map(m =>
+                    fetch(`/api/stocks?market=${m}`)
+                        .then(r => r.json())
+                        .catch(() => [])
+                )
             );
 
             const priceMap = {};
@@ -39,15 +57,21 @@ export function PriceProvider({ children }) {
         }
     };
 
+    // Re-fetch when market changes
+    useEffect(() => {
+        setLoading(true);
+        fetchPrices();
+    }, [market.id]);
+
     useEffect(() => {
         fetchPrices(); // Initial fetch
 
-        const interval = setInterval(fetchPrices, 15000); // Poll every 15 seconds (matches Vercel cache)
+        const interval = setInterval(fetchPrices, 15000); // Poll every 15 seconds
         return () => clearInterval(interval);
-    }, []);
+    }, [market.id]);
 
     return (
-        <PriceContext.Provider value={{ prices, loading }}>
+        <PriceContext.Provider value={{ prices, loading, refetch: fetchPrices }}>
             {children}
         </PriceContext.Provider>
     );

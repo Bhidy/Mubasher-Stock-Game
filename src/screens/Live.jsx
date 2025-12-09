@@ -6,6 +6,7 @@ import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { TrendingUp, TrendingDown, Clock, Activity, ChevronRight, Trophy, BarChart3, HelpCircle, X } from 'lucide-react';
 import { usePrices } from '../context/PriceContext';
+import { useMarket } from '../context/MarketContext';
 import { StockLogo } from '../components/StockCard';
 
 import BurgerMenu from '../components/BurgerMenu';
@@ -24,26 +25,74 @@ export default function Live() {
     }, []);
 
     // Convert prices object to array for display
-    const realStocks = Object.values(prices).map((stock, index) => ({
-        symbol: Object.keys(prices).find(key => prices[key] === stock),
-        ...stock
-    }));
+    const { market } = useMarket();
 
-    // Map real stocks to component format - only get first 3 for deck
-    const allStocks = realStocks.length > 0 ? realStocks.slice(0, 3).map((stock, index) => {
-        const ticker = stock.symbol.split('.')[0];
+    // Market-specific default decks (Simulating user picks)
+    const MARKET_DECKS = {
+        'SA': ['2222', '1120', '2010'],
+        'EG': ['COMI', 'HRHO', 'EAST'],
+        'US': ['AAPL', 'NVDA', 'TSLA'],
+        'IN': ['RELIANCE', 'TCS', 'HDFCBANK'],
+        'UK': ['BP', 'HSBA', 'SHEL'],
+        'CA': ['SHOP', 'RY', 'TD'],
+        'AU': ['BHP', 'CBA', 'CSL'],
+        'HK': ['0700', '9988', '0005'],
+        'DE': ['SAP', 'SIE', 'ALV'],
+        'JP': ['7203', '6758', '9984'],
+        'AE': ['EMAAR', 'FAB', 'ETISALAT'],
+        'ZA': ['NPN', 'SOL', 'SBK'],
+        'QA': ['QNBK', 'QEWS', 'QGTS']
+    };
+
+    // Fallback names for all markets
+    const FALLBACK_NAMES = {
+        // Saudi
+        '2222': 'Saudi Aramco', '1120': 'Al Rajhi Bank', '2010': 'SABIC',
+        // Egypt
+        'COMI': 'CIB Egypt', 'HRHO': 'EFG Hermes', 'EAST': 'Eastern Company',
+        // US
+        'AAPL': 'Apple Inc.', 'NVDA': 'NVIDIA Corp.', 'TSLA': 'Tesla Inc.',
+        // India
+        'RELIANCE': 'Reliance Industries', 'TCS': 'Tata Consultancy', 'HDFCBANK': 'HDFC Bank',
+        // UK
+        'BP': 'BP plc', 'HSBA': 'HSBC Holdings', 'SHEL': 'Shell plc',
+        // Canada
+        'SHOP': 'Shopify', 'RY': 'Royal Bank of Canada', 'TD': 'TD Bank',
+        // Australia
+        'BHP': 'BHP Group', 'CBA': 'Commonwealth Bank', 'CSL': 'CSL Limited',
+        // Hong Kong
+        '0700': 'Tencent', '9988': 'Alibaba Group', '0005': 'HSBC Holdings',
+        // Germany
+        'SAP': 'SAP SE', 'SIE': 'Siemens', 'ALV': 'Allianz',
+        // Japan
+        '7203': 'Toyota Motor', '6758': 'Sony Group', '9984': 'SoftBank Group',
+        // UAE
+        'EMAAR': 'Emaar Properties', 'FAB': 'First Abu Dhabi Bank', 'ETISALAT': 'e& (Etisalat)',
+        // South Africa
+        'NPN': 'Naspers', 'SOL': 'Sasol', 'SBK': 'Standard Bank',
+        // Qatar
+        'QNBK': 'QNB Group', 'QEWS': 'Qatar Electricity', 'QGTS': 'Qatar Gas Transport'
+    };
+
+    const targetDeck = MARKET_DECKS[market.id] || MARKET_DECKS['SA'];
+    const stockSuffix = market.suffix || '';
+
+    // Map real stocks to component format or use fallback
+    const allStocks = targetDeck.map((ticker, index) => {
+        // Try to find in prices
+        const priceKey = Object.keys(prices).find(k =>
+            k === ticker || k === `${ticker}${stockSuffix}` || k.startsWith(ticker)
+        );
+        const stockData = priceKey ? prices[priceKey] : null;
+
         return {
             id: index + 1,
             ticker: ticker,
-            name: stock.name,
-            price: stock.price,
-            change: stock.changePercent || 0
+            name: stockData?.name || FALLBACK_NAMES[ticker] || ticker,
+            price: stockData?.price || (50 + Math.random() * 100),
+            change: stockData?.changePercent || ((Math.random() - 0.5) * 2)
         };
-    }) : [
-        { id: 1, ticker: '2222', name: 'Saudi Aramco', price: 24.46, change: 0.25 },
-        { id: 2, ticker: '1120', name: 'Al Rajhi Bank', price: 95.85, change: -0.16 },
-        { id: 3, ticker: '2010', name: 'SABIC', price: 54.95, change: 0.83 },
-    ];
+    });
 
     const picks = allStocks;
 
@@ -70,8 +119,10 @@ export default function Live() {
         { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     ];
 
-    // Format price with 2 decimals and SAR
-    const formatPrice = (price) => `${Number(price).toFixed(2)} SAR`;
+    // Format price with 2 decimals and dynamic currency
+    const formatPrice = (price) => {
+        return `${Number(price).toFixed(2)} ${market.currency}`;
+    };
 
     return (
         <div className="flex-col" style={{ padding: '1.5rem', gap: '1.5rem', paddingBottom: '6rem' }}>

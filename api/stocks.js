@@ -83,24 +83,96 @@ const JAPAN_STOCKS = [
     '8766.T', '6902.T', '4661.T', '7751.T', '4503.T', '^N225'
 ];
 
-// UAE (ADX) - .AE or .DU suffix - Using Abu Dhabi tickers
+// UAE (ADX/DFM) - Using .AE suffix (works with Yahoo Finance)
 const UAE_STOCKS = [
-    'EMIRATESNBD.AE', 'FAB.AE', 'ETISALAT.AE', 'ADNOCDIST.AE', 'DIB.AE',
-    'ADCB.AE', 'ALDAR.AE', 'EMAAR.DU', 'DU.DU', 'DEWA.DU',
-    'DAMAC.DU', 'EMIRATES.DU', 'TAQA.AE', 'ADPORTS.AE', '^ADI'
+    'EMAAR.AE', 'DU.AE', 'DIB.AE', 'ADCB.AE', 'FAB.AE',
+    'ETISALAT.AE', 'ADNOCDIST.AE', 'ALDAR.AE', 'TAQA.AE', 'ADPORTS.AE',
+    'DAMACPROP.AE', 'DEWA.AE', 'ENBD.AE', 'CB.AE', 'EMAAR.AE'
 ];
 
-// South Africa (JSE) - .JO suffix
+// South Africa (JSE) - .JO suffix - Using JSE.JO (JSE Ltd) as index proxy
 const SOUTHAFRICA_STOCKS = [
     'NPN.JO', 'SOL.JO', 'BTI.JO', 'SBK.JO', 'FSR.JO', 'AGL.JO', 'MTN.JO',
     'ABG.JO', 'CFR.JO', 'BID.JO', 'VOD.JO', 'SHP.JO', 'AMS.JO', 'IMP.JO',
-    'NED.JO', '^J203'
+    'NED.JO', 'JSE.JO'
 ];
 
-// Qatar (QSE) - .QA suffix
+// Qatar (QSE) - .QA suffix - Using QNBK.QA as index proxy (largest bank)
 const QATAR_STOCKS = [
     'QNBK.QA', 'QEWS.QA', 'QGTS.QA', 'QIBK.QA', 'IQCD.QA', 'MARK.QA',
-    'BRES.QA', 'CBQK.QA', 'ORDS.QA', 'QFLS.QA', 'UDCD.QA', 'DHBK.QA', '^QSI'
+    'BRES.QA', 'CBQK.QA', 'ORDS.QA', 'QFLS.QA', 'UDCD.QA', 'DHBK.QA', 'QNBK.QA'
+];
+
+// ============= PHASE 2 TIER 1 MARKETS =============
+
+// France (Euronext Paris) - .PA suffix
+const FRANCE_STOCKS = [
+    'MC.PA', 'OR.PA', 'SAN.PA', 'AI.PA', 'TTE.PA', 'SU.PA', 'BNP.PA',
+    'AIR.PA', 'DG.PA', 'KER.PA', 'CS.PA', 'RI.PA', 'CAP.PA', 'SAF.PA',
+    'VIV.PA', 'ORA.PA', 'SGO.PA', 'EN.PA', 'WLN.PA', '^FCHI'
+];
+
+// Switzerland (SIX) - .SW suffix
+const SWITZERLAND_STOCKS = [
+    'NESN.SW', 'ROG.SW', 'NOVN.SW', 'UBSG.SW', 'CSGN.SW', 'ABBN.SW',
+    'ZURN.SW', 'SREN.SW', 'GIVN.SW', 'LONN.SW', 'SCMN.SW', 'SIKA.SW',
+    'GEBN.SW', 'BAER.SW', 'PGHN.SW', '^SSMI'
+];
+
+// Netherlands (Euronext Amsterdam) - .AS suffix
+const NETHERLANDS_STOCKS = [
+    'ASML.AS', 'SHELL.AS', 'UNA.AS', 'INGA.AS', 'ABN.AS', 'HEIA.AS',
+    'AD.AS', 'PHIA.AS', 'KPN.AS', 'WKL.AS', 'RAND.AS', 'DSM.AS',
+    'AKZA.AS', 'MT.AS', 'AGN.AS', '^AEX'
+];
+
+// Spain (BME) - .MC suffix
+const SPAIN_STOCKS = [
+    'SAN.MC', 'ITX.MC', 'IBE.MC', 'BBVA.MC', 'TEF.MC', 'REP.MC',
+    'FER.MC', 'AMS.MC', 'AENA.MC', 'ELE.MC', 'GRF.MC', 'CABK.MC',
+    'REE.MC', 'MEL.MC', 'MAP.MC', '^IBEX'
+];
+
+// Italy (Borsa Italiana) - .MI suffix - Using FTSEMIB.MI as index
+const ITALY_STOCKS = [
+    'ENEL.MI', 'ENI.MI', 'ISP.MI', 'UCG.MI', 'STMMI.MI', 'G.MI',
+    'RACE.MI', 'TEN.MI', 'MONC.MI', 'SFER.MI', 'AMP.MI', 'LDO.MI',
+    'MB.MI', 'PST.MI', 'BAMI.MI', 'FTSEMIB.MI'
+];
+
+// Brazil (B3) - .SA suffix
+const BRAZIL_STOCKS = [
+    'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBDC4.SA', 'ABEV3.SA', 'WEGE3.SA',
+    'RENT3.SA', 'SUZB3.SA', 'JBSS3.SA', 'GGBR4.SA', 'CSNA3.SA', 'LREN3.SA',
+    'MGLU3.SA', 'CSAN3.SA', 'EQTL3.SA', 'RADL3.SA', 'RAIL3.SA', '^BVSP'
+];
+
+// Mexico (BMV) - .MX suffix
+const MEXICO_STOCKS = [
+    'WALMEX.MX', 'FEMSAUBD.MX', 'GMEXICOB.MX', 'GFNORTEO.MX', 'TLOVIS.A.MX',
+    'CEMEXCPO.MX', 'BIMBOA.MX', 'KOFUBL.MX', 'AC.MX', 'ALSEA.MX',
+    'OMAB.MX', 'GRUMAB.MX', 'LIVEPOLC-1.MX', 'GAPB.MX', 'ASURB.MX', '^MXX'
+];
+
+// South Korea (KRX) - .KS suffix
+const KOREA_STOCKS = [
+    '005930.KS', '000660.KS', '035420.KS', '005380.KS', '051910.KS',
+    '006400.KS', '035720.KS', '005490.KS', '068270.KS', '055550.KS',
+    '028260.KS', '034730.KS', '003670.KS', '012330.KS', '096770.KS', '^KS11'
+];
+
+// Taiwan (TWSE) - .TW suffix
+const TAIWAN_STOCKS = [
+    '2330.TW', '2317.TW', '2454.TW', '2412.TW', '1301.TW', '2882.TW',
+    '2881.TW', '2303.TW', '3711.TW', '2886.TW', '1303.TW', '2308.TW',
+    '2891.TW', '3008.TW', '2002.TW', '^TWII'
+];
+
+// Singapore (SGX) - .SI suffix
+const SINGAPORE_STOCKS = [
+    'D05.SI', 'O39.SI', 'U11.SI', 'Z74.SI', 'C6L.SI', 'BN4.SI',
+    'G13.SI', 'C38U.SI', 'A17U.SI', 'Y92.SI', 'F34.SI', 'V03.SI',
+    'U14.SI', 'C52.SI', 'S63.SI', '^STI'
 ];
 
 // Legacy global (for backward compatibility)
@@ -156,18 +228,57 @@ const getLogoUrl = (symbol) => {
 
 // Metadata mapping for all markets
 const STOCK_META = {
-    // Saudi Arabia
+    // Saudi Arabia - COMPLETE LIST with sectors
     '2222.SR': { name: 'Saudi Aramco', country: '🇸🇦', sector: 'Energy' },
     '1120.SR': { name: 'Al Rajhi Bank', country: '🇸🇦', sector: 'Financial' },
     '2010.SR': { name: 'SABIC', country: '🇸🇦', sector: 'Materials' },
     '7010.SR': { name: 'STC', country: '🇸🇦', sector: 'Telecom' },
     '2082.SR': { name: 'ACWA Power', country: '🇸🇦', sector: 'Utilities' },
     '1180.SR': { name: 'SNB', country: '🇸🇦', sector: 'Financial' },
+    '2380.SR': { name: 'PETRORABIGH', country: '🇸🇦', sector: 'Energy' },
+    '4030.SR': { name: 'Almarai', country: '🇸🇦', sector: 'Consumer' },
+    '2350.SR': { name: 'SIPCHEM', country: '🇸🇦', sector: 'Materials' },
+    '4200.SR': { name: 'Aldrees', country: '🇸🇦', sector: 'Consumer' },
+    '1211.SR': { name: 'Alinma Bank', country: '🇸🇦', sector: 'Financial' },
+    '4001.SR': { name: 'Abdullah Al Othaim', country: '🇸🇦', sector: 'Consumer' },
+    '2310.SR': { name: 'Saudi Industrial', country: '🇸🇦', sector: 'Industrial' },
+    '4003.SR': { name: 'Extra', country: '🇸🇦', sector: 'Consumer' },
+    '2050.SR': { name: 'Savola', country: '🇸🇦', sector: 'Consumer' },
+    '1150.SR': { name: 'SABB', country: '🇸🇦', sector: 'Financial' },
+    '4190.SR': { name: 'Jarir', country: '🇸🇦', sector: 'Consumer' },
+    '2290.SR': { name: 'Yanbu Cement', country: '🇸🇦', sector: 'Materials' },
+    '4002.SR': { name: 'Mouwasat', country: '🇸🇦', sector: 'Healthcare' },
+    '1010.SR': { name: 'Riyad Bank', country: '🇸🇦', sector: 'Financial' },
+    '2020.SR': { name: 'Saudi Basic', country: '🇸🇦', sector: 'Materials' },
+    '2280.SR': { name: 'Saudi Cement', country: '🇸🇦', sector: 'Materials' },
+    '5110.SR': { name: 'Saudi Electricity', country: '🇸🇦', sector: 'Utilities' },
+    '1140.SR': { name: 'Bank AlBilad', country: '🇸🇦', sector: 'Financial' },
+    '1060.SR': { name: 'Banque Saudi Fransi', country: '🇸🇦', sector: 'Financial' },
+    '7200.SR': { name: 'Rabigh Refining', country: '🇸🇦', sector: 'Energy' },
+    '4220.SR': { name: 'EMAAR EC', country: '🇸🇦', sector: 'Real Estate' },
+    '4090.SR': { name: 'Taiba Holding', country: '🇸🇦', sector: 'Real Estate' },
+    '4040.SR': { name: 'Saudi Research', country: '🇸🇦', sector: 'Technology' },
     '^TASI.SR': { name: 'TASI', country: '🇸🇦', sector: 'Index' },
-    // Egypt
+    // Egypt - Complete list
     'COMI.CA': { name: 'CIB Bank', country: '🇪🇬', sector: 'Financial' },
+    'EAST.CA': { name: 'Eastern Company', country: '🇪🇬', sector: 'Consumer' },
     'HRHO.CA': { name: 'EFG Hermes', country: '🇪🇬', sector: 'Financial' },
-    'SWDY.CA': { name: 'Elsewedy', country: '🇪🇬', sector: 'Industrial' },
+    'TMGH.CA': { name: 'Talaat Moustafa', country: '🇪🇬', sector: 'Real Estate' },
+    'SWDY.CA': { name: 'Elsewedy Electric', country: '🇪🇬', sector: 'Industrial' },
+    'ETEL.CA': { name: 'Telecom Egypt', country: '🇪🇬', sector: 'Telecom' },
+    'AMOC.CA': { name: 'Alexandria MO', country: '🇪🇬', sector: 'Energy' },
+    'EKHO.CA': { name: 'E-Finance', country: '🇪🇬', sector: 'Technology' },
+    'HELI.CA': { name: 'Heliopolis Housing', country: '🇪🇬', sector: 'Real Estate' },
+    'ORAS.CA': { name: 'Orascom Construction', country: '🇪🇬', sector: 'Industrial' },
+    'ESRS.CA': { name: 'Ezz Steel', country: '🇪🇬', sector: 'Materials' },
+    'ABUK.CA': { name: 'Abu Qir Fertilizers', country: '🇪🇬', sector: 'Materials' },
+    'MFPC.CA': { name: 'Misr Fertilizers', country: '🇪🇬', sector: 'Materials' },
+    'ISPH.CA': { name: 'Ibnsina Pharma', country: '🇪🇬', sector: 'Healthcare' },
+    'PHDC.CA': { name: 'Palm Hills', country: '🇪🇬', sector: 'Real Estate' },
+    'AUTO.CA': { name: 'GB Auto', country: '🇪🇬', sector: 'Consumer' },
+    'CIEB.CA': { name: 'CIE Automotive', country: '🇪🇬', sector: 'Industrial' },
+    'FWRY.CA': { name: 'Fawry', country: '🇪🇬', sector: 'Technology' },
+    'ADIB.CA': { name: 'Abu Dhabi Islamic Bank', country: '🇪🇬', sector: 'Financial' },
     '^CASE30': { name: 'EGX 30', country: '🇪🇬', sector: 'Index' },
     // US
     '^GSPC': { name: 'S&P 500', country: '🇺🇸', sector: 'Index' },
@@ -215,19 +326,83 @@ const STOCK_META = {
     '6758.T': { name: 'Sony Group', country: '🇯🇵', sector: 'Technology' },
     '7974.T': { name: 'Nintendo', country: '🇯🇵', sector: 'Consumer' },
     '^N225': { name: 'Nikkei 225', country: '🇯🇵', sector: 'Index' },
-    // UAE
+    // UAE - Using EMAAR.AE as market index proxy
+    'EMAAR.AE': { name: 'Emaar Properties', country: '🇦🇪', sector: 'Real Estate' },
+    'DU.AE': { name: 'EITC (Du)', country: '🇦🇪', sector: 'Telecom' },
+    'DIB.AE': { name: 'Dubai Islamic Bank', country: '🇦🇪', sector: 'Financial' },
     'FAB.AE': { name: 'First Abu Dhabi Bank', country: '🇦🇪', sector: 'Financial' },
-    'ETISALAT.AE': { name: 'e& (Etisalat)', country: '🇦🇪', sector: 'Telecom' },
-    '^ADI': { name: 'ADX Index', country: '🇦🇪', sector: 'Index' },
-    // South Africa
+    // South Africa - Using JSE.JO as market index proxy
     'NPN.JO': { name: 'Naspers', country: '🇿🇦', sector: 'Technology' },
     'SOL.JO': { name: 'Sasol', country: '🇿🇦', sector: 'Energy' },
     'MTN.JO': { name: 'MTN Group', country: '🇿🇦', sector: 'Telecom' },
-    '^J203': { name: 'JSE All Share', country: '🇿🇦', sector: 'Index' },
-    // Qatar
+    'JSE.JO': { name: 'JSE Index', country: '🇿🇦', sector: 'Index' },
+    // Qatar - Using QNBK.QA as market index proxy
     'QNBK.QA': { name: 'QNB Group', country: '🇶🇦', sector: 'Financial' },
     'ORDS.QA': { name: 'Ooredoo', country: '🇶🇦', sector: 'Telecom' },
-    '^QSI': { name: 'QE Index', country: '🇶🇦', sector: 'Index' }
+    'QFLS.QA': { name: 'Qatar Fuel', country: '🇶🇦', sector: 'Energy' },
+    // ============= PHASE 2 TIER 1 STOCK_META =============
+    // France
+    'MC.PA': { name: 'LVMH', country: '🇫🇷', sector: 'Consumer' },
+    'OR.PA': { name: "L'Oréal", country: '🇫🇷', sector: 'Consumer' },
+    'TTE.PA': { name: 'TotalEnergies', country: '🇫🇷', sector: 'Energy' },
+    'SAN.PA': { name: 'Sanofi', country: '🇫🇷', sector: 'Healthcare' },
+    'BNP.PA': { name: 'BNP Paribas', country: '🇫🇷', sector: 'Financial' },
+    'AIR.PA': { name: 'Airbus', country: '🇫🇷', sector: 'Industrial' },
+    '^FCHI': { name: 'CAC 40', country: '🇫🇷', sector: 'Index' },
+    // Switzerland
+    'NESN.SW': { name: 'Nestlé', country: '🇨🇭', sector: 'Consumer' },
+    'ROG.SW': { name: 'Roche', country: '🇨🇭', sector: 'Healthcare' },
+    'NOVN.SW': { name: 'Novartis', country: '🇨🇭', sector: 'Healthcare' },
+    'UBSG.SW': { name: 'UBS Group', country: '🇨🇭', sector: 'Financial' },
+    '^SSMI': { name: 'SMI', country: '🇨🇭', sector: 'Index' },
+    // Netherlands
+    'ASML.AS': { name: 'ASML Holding', country: '🇳🇱', sector: 'Technology' },
+    'SHELL.AS': { name: 'Shell', country: '🇳🇱', sector: 'Energy' },
+    'UNA.AS': { name: 'Unilever', country: '🇳🇱', sector: 'Consumer' },
+    'INGA.AS': { name: 'ING Group', country: '🇳🇱', sector: 'Financial' },
+    '^AEX': { name: 'AEX', country: '🇳🇱', sector: 'Index' },
+    // Spain
+    'SAN.MC': { name: 'Banco Santander', country: '🇪🇸', sector: 'Financial' },
+    'ITX.MC': { name: 'Inditex', country: '🇪🇸', sector: 'Consumer' },
+    'IBE.MC': { name: 'Iberdrola', country: '🇪🇸', sector: 'Utilities' },
+    'BBVA.MC': { name: 'BBVA', country: '🇪🇸', sector: 'Financial' },
+    '^IBEX': { name: 'IBEX 35', country: '🇪🇸', sector: 'Index' },
+    // Italy
+    'ENEL.MI': { name: 'Enel', country: '🇮🇹', sector: 'Utilities' },
+    'ENI.MI': { name: 'Eni', country: '🇮🇹', sector: 'Energy' },
+    'ISP.MI': { name: 'Intesa Sanpaolo', country: '🇮🇹', sector: 'Financial' },
+    'RACE.MI': { name: 'Ferrari', country: '🇮🇹', sector: 'Automotive' },
+    'FTSEMIB.MI': { name: 'FTSE MIB', country: '🇮🇹', sector: 'Index' },
+    // Brazil
+    'PETR4.SA': { name: 'Petrobras', country: '🇧🇷', sector: 'Energy' },
+    'VALE3.SA': { name: 'Vale', country: '🇧🇷', sector: 'Mining' },
+    'ITUB4.SA': { name: 'Itaú Unibanco', country: '🇧🇷', sector: 'Financial' },
+    'ABEV3.SA': { name: 'Ambev', country: '🇧🇷', sector: 'Consumer' },
+    '^BVSP': { name: 'Bovespa', country: '🇧🇷', sector: 'Index' },
+    // Mexico
+    'WALMEX.MX': { name: 'Walmart Mexico', country: '🇲🇽', sector: 'Consumer' },
+    'FEMSAUBD.MX': { name: 'FEMSA', country: '🇲🇽', sector: 'Consumer' },
+    'CEMEXCPO.MX': { name: 'Cemex', country: '🇲🇽', sector: 'Industrial' },
+    'GFNORTEO.MX': { name: 'Banorte', country: '🇲🇽', sector: 'Financial' },
+    '^MXX': { name: 'IPC Mexico', country: '🇲🇽', sector: 'Index' },
+    // South Korea
+    '005930.KS': { name: 'Samsung Electronics', country: '🇰🇷', sector: 'Technology' },
+    '000660.KS': { name: 'SK Hynix', country: '🇰🇷', sector: 'Technology' },
+    '005380.KS': { name: 'Hyundai Motor', country: '🇰🇷', sector: 'Automotive' },
+    '035420.KS': { name: 'Naver', country: '🇰🇷', sector: 'Technology' },
+    '^KS11': { name: 'KOSPI', country: '🇰🇷', sector: 'Index' },
+    // Taiwan
+    '2330.TW': { name: 'TSMC', country: '🇹🇼', sector: 'Technology' },
+    '2317.TW': { name: 'Hon Hai (Foxconn)', country: '🇹🇼', sector: 'Technology' },
+    '2454.TW': { name: 'MediaTek', country: '🇹🇼', sector: 'Technology' },
+    '2882.TW': { name: 'Cathay Financial', country: '🇹🇼', sector: 'Financial' },
+    '^TWII': { name: 'TAIEX', country: '🇹🇼', sector: 'Index' },
+    // Singapore
+    'D05.SI': { name: 'DBS Group', country: '🇸🇬', sector: 'Financial' },
+    'O39.SI': { name: 'OCBC Bank', country: '🇸🇬', sector: 'Financial' },
+    'U11.SI': { name: 'UOB', country: '🇸🇬', sector: 'Financial' },
+    'Z74.SI': { name: 'Singtel', country: '🇸🇬', sector: 'Telecom' },
+    '^STI': { name: 'STI', country: '🇸🇬', sector: 'Index' }
 };
 
 // Market category detection
@@ -244,6 +419,17 @@ const getMarketCategory = (symbol) => {
     if (symbol.endsWith('.AE') || symbol.endsWith('.DU') || symbol === '^ADI' || UAE_STOCKS.includes(symbol)) return 'AE';
     if (symbol.endsWith('.JO') || symbol === '^J203' || SOUTHAFRICA_STOCKS.includes(symbol)) return 'ZA';
     if (symbol.endsWith('.QA') || symbol === '^QSI' || QATAR_STOCKS.includes(symbol)) return 'QA';
+    // Phase 2 Tier 1 Markets
+    if (symbol.endsWith('.PA') || symbol === '^FCHI' || FRANCE_STOCKS.includes(symbol)) return 'FR';
+    if (symbol.endsWith('.SW') || symbol === '^SSMI' || SWITZERLAND_STOCKS.includes(symbol)) return 'CH';
+    if (symbol.endsWith('.AS') || symbol === '^AEX' || NETHERLANDS_STOCKS.includes(symbol)) return 'NL';
+    if (symbol.endsWith('.MC') || symbol === '^IBEX' || SPAIN_STOCKS.includes(symbol)) return 'ES';
+    if (symbol.endsWith('.MI') || ITALY_STOCKS.includes(symbol)) return 'IT';
+    if (symbol.endsWith('.SA') || symbol === '^BVSP' || BRAZIL_STOCKS.includes(symbol)) return 'BR';
+    if (symbol.endsWith('.MX') || symbol === '^MXX' || MEXICO_STOCKS.includes(symbol)) return 'MX';
+    if (symbol.endsWith('.KS') || symbol === '^KS11' || KOREA_STOCKS.includes(symbol)) return 'KR';
+    if (symbol.endsWith('.TW') || symbol === '^TWII' || TAIWAN_STOCKS.includes(symbol)) return 'TW';
+    if (symbol.endsWith('.SI') || symbol === '^STI' || SINGAPORE_STOCKS.includes(symbol)) return 'SG';
     return 'US';
 };
 
@@ -251,7 +437,10 @@ const getCountryFlag = (category) => {
     const flags = {
         'SA': '🇸🇦', 'EG': '🇪🇬', 'US': '🇺🇸', 'IN': '🇮🇳', 'UK': '🇬🇧',
         'CA': '🇨🇦', 'AU': '🇦🇺', 'HK': '🇭🇰', 'DE': '🇩🇪', 'JP': '🇯🇵',
-        'AE': '🇦🇪', 'ZA': '🇿🇦', 'QA': '🇶🇦', 'Global': '🌍'
+        'AE': '🇦🇪', 'ZA': '🇿🇦', 'QA': '🇶🇦', 'Global': '🌍',
+        // Phase 2 Tier 1
+        'FR': '🇫🇷', 'CH': '🇨🇭', 'NL': '🇳🇱', 'ES': '🇪🇸', 'IT': '🇮🇹',
+        'BR': '🇧🇷', 'MX': '🇲🇽', 'KR': '🇰🇷', 'TW': '🇹🇼', 'SG': '🇸🇬'
     };
     return flags[category] || '🌍';
 };
@@ -311,7 +500,18 @@ const MARKET_STOCKS = {
     'JP': JAPAN_STOCKS,
     'AE': UAE_STOCKS,
     'ZA': SOUTHAFRICA_STOCKS,
-    'QA': QATAR_STOCKS
+    'QA': QATAR_STOCKS,
+    // Phase 2 Tier 1 Markets
+    'FR': FRANCE_STOCKS,
+    'CH': SWITZERLAND_STOCKS,
+    'NL': NETHERLANDS_STOCKS,
+    'ES': SPAIN_STOCKS,
+    'IT': ITALY_STOCKS,
+    'BR': BRAZIL_STOCKS,
+    'MX': MEXICO_STOCKS,
+    'KR': KOREA_STOCKS,
+    'TW': TAIWAN_STOCKS,
+    'SG': SINGAPORE_STOCKS
 };
 
 export default async function handler(req, res) {
