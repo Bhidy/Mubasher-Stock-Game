@@ -294,7 +294,7 @@ function AdminRoutes() {
       <Route path="/admin/contests" element={<AdminLayout><AdminContests /></AdminLayout>} />
       <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
       <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
-      <Route path="*" element={<Navigate to="/admin/login" replace />} />
+      <Route path="*" element={<div style={{ padding: '2rem', color: 'red' }}><h1>Admin 404</h1><p>Route not matched</p></div>} />
     </Routes>
   );
 }
