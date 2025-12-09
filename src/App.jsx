@@ -245,6 +245,7 @@ export default function App() {
 }
 
 // Separate component to handle routing logic - determines if we show Layout or AdminLayout
+// Separate component to handle routing logic - determines if we show Layout or AdminLayout
 function AppRoutes() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -266,16 +267,15 @@ function AppRoutes() {
     };
   }, [isAdminRoute]);
 
-  // Admin routes should NOT use the mobile phone Layout
-  if (isAdminRoute) {
-    return <AdminRoutes />;
-  }
-
-  // All other routes use the mobile phone Layout
   return (
-    <Layout>
-      <ModeAwareRoutes />
-    </Layout>
+    <Routes>
+      <Route path="/admin/*" element={<AdminRoutes />} />
+      <Route path="*" element={
+        <Layout>
+          <ModeAwareRoutes />
+        </Layout>
+      } />
+    </Routes>
   );
 }
 
@@ -283,18 +283,18 @@ function AppRoutes() {
 function AdminRoutes() {
   return (
     <Routes>
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-      <Route path="/admin/lessons" element={<AdminLayout><AdminLessons /></AdminLayout>} />
-      <Route path="/admin/challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
-      <Route path="/admin/achievements" element={<AdminLayout><AdminAchievements /></AdminLayout>} />
-      <Route path="/admin/shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
-      <Route path="/admin/news" element={<AdminLayout><AdminNews /></AdminLayout>} />
-      <Route path="/admin/announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
-      <Route path="/admin/contests" element={<AdminLayout><AdminContests /></AdminLayout>} />
-      <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
-      <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
-      <Route path="*" element={<div style={{ padding: '2rem', color: 'red' }}><h1>Admin 404</h1><p>Route not matched</p></div>} />
+      <Route path="login" element={<AdminLogin />} />
+      <Route index element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+      <Route path="lessons" element={<AdminLayout><AdminLessons /></AdminLayout>} />
+      <Route path="challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
+      <Route path="achievements" element={<AdminLayout><AdminAchievements /></AdminLayout>} />
+      <Route path="shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
+      <Route path="news" element={<AdminLayout><AdminNews /></AdminLayout>} />
+      <Route path="announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
+      <Route path="contests" element={<AdminLayout><AdminContests /></AdminLayout>} />
+      <Route path="users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
+      <Route path="settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
+      <Route path="*" element={<Navigate to="login" replace />} />
     </Routes>
   );
 }
