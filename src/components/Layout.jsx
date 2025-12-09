@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, TrendingUp, Radio, Trophy, BookOpen, Users, BarChart3, Briefcase, LineChart, Star, Target } from 'lucide-react';
 import Chatbot from './Chatbot';
 import { useMode } from '../context/ModeContext';
 
-export default function Layout() {
+export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const mainRef = useRef(null);
@@ -61,7 +61,8 @@ export default function Layout() {
     return false;
   };
 
-  if (location.pathname === '/') return <Outlet />;
+  // For onboarding, render children without layout
+  if (location.pathname === '/') return <>{children}</>;
 
   // Get the accent colors based on mode
   const navBorder = isPlayerMode ? '#E9E5FF' : '#E2E8F0';
@@ -84,7 +85,7 @@ export default function Layout() {
           background: 'var(--background)',
         }}
       >
-        <Outlet />
+        {children}
       </main>
       <Chatbot />
 
