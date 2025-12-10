@@ -265,10 +265,14 @@ export default function InvestorHome() {
                         gap: '1rem',
                         overflowX: 'auto',
                         paddingBottom: '0.5rem',
-                        scrollbarWidth: 'none'
+                        scrollbarWidth: 'none',
+                        WebkitOverflowScrolling: 'touch',
+                        scrollSnapType: 'x mandatory',
                     }} className="no-scrollbar">
+                        {/* Saudi Arabia - TASI */}
                         <MarketCard
                             name="TASI"
+                            flag="🇸🇦"
                             value="12,450.23"
                             change="+0.45%"
                             isPositive={true}
@@ -276,13 +280,92 @@ export default function InvestorHome() {
                             color="#10b981"
                             onClick={() => navigate('/market')}
                         />
+                        {/* Egypt - EGX30 */}
+                        <MarketCard
+                            name="EGX 30"
+                            flag="🇪🇬"
+                            value="28,934.56"
+                            change="-0.45%"
+                            isPositive={false}
+                            chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]}
+                            color="#ef4444"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* USA - S&P 500 */}
                         <MarketCard
                             name="S&P 500"
+                            flag="🇺🇸"
                             value="5,105.20"
                             change="+0.30%"
                             isPositive={true}
                             chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]}
                             color="#3b82f6"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* USA - NASDAQ */}
+                        <MarketCard
+                            name="NASDAQ"
+                            flag="🇺🇸"
+                            value="19,234.67"
+                            change="+1.12%"
+                            isPositive={true}
+                            chartData={[50, 55, 60, 58, 65, 70, 75, 80, 78, 85, 90]}
+                            color="#8b5cf6"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* USA - Dow Jones */}
+                        <MarketCard
+                            name="DOW"
+                            flag="🇺🇸"
+                            value="43,828.06"
+                            change="+0.25%"
+                            isPositive={true}
+                            chartData={[55, 58, 60, 62, 58, 60, 62, 65, 68, 70, 72]}
+                            color="#0ea5e9"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* Germany - DAX */}
+                        <MarketCard
+                            name="DAX"
+                            flag="🇩🇪"
+                            value="20,314.81"
+                            change="+0.68%"
+                            isPositive={true}
+                            chartData={[45, 48, 52, 50, 55, 58, 62, 60, 65, 70, 72]}
+                            color="#f59e0b"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* UK - FTSE */}
+                        <MarketCard
+                            name="FTSE 100"
+                            flag="🇬🇧"
+                            value="8,308.61"
+                            change="-0.12%"
+                            isPositive={false}
+                            chartData={[60, 58, 55, 57, 54, 52, 55, 53, 50, 52, 51]}
+                            color="#64748b"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* Japan - Nikkei */}
+                        <MarketCard
+                            name="Nikkei 225"
+                            flag="🇯🇵"
+                            value="39,160.50"
+                            change="+0.95%"
+                            isPositive={true}
+                            chartData={[40, 45, 50, 55, 52, 58, 62, 65, 70, 75, 80]}
+                            color="#dc2626"
+                            onClick={() => navigate('/market')}
+                        />
+                        {/* Hong Kong - Hang Seng */}
+                        <MarketCard
+                            name="Hang Seng"
+                            flag="🇭🇰"
+                            value="20,397.05"
+                            change="+1.35%"
+                            isPositive={true}
+                            chartData={[35, 40, 38, 45, 50, 55, 60, 58, 65, 70, 75]}
+                            color="#ec4899"
                             onClick={() => navigate('/market')}
                         />
                     </div>
