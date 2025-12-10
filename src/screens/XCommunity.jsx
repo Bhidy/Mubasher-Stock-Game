@@ -7,7 +7,7 @@ import {
     Users, Heart, MessageCircle, Share2, ExternalLink,
     RefreshCw, TrendingUp, Sparkles, Clock, Flame,
     Image as ImageIcon, Star, Zap, Award, Crown,
-    BarChart2, Target, ChevronRight, Eye, TriangleAlert, TrendingDown, Info
+    BarChart2, Target, ChevronRight, Eye, AlertTriangle, TrendingDown, Info
 } from 'lucide-react';
 import { StockLogo } from '../components/StockCard';
 
