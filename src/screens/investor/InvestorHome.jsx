@@ -19,15 +19,15 @@ import { useToast } from '../../components/shared/Toast';
 // Market Indices Mock Data
 // Global Indices Configuration for Live Data
 const INDICES_CONFIG = [
-    { symbol: '^TASI.SR', name: 'TASI', flag: '🇸🇦', color: '#10b981' },
-    { symbol: '^CASE30', name: 'EGX 30', flag: '🇪🇬', color: '#ef4444' },
-    { symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸', color: '#3b82f6' },
-    { symbol: '^IXIC', name: 'NASDAQ', flag: '🇺🇸', color: '#8b5cf6' },
-    { symbol: '^DJI', name: 'DOW', flag: '🇺🇸', color: '#0ea5e9' },
-    { symbol: '^GDAXI', name: 'DAX', flag: '🇩🇪', color: '#f59e0b' },
-    { symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧', color: '#64748b' },
-    { symbol: '^N225', name: 'Nikkei', flag: '🇯🇵', color: '#dc2626' },
-    { symbol: '^HSI', name: 'Hang Seng', flag: '🇭🇰', color: '#ec4899' },
+    { marketId: 'SA', symbol: '^TASI.SR', name: 'TASI', flag: '🇸🇦', color: '#10b981' },
+    { marketId: 'EG', symbol: '^CASE30', name: 'EGX 30', flag: '🇪🇬', color: '#ef4444' },
+    { marketId: 'US', symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸', color: '#3b82f6' },
+    { marketId: 'US', symbol: '^IXIC', name: 'NASDAQ', flag: '🇺🇸', color: '#8b5cf6' },
+    { marketId: 'US', symbol: '^DJI', name: 'DOW', flag: '🇺🇸', color: '#0ea5e9' },
+    { marketId: 'DE', symbol: '^GDAXI', name: 'DAX', flag: '🇩🇪', color: '#f59e0b' },
+    { marketId: 'UK', symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧', color: '#64748b' },
+    { marketId: 'JP', symbol: '^N225', name: 'Nikkei', flag: '🇯🇵', color: '#dc2626' },
+    { marketId: 'HK', symbol: '^HSI', name: 'Hang Seng', flag: '🇭🇰', color: '#ec4899' },
 ];
 // Portfolio Holdings Mock
 const HOLDINGS = [
@@ -107,24 +107,30 @@ export default function InvestorHome() {
     const fetchIndices = async () => {
         try {
             const promises = INDICES_CONFIG.map(async (idx) => {
-                let status = 'closed';
-                // Try to find market by approx flag match or symbol derived
-                // Use robust isMarketOpen if mapped
-                // Mapping index symbol to market ID is tricky, so we do best guess or simple open check
-                // BUT for the main "Market Status" badge, we use the SELECTED market.
+                // Use robust Context logic for status
+                const isOpen = isMarketOpen(idx.marketId);
+                const marketStatus = isOpen ? 'open' : 'closed';
 
                 try {
                     const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
                     const data = await res.json();
 
-                    if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: 'closed' };
+                    if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: marketStatus };
 
                     const price = data.price || data.regularMarketPrice || 0;
-                    const changePercent = data.regularMarketChangePercent || 0;
-                    const isPositive = changePercent >= 0;
 
-                    // For the individual index cards, we can imply status from data or just show if it's "live"
-                    // If change is moving, it's open.
+                    // Improved Change Calculation fallback
+                    let changePercent = data.regularMarketChangePercent;
+                    if (changePercent === undefined || changePercent === null) {
+                        const prevClose = data.regularMarketPreviousClose || data.previousClose;
+                        if (prevClose && price) {
+                            changePercent = ((price - prevClose) / prevClose) * 100;
+                        } else {
+                            changePercent = 0;
+                        }
+                    }
+
+                    const isPositive = changePercent >= 0;
 
                     return {
                         ...idx,
@@ -132,11 +138,10 @@ export default function InvestorHome() {
                         change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
                         isPositive,
                         chartData: [50, 52, 55, 53, 58, 62, 60, 65, 70, 72, 75],
-                        status: (data.marketState === 'REGULAR' || data.marketState === 'OPEN') ? 'open' : 'closed'
+                        status: marketStatus // Use calculated status from Context
                     };
                 } catch (e) {
-                    // console.warn(`Failed to fetch ${idx.symbol}`, e);
-                    return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [], status: 'closed' };
+                    return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [], status: marketStatus };
                 }
             });
             const results = await Promise.all(promises);

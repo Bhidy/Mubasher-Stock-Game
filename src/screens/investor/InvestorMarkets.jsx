@@ -29,7 +29,17 @@ export default function InvestorMarkets() {
                     if (!data || data.error) return { ...idx, value: '---', change: 0, isPositive: true };
 
                     const price = data.price || data.regularMarketPrice || 0;
-                    const changePercent = data.regularMarketChangePercent || 0;
+
+                    // Improved Change Calculation fallback
+                    let changePercent = data.regularMarketChangePercent;
+                    if (changePercent === undefined || changePercent === null) {
+                        const prevClose = data.regularMarketPreviousClose || data.previousClose;
+                        if (prevClose && price) {
+                            changePercent = ((price - prevClose) / prevClose) * 100;
+                        } else {
+                            changePercent = 0;
+                        }
+                    }
 
                     return {
                         ...idx,
