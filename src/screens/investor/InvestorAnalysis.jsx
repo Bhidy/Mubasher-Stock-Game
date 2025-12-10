@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Radar, Zap, Target, TrendingUp, BarChart2, Filter, Layers, ArrowUpRight, ArrowRight } from 'lucide-react';
+import { useToast } from '../../components/shared/Toast';
 import BurgerMenu from '../../components/BurgerMenu';
 
 export default function InvestorAnalysis() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = (e) => {
@@ -225,16 +227,20 @@ export default function InvestorAnalysis() {
 }
 
 function ToolCard({ title, desc, color, icon }) {
+    const { showToast } = useToast();
     return (
-        <div style={{
-            background: 'white',
-            borderRadius: '20px',
-            padding: '1.5rem',
-            border: '1px solid #f1f5f9',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s'
-        }}>
+        <div
+            onClick={() => showToast(`Opening ${title} tool...`, 'info')}
+            style={{
+                background: 'white',
+                borderRadius: '20px',
+                padding: '1.5rem',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s'
+            }}
+        >
             <div style={{
                 width: '48px', height: '48px',
                 borderRadius: '14px',
