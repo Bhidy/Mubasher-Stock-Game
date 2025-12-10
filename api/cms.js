@@ -1,9 +1,11 @@
 /**
  * CMS API - Unified endpoint for all CMS operations
- * Handles: lessons, challenges, achievements, shop items, news, announcements, contests, users
+ * Handles: lessons, challenges, achievements, shop items, news, announcements, contests, users, notifications
  * 
  * PERSISTENCE: Now uses JSONBlob.com as a lightweight database.
  * Blob ID: 019b0534-29ba-7c7d-92f7-afd3ac34b85e
+ * 
+ * Last Deploy: 2025-12-10T12:15:00Z - Force rebuild with notifications entity
  */
 
 import axios from 'axios';
