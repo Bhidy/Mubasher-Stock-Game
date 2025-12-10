@@ -80,9 +80,20 @@ function ModeAwareRoutes() {
 
   // Set data-mode attribute on body for CSS targeting
   useEffect(() => {
-    document.body.setAttribute('data-mode', mode);
-    return () => document.body.removeAttribute('data-mode');
+    if (document.body) {
+      document.body.setAttribute('data-mode', mode);
+    }
+    return () => {
+      if (document.body) {
+        document.body.removeAttribute('data-mode');
+      }
+    };
   }, [mode]);
+
+  // Signal that app has mounted (for PWA loading screen)
+  useEffect(() => {
+    window.dispatchEvent(new Event('app-mounted'));
+  }, []);
 
   return (
     <Routes>

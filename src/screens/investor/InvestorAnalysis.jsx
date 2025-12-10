@@ -78,38 +78,94 @@ export default function InvestorAnalysis() {
             {/* --- DASHBOARD CONTENT --- */}
             <div style={{ padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-                {/* 1. Technical Radar (Visual Feature) */}
+                {/* 1. Feature Slider (Technical Radar & AI Insight) */}
                 <div style={{
-                    background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-                    borderRadius: '24px',
-                    padding: '1.5rem',
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 25px rgba(79, 70, 229, 0.3)'
+                    display: 'flex',
+                    gap: '1rem',
+                    overflowX: 'auto',
+                    paddingBottom: '1rem',
+                    marginRight: '-1.5rem', // Bleed off screen
+                    paddingRight: '1.5rem',
+                    scrollSnapType: 'x mandatory',
+                    scrollbarWidth: 'none'
                 }}>
-                    <div className="flex-between" style={{ marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.5rem', borderRadius: '12px' }}>
-                                <Radar size={20} color="white" />
+                    {/* Card 1: Technical Radar */}
+                    <div style={{
+                        minWidth: '300px',
+                        width: '85%',
+                        flexShrink: 0,
+                        scrollSnapAlign: 'start',
+                        background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                        borderRadius: '24px',
+                        padding: '1.5rem',
+                        color: 'white',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        boxShadow: '0 10px 25px rgba(79, 70, 229, 0.3)'
+                    }}>
+                        <div className="flex-between" style={{ marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.5rem', borderRadius: '12px' }}>
+                                    <Radar size={20} color="white" />
+                                </div>
+                                <div>
+                                    <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Technical Radar</h2>
+                                    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Live Market Scan</div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', position: 'relative', zIndex: 1 }}>
                             <div>
-                                <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Technical Radar</h2>
-                                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Live Market Scan</div>
+                                <div style={{ fontSize: '3rem', fontWeight: 900, lineHeight: 1 }}>12</div>
+                                <div style={{ fontSize: '0.9rem', opacity: 0.9, fontWeight: 600 }}>Bullish Breakouts</div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginBottom: '0.25rem' }}>Top Pick</div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>2222.SR</div>
+                                <div style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.9rem' }}>+2.4% Today</div>
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', position: 'relative', zIndex: 1 }}>
+                    {/* Card 2: AI Insight */}
+                    <div style={{
+                        minWidth: '300px',
+                        width: '85%',
+                        flexShrink: 0,
+                        scrollSnapAlign: 'start',
+                        background: '#1e293b',
+                        borderRadius: '24px',
+                        padding: '1.5rem',
+                        color: 'white',
+                        boxShadow: '0 10px 30px rgba(30, 41, 59, 0.4)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                    }}>
                         <div>
-                            <div style={{ fontSize: '3rem', fontWeight: 900, lineHeight: 1 }}>12</div>
-                            <div style={{ fontSize: '0.9rem', opacity: 0.9, fontWeight: 600 }}>Bullish Breakouts</div>
+                            <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Zap size={18} color="#fbbf24" fill="#fbbf24" />
+                                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fbbf24' }}>AI Insight of the Day</span>
+                                </div>
+                            </div>
+                            <p style={{ fontSize: '1.1rem', fontWeight: 600, lineHeight: 1.5, marginBottom: '1rem' }}>
+                                "Banking sector in KSA showing strong accumulation patterns. Watch for breakouts above 12,600."
+                            </p>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginBottom: '0.25rem' }}>Top Pick</div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>2222.SR</div>
-                            <div style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.9rem' }}>+2.4% Today</div>
-                        </div>
+                        <button style={{
+                            width: '100%',
+                            padding: '0.8rem',
+                            borderRadius: '12px',
+                            background: 'rgba(255,255,255,0.1)',
+                            color: 'white',
+                            border: 'none',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}>
+                            Read Full Report
+                        </button>
                     </div>
                 </div>
 
@@ -190,36 +246,7 @@ export default function InvestorAnalysis() {
                     </div>
                 </div>
 
-                {/* 4. AI Analyst Insight */}
-                <div style={{
-                    background: '#1e293b',
-                    borderRadius: '20px',
-                    padding: '1.5rem',
-                    color: 'white',
-                    boxShadow: '0 10px 30px rgba(30, 41, 59, 0.4)'
-                }}>
-                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Zap size={18} color="#fbbf24" fill="#fbbf24" />
-                            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fbbf24' }}>AI Insight of the Day</span>
-                        </div>
-                    </div>
-                    <p style={{ fontSize: '1.1rem', fontWeight: 600, lineHeight: 1.5, marginBottom: '1rem' }}>
-                        "Banking sector in KSA showing strong accumulation patterns ahead of earnings season. Watch for breakouts above 12,600."
-                    </p>
-                    <button style={{
-                        width: '100%',
-                        padding: '0.8rem',
-                        borderRadius: '12px',
-                        background: 'rgba(255,255,255,0.1)',
-                        color: 'white',
-                        border: 'none',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                    }}>
-                        Read Full Report
-                    </button>
-                </div>
+
 
             </div>
         </div>

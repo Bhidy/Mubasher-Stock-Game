@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import SafePortal from '../components/shared/SafePortal';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../App';
 import Card from '../components/Card';
@@ -243,7 +243,7 @@ export default function Live() {
                     </div>
 
                     {/* Tooltip - Full page centered modal like other tooltips */}
-                    {showTooltip && ReactDOM.createPortal(
+                    {showTooltip && (<SafePortal>
                         <div
                             onClick={() => setShowTooltip(false)}
                             style={{
@@ -314,9 +314,8 @@ export default function Live() {
                                     </div>
                                 </div>
                             </div>
-                        </div>,
-                        document.body
-                    )}
+                        </div>
+                    </SafePortal>)}
 
                     <h1 style={{
                         fontSize: '3.5rem',

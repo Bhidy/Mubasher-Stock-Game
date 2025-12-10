@@ -1,52 +1,46 @@
 # Cloudflare Pages Headers Configuration
-# Enterprise-grade caching and security headers
+# Prevent caching issues on mobile browsers
 
-# Static assets - aggressive caching
-/assets/*
+# HTML - always revalidate
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# JavaScript - use versioned cache (hash in filename provides versioning)
+/assets/*.js
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# JavaScript bundles
-/*.js
-  Cache-Control: public, max-age=31536000, immutable
-  X-Content-Type-Options: nosniff
-
-# CSS files
-/*.css
+# CSS
+/assets/*.css
   Cache-Control: public, max-age=31536000, immutable
 
 # Images
-/*.png
+/assets/*.png
   Cache-Control: public, max-age=86400
-/*.jpg
+/assets/*.jpg
   Cache-Control: public, max-age=86400
-/*.webp
-  Cache-Control: public, max-age=86400
-/*.svg
+/assets/*.webp
   Cache-Control: public, max-age=86400
 
-# Fonts
-/*.woff2
-  Cache-Control: public, max-age=31536000, immutable
-/*.woff
-  Cache-Control: public, max-age=31536000, immutable
-
-# HTML - short cache for updates
-/
-  Cache-Control: public, max-age=0, must-revalidate
-/*.html
-  Cache-Control: public, max-age=0, must-revalidate
-
-# API routes - dynamic caching
+# API routes - no cache
 /api/*
-  Cache-Control: public, s-maxage=5, stale-while-revalidate=2
+  Cache-Control: no-store
   X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  X-XSS-Protection: 1; mode=block
 
-# Security headers for all routes
+# Security headers
 /*
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()

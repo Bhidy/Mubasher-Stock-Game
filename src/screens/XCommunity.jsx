@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import ReactDOM from 'react-dom';
+import SafePortal from '../components/shared/SafePortal';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
@@ -725,7 +725,7 @@ export default function XCommunity() {
                     style={{ cursor: 'pointer', padding: '4px', opacity: 0.7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Info size={14} color={color} />
                 </div>
-                {tooltipContent && ReactDOM.createPortal(tooltipContent, document.body)}
+                {tooltipContent && <SafePortal>{tooltipContent}</SafePortal>}
             </>
         );
     };

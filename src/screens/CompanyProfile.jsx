@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import SafePortal from '../components/shared/SafePortal';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, TrendingUp, TrendingDown, Star, Share2, Plus, Bell,
@@ -337,7 +337,7 @@ export default function CompanyProfile() {
                 >
                     <Info size={14} color={color} />
                 </div>
-                {tooltipContent && ReactDOM.createPortal(tooltipContent, document.body)}
+                {tooltipContent && <SafePortal>{tooltipContent}</SafePortal>}
             </>
         );
     };

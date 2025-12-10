@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, HelpCircle, BarChart2, Brain } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, TrendingDown, HelpCircle, BarChart2, Brain } from 'lucide-react';
 import { UserContext } from '../App';
 
 // Typing indicator component
@@ -155,6 +155,7 @@ const MessageBubble = ({ message }) => {
 
 export default function Chatbot() {
     const { showChat, setShowChat } = useContext(UserContext);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             id: 1,
@@ -167,6 +168,13 @@ export default function Chatbot() {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+
+    // Listen for sidebar open/close to hide chatbot button
+    useEffect(() => {
+        const handleSidebarChange = (e) => setSidebarOpen(e.detail?.isOpen || false);
+        window.addEventListener('sidebarStateChange', handleSidebarChange);
+        return () => window.removeEventListener('sidebarStateChange', handleSidebarChange);
+    }, []);
 
     const suggestedQuestions = [
         { text: "Analyze Aramco", icon: BarChart2 },
@@ -279,8 +287,10 @@ export default function Chatbot() {
                     justifyContent: 'center',
                     zIndex: 100,
                     cursor: 'pointer',
-                    transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    transform: showChat ? 'scale(0)' : 'scale(1)'
+                    transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transform: (showChat || sidebarOpen) ? 'scale(0)' : 'scale(1)',
+                    opacity: sidebarOpen ? 0 : 1,
+                    pointerEvents: sidebarOpen ? 'none' : 'auto'
                 }}
             >
                 <Brain size={20} color="white" />

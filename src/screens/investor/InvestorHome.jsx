@@ -84,17 +84,38 @@ export default function InvestorHome() {
     const [greeting, setGreeting] = useState('');
     // Live Indices State
     const [indicesData, setIndicesData] = useState([]);
+    const [news, setNews] = useState([]);
     const [loadingIndices, setLoadingIndices] = useState(true);
     const [currentTime, setCurrentTime] = useState(new Date());
+
+    // Fetch News
+    const fetchNews = async () => {
+        try {
+            const res = await fetch('/api/news?market=global&limit=5');
+            const data = await res.json();
+            if (data && Array.isArray(data.articles)) {
+                setNews(data.articles);
+            } else if (Array.isArray(data)) {
+                setNews(data);
+            }
+        } catch (e) {
+            console.error('News fetch error:', e);
+        }
+    };
 
     // Fetch Global Indices
     useEffect(() => {
         // Initial Fetch
         fetchIndices();
+        fetchNews();
 
         // Poll every 60 seconds for live updates
-        const interval = setInterval(fetchIndices, 60000);
-        return () => clearInterval(interval);
+        const indicesInterval = setInterval(fetchIndices, 60000);
+        const newsInterval = setInterval(fetchNews, 300000); // News every 5 mins
+        return () => {
+            clearInterval(indicesInterval);
+            clearInterval(newsInterval);
+        };
     }, []);
 
     // Helper to get status for the current SELECTED market
@@ -692,16 +713,20 @@ export default function InvestorHome() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
 
-                        {NEWS_ITEMS.map((news, index) => (
-                            <div key={index} style={{
-                                padding: '0.875rem',
-                                background: '#F8FAFC',
-                                borderRadius: '12px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: '1rem'
-                            }}>
+                        {news.length > 0 ? news.slice(0, 3).map((item, index) => (
+                            <div
+                                key={item.id || index}
+                                onClick={() => navigate('/news-feed', { state: { selectedArticle: item } })}
+                                style={{
+                                    padding: '0.875rem',
+                                    background: '#F8FAFC',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: '1rem'
+                                }}
+                            >
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
                                         <span style={{
@@ -711,37 +736,47 @@ export default function InvestorHome() {
                                             fontSize: '0.6rem',
                                             fontWeight: 700,
                                             color: '#0284C7',
-                                        }}>{news.category}</span>
-                                        <span style={{ fontSize: '0.65rem', color: '#94A3B8' }}>{news.time}</span>
+                                        }}>{item.category || 'Markets'}</span>
+                                        <span style={{ fontSize: '0.65rem', color: '#94A3B8' }}>{item.timeAgo || item.time || '2h ago'}</span>
                                     </div>
                                     <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '0.9rem', marginBottom: '0.25rem', lineHeight: '1.4' }}>
-                                        {news.title}
+                                        {item.title}
                                     </div>
                                     <div style={{ fontSize: '0.7rem', color: '#64748B' }}>
-                                        {news.source}
+                                        {item.source || 'Reuters'}
                                     </div>
                                 </div>
-                                {news.imageUrl && (
-                                    <div style={{
-                                        width: '80px',
-                                        height: '60px',
-                                        borderRadius: '8px',
-                                        overflow: 'hidden',
-                                        flexShrink: 0
-                                    }}>
+                                <div style={{
+                                    width: '80px',
+                                    height: '60px',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                    flexShrink: 0,
+                                    background: '#e2e8f0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    {(item.image || item.imageUrl) ? (
                                         <img
-                                            src={news.imageUrl}
-                                            alt={news.title}
+                                            src={item.image || item.imageUrl}
+                                            alt={item.title}
                                             style={{
                                                 width: '100%',
                                                 height: '100%',
                                                 objectFit: 'cover'
                                             }}
                                         />
-                                    </div>
-                                )}
+                                    ) : (
+                                        <Newspaper size={20} color="#94a3b8" />
+                                    )}
+                                </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div style={{ textAlign: 'center', padding: '1rem', color: '#94A3B8' }}>
+                                Loading news...
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

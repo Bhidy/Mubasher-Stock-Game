@@ -205,15 +205,19 @@ export function ModeProvider({ children }) {
 
         setIsTransitioning(true);
 
-        // Add transition class to body
-        document.body.classList.add('mode-transitioning');
+        // Add transition class to body (with safety check)
+        if (document.body) {
+            document.body.classList.add('mode-transitioning');
+        }
 
         setTimeout(() => {
             setModeState(newMode);
 
             setTimeout(() => {
                 setIsTransitioning(false);
-                document.body.classList.remove('mode-transitioning');
+                if (document.body) {
+                    document.body.classList.remove('mode-transitioning');
+                }
             }, 300);
         }, 150);
     };

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import SafePortal from '../components/shared/SafePortal';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../App';
 import { useMarket } from '../context/MarketContext';
@@ -122,7 +122,7 @@ export default function Home() {
                 >
                     <Info size={16} color={color} />
                 </div>
-                {tooltipContent && ReactDOM.createPortal(tooltipContent, document.body)}
+                {tooltipContent && <SafePortal>{tooltipContent}</SafePortal>}
             </>
         );
     };

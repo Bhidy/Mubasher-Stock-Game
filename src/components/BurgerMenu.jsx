@@ -30,14 +30,23 @@ export default function BurgerMenu({ variant = 'default' }) {
         return () => window.removeEventListener('openSidebar', handleOpenSidebar);
     }, []);
 
-    // Prevent body scroll when menu is open
+    // Prevent body scroll when menu is open + notify Layout to hide nav bar
     useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
+        // Dispatch event to Layout to hide/show nav bar
+        window.dispatchEvent(new CustomEvent('sidebarStateChange', { detail: { isOpen } }));
+
+        if (document.body) {
+            if (isOpen) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'unset';
+            }
         }
-        return () => { document.body.style.overflow = 'unset'; };
+        return () => {
+            if (document.body) {
+                document.body.style.overflow = 'unset';
+            }
+        };
     }, [isOpen]);
 
     // Close dropdown when clicking outside
