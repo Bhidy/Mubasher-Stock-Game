@@ -105,16 +105,8 @@ export function CMSProvider({ children }) {
         const fetchAllData = async () => {
             setLoading(true);
             try {
-                const [
-                    lessonsData,
-                    challengesData,
-                    achievementsData,
-                    shopItemsData,
-                    newsData,
-                    announcementsData,
-                    contestsData,
-                    notificationsData,
-                ] = await Promise.all([
+                // Use Promise.allSettled to handle individual failures gracefully
+                const results = await Promise.allSettled([
                     apiCall('lessons'),
                     apiCall('challenges'),
                     apiCall('achievements'),
@@ -125,15 +117,19 @@ export function CMSProvider({ children }) {
                     apiCall('notifications'),
                 ]);
 
-                setLessons(lessonsData);
-                setChallenges(challengesData);
-                setAchievements(achievementsData);
-                setShopItems(shopItemsData);
-                setNews(newsData);
-                setAnnouncements(announcementsData);
-                setContests(contestsData);
+                // Helper to extract value or fallback
+                const getValue = (result, fallback) =>
+                    result.status === 'fulfilled' ? result.value : fallback;
+
+                setLessons(getValue(results[0], FALLBACK_DATA.lessons));
+                setChallenges(getValue(results[1], FALLBACK_DATA.challenges));
+                setAchievements(getValue(results[2], FALLBACK_DATA.achievements));
+                setShopItems(getValue(results[3], FALLBACK_DATA.shopItems));
+                setNews(getValue(results[4], FALLBACK_DATA.news));
+                setAnnouncements(getValue(results[5], FALLBACK_DATA.announcements));
+                setContests(getValue(results[6], FALLBACK_DATA.contests));
+                setNotifications(getValue(results[7], FALLBACK_DATA.notifications));
                 setUsers(FALLBACK_DATA.users); // Mock users for Phase 2
-                setNotifications(notificationsData);
                 setError(null);
             } catch (err) {
                 console.warn('API unavailable, using fallback data:', err.message);
