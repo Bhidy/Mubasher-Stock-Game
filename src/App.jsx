@@ -85,8 +85,9 @@ function ModeAwareRoutes() {
 
   return (
     <Routes>
-      {/* Onboarding - Always accessible */}
-      <Route path="/" element={<Onboarding />} />
+      {/* Default Route - Navigates to appropriate home based on mode */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="/onboarding" element={<Onboarding />} />
 
       {/* Smart redirect for /home based on mode */}
       <Route path="/home" element={
