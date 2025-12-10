@@ -112,7 +112,7 @@ export default function InvestorMarkets() {
                         return (
                             <div
                                 key={marketData.id}
-                                onClick={() => { selectMarket(marketData.id); navigate('/investor/home'); }}
+                                onClick={() => { selectMarket(marketData.id); navigate('/market'); }}
                                 style={{
                                     minWidth: '200px',
                                     background: 'rgba(255,255,255,0.1)',

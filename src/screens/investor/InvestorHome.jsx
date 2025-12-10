@@ -78,7 +78,7 @@ const NEWS_ITEMS = [
 
 export default function InvestorHome() {
     const { user } = useContext(UserContext);
-    const { market, isMarketOpen } = useMarket(); // Import isMarketOpen
+    const { market, isMarketOpen, selectMarket } = useMarket(); // Import selectMarket
     const { announcements } = useCMS();
     const navigate = useNavigate();
     const [greeting, setGreeting] = useState('');
@@ -302,7 +302,10 @@ export default function InvestorHome() {
                                 chartData={idx.chartData}
                                 color={idx.color}
                                 status={idx.status}
-                                onClick={() => navigate('/market')}
+                                onClick={() => {
+                                    if (idx.marketId) selectMarket(idx.marketId);
+                                    navigate('/market');
+                                }}
                             />
                         ))
                     )}
