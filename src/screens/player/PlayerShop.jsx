@@ -4,7 +4,7 @@ import {
     ShoppingBag, Coins, ArrowLeft, Star, Lock, Check, Sparkles,
     Crown, Palette, User, Image, Trophy, Gift, Zap, Heart
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useCMS } from '../../context/CMSContext';
 import CoinDisplay from '../../components/player/CoinDisplay';
 import { useToast } from '../../components/shared/Toast';

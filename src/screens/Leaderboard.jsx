@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 import Card from '../components/Card';
 import { Trophy, ChevronUp, ChevronDown, Crown, Medal } from 'lucide-react';
 

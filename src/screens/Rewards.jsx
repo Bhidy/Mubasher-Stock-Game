@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { Trophy, Target, Zap, Lock, ShoppingBag, Star, Award, TrendingUp, Info, X } from 'lucide-react';

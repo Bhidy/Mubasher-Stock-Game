@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ArrowUpRight, ArrowDownRight, ChevronRight } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import BurgerMenu from '../BurgerMenu';
 import { useMarket, MARKETS } from '../../context/MarketContext';
 

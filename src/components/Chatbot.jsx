@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, TrendingDown, HelpCircle, BarChart2, Brain } from 'lucide-react';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 
 // Typing indicator component
 const TypingIndicator = () => (

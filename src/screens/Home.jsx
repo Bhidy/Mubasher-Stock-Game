@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import SafePortal from '../components/shared/SafePortal';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 import { useMarket } from '../context/MarketContext';
 import Card from '../components/Card';
 import Badge from '../components/Badge';

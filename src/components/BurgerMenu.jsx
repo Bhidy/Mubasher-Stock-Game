@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Menu, X, Home, TrendingUp, Activity, Award, BookOpen, Users, LogOut, Trophy, Bot, Gift, Shield, Zap, BarChart3, Newspaper, Gamepad2, ChevronDown, ChevronUp, Check, MessageCircle, Sparkles, Globe, Settings, Bell, User, Briefcase, Target, PieChart, LineChart, AlertCircle, Calendar, FileText, Star, Wallet } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 import { useMarket, MARKETS } from '../context/MarketContext';
 import { useMode } from '../context/ModeContext';
 import ModeSwitcher from './shared/ModeSwitcher';

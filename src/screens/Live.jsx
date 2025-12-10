@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import SafePortal from '../components/shared/SafePortal';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { TrendingUp, TrendingDown, Clock, Activity, ChevronRight, Trophy, BarChart3, HelpCircle, X } from 'lucide-react';

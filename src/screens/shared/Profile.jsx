@@ -5,7 +5,7 @@ import {
     Moon, Sun, ChevronRight, Edit3, Camera, Mail, Phone, Globe,
     Lock, Eye, EyeOff, Award, Star, Zap, Coins, TrendingUp
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useMode } from '../../context/ModeContext';
 import { useToast } from '../../components/shared/Toast';
 import ConfirmModal from '../../components/shared/ConfirmModal';

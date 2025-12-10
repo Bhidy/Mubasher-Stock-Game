@@ -5,7 +5,7 @@ import {
     Zap, Flame, TrendingUp, Users, Calendar, ArrowLeft, Sparkles,
     Award, Crown, Timer, CheckCircle
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useMode } from '../../context/ModeContext';
 import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';

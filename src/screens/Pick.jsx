@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Info, Check, Lock, AlertTriangle, X, TrendingUp, TrendingDown, Zap } from 'lucide-react';
-import { UserContext } from '../App';
+import { UserContext } from '../context/UserContext';
 import { usePrices } from '../context/PriceContext';
 import StockCard, {
     SAUDI_STOCKS,

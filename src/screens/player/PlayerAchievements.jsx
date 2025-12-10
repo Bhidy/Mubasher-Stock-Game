@@ -4,7 +4,7 @@ import {
     Trophy, Star, Lock, Check, ArrowLeft, Filter, Search,
     Sparkles, Crown, Medal, Shield, Target, Flame, Zap, Award
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useCMS } from '../../context/CMSContext';
 import { ACHIEVEMENTS as FALLBACK_ACHIEVEMENTS, RARITY_COLORS, AchievementBadge, AchievementUnlockPopup } from '../../components/player/AchievementBadge';
 

@@ -5,7 +5,7 @@ import {
     Star, Bell, Calendar, FileText, ArrowUpRight, ArrowDownRight, Newspaper,
     Clock, Activity, Globe, Zap, Eye, Settings, PieChart, ArrowRight
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useMarket } from '../../context/MarketContext';
 import { useMode } from '../../context/ModeContext';
 import { useCMS } from '../../context/CMSContext';

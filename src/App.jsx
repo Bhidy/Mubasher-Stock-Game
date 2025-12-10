@@ -18,6 +18,7 @@ import NewsFeed from './screens/NewsFeed';
 import XCommunity from './screens/XCommunity';
 import MarketSummary from './screens/MarketSummary';
 import Leaderboard from './screens/Leaderboard';
+import MainSwipeWrapper from './components/Layout/MainSwipeWrapper';
 
 // Legacy screens (will be migrated)
 import Home from './screens/Home';
@@ -71,7 +72,7 @@ import AdminNotifications from './cms/AdminNotifications';
 
 import profileImg from './assets/profile.jpg';
 
-export const UserContext = createContext();
+import { UserContext } from './context/UserContext';
 
 // Mode-aware route component
 function ModeAwareRoutes() {
@@ -110,10 +111,10 @@ function ModeAwareRoutes() {
                 PLAYER MODE ROUTES
                 ============================================ */}
       <Route path="/player">
-        <Route path="home" element={<PlayerHome />} />
-        <Route path="pick" element={<Pick />} />
-        <Route path="live" element={<Live />} />
-        <Route path="learn" element={<Academy />} />
+        <Route path="home" element={<MainSwipeWrapper />} />
+        <Route path="pick" element={<MainSwipeWrapper />} />
+        <Route path="live" element={<MainSwipeWrapper />} />
+        <Route path="learn" element={<MainSwipeWrapper />} />
         <Route path="challenges" element={<PlayerChallenges />} />
         <Route path="achievements" element={<PlayerAchievements />} />
         <Route path="shop" element={<PlayerShop />} />
@@ -123,11 +124,11 @@ function ModeAwareRoutes() {
                 INVESTOR MODE ROUTES
                 ============================================ */}
       <Route path="/investor">
-        <Route path="home" element={<InvestorHome />} />
-        <Route path="portfolio" element={<InvestorPortfolio />} />
-        <Route path="watchlist" element={<InvestorWatchlist />} />
+        <Route path="home" element={<MainSwipeWrapper />} />
+        <Route path="portfolio" element={<MainSwipeWrapper />} />
+        <Route path="watchlist" element={<MainSwipeWrapper />} />
         <Route path="screener" element={<InvestorScreener />} />
-        <Route path="analysis" element={<InvestorAnalysis />} />
+        <Route path="analysis" element={<MainSwipeWrapper />} />
         <Route path="markets" element={<InvestorMarkets />} />
         <Route path="calendar" element={<InvestorCalendar />} />
         <Route path="alerts" element={<InvestorAlerts />} />
@@ -138,7 +139,7 @@ function ModeAwareRoutes() {
                 SHARED ROUTES (Both Modes)
                 ============================================ */}
       {/* Market & Data */}
-      <Route path="/market" element={<MarketSummary />} />
+      <Route path="/market" element={<MainSwipeWrapper />} />
       <Route path="/company/:symbol" element={<CompanyProfile />} />
       <Route path="/analysis/:symbol" element={<Navigate to="/company/:symbol" replace />} />
 
@@ -148,7 +149,7 @@ function ModeAwareRoutes() {
 
       {/* Social */}
       <Route path="/x-community" element={<XCommunity />} />
-      <Route path="/community" element={<Community />} />
+      <Route path="/community" element={<MainSwipeWrapper />} />
       <Route path="/community/discussion/:id" element={<DiscussionDetail />} />
 
       {/* Competition */}

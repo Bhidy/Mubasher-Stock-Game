@@ -5,7 +5,7 @@ import {
     TrendingUp, Zap, Star, Users, Clock, Play, Sparkles,
     ArrowRight, Check, Lock, Award, Gamepad2, Bell
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useMarket } from '../../context/MarketContext';
 import { useMode } from '../../context/ModeContext';
 import { useCMS } from '../../context/CMSContext';

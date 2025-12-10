@@ -4,7 +4,7 @@ import {
     ArrowLeft, Bell, Check, Trash2, Filter, TrendingUp, TrendingDown,
     Trophy, Gift, Newspaper, AlertCircle, Settings, ChevronRight, Zap, MessageSquare
 } from 'lucide-react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext';
 import { useMode } from '../../context/ModeContext';
 
 import { useCMS } from '../../context/CMSContext';
