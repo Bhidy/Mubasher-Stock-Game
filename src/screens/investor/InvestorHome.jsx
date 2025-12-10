@@ -290,13 +290,16 @@ export default function InvestorHome() {
                         </div>
                     ))}
 
-                {/* Quick Actions */}
+                {/* Quick Actions - Horizontal Scroll */}
                 <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(5, 1fr)',
+                    display: 'flex',
                     gap: '0.75rem',
+                    overflowX: 'auto',
                     marginBottom: '1.5rem',
-                }}>
+                    paddingBottom: '0.25rem',
+                    scrollbarWidth: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                }} className="no-scrollbar">
                     {[
                         { icon: BarChart3, label: 'Market', path: '/market', color: '#0EA5E9' },
                         { icon: Briefcase, label: 'Portfolio', path: '/investor/portfolio', color: '#8B5CF6' },
@@ -312,13 +315,15 @@ export default function InvestorHome() {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: '0.5rem',
-                                padding: '1rem 0.5rem',
+                                padding: '1rem',
+                                minWidth: 'calc(25% - 0.5625rem)',
                                 background: 'white',
                                 borderRadius: '16px',
                                 border: '1px solid #E2E8F0',
                                 cursor: 'pointer',
                                 position: 'relative',
                                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                                flexShrink: 0,
                             }}
                         >
                             <div style={{
