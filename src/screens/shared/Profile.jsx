@@ -81,6 +81,17 @@ export default function Profile() {
                     value: darkMode,
                     action: handleDarkModeToggle
                 },
+                {
+                    icon: Settings,
+                    label: 'Page Swipe',
+                    toggle: true,
+                    value: user.swipeEnabled,
+                    action: () => {
+                        const newState = !user.swipeEnabled;
+                        setUser(prev => ({ ...prev, swipeEnabled: newState }));
+                        showToast(newState ? 'Swipe navigation enabled' : 'Swipe navigation disabled', 'info');
+                    }
+                },
                 { icon: Globe, label: 'Language', value: 'English', action: () => { } },
                 { icon: Bell, label: 'Notifications', action: () => navigate('/notifications') },
             ]

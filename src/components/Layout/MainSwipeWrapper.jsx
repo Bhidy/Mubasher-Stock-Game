@@ -1,7 +1,8 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SwipeablePages from '../shared/SwipeablePages';
 import { useMode } from '../../context/ModeContext';
+import { UserContext } from '../../context/UserContext';
 
 // Player Screens
 import PlayerHome from '../../screens/player/PlayerHome';
@@ -19,6 +20,7 @@ import InvestorAnalysis from '../../screens/investor/InvestorAnalysis';
 
 export default function MainSwipeWrapper() {
     const { isPlayerMode } = useMode();
+    const { user } = useContext(UserContext);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -70,6 +72,7 @@ export default function MainSwipeWrapper() {
             <SwipeablePages
                 activeIndex={activeIndex}
                 onPageChange={handlePageChange}
+                disabled={!user.swipeEnabled}
             >
                 {tabs.map((tab, i) => (
                     <div key={tab.path} style={{ height: '100%', width: '100%' }}>

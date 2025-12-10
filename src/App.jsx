@@ -207,6 +207,7 @@ export default function App() {
           watchlistCount: 12,
           alertsCount: 3,
           ...parsed,
+          swipeEnabled: parsed.swipeEnabled ?? false,
           avatar: profileImg // Ensure local import is used
         };
       } catch (e) {
@@ -234,6 +235,7 @@ export default function App() {
       portfolioChange: 2.35,
       watchlistCount: 12,
       alertsCount: 3,
+      swipeEnabled: false,
     };
   });
 
