@@ -5,6 +5,7 @@ import { PriceProvider } from './context/PriceContext';
 import { MarketProvider } from './context/MarketContext';
 import { ModeProvider, useMode } from './context/ModeContext';
 import { CMSProvider } from './context/CMSContext';
+import { ToastProvider } from './components/shared/Toast';
 
 // Import mode-specific styles
 import './styles/mode-themes.css';
@@ -233,17 +234,19 @@ export default function App() {
 
   return (
     <UserContext.Provider value={{ user, setUser, showChat, setShowChat }}>
-      <CMSProvider>
-        <ModeProvider>
-          <MarketProvider>
-            <PriceProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </PriceProvider>
-          </MarketProvider>
-        </ModeProvider>
-      </CMSProvider>
+      <ToastProvider>
+        <CMSProvider>
+          <ModeProvider>
+            <MarketProvider>
+              <PriceProvider>
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </PriceProvider>
+            </MarketProvider>
+          </ModeProvider>
+        </CMSProvider>
+      </ToastProvider>
     </UserContext.Provider>
   );
 }

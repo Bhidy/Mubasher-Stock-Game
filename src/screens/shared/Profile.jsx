@@ -7,13 +7,18 @@ import {
 } from 'lucide-react';
 import { UserContext } from '../../App';
 import { useMode } from '../../context/ModeContext';
+import { useToast } from '../../components/shared/Toast';
+import ConfirmModal from '../../components/shared/ConfirmModal';
+import Tooltip from '../../components/shared/Tooltip';
 
 export default function Profile() {
     const navigate = useNavigate();
     const { user, setUser } = useContext(UserContext);
     const { mode, isPlayerMode, toggleMode } = useMode();
+    const { showToast } = useToast();
 
     const [isEditing, setIsEditing] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
     const [notifications, setNotifications] = useState({
@@ -32,6 +37,17 @@ export default function Profile() {
     const handleUpdateProfile = () => {
         setUser(prev => ({ ...prev, name: formData.name }));
         setIsEditing(false);
+        showToast('Profile updated successfully!', 'success');
+    };
+
+    const handleDarkModeToggle = () => {
+        setDarkMode(!darkMode);
+        showToast(darkMode ? 'Light mode enabled' : 'Dark mode enabled', 'info');
+    };
+
+    const handleLogout = () => {
+        showToast('Logging out...', 'info');
+        setTimeout(() => navigate('/'), 500);
     };
 
     const stats = isPlayerMode ? [
@@ -63,7 +79,7 @@ export default function Profile() {
                     label: 'Dark Mode',
                     toggle: true,
                     value: darkMode,
-                    action: () => setDarkMode(!darkMode)
+                    action: handleDarkModeToggle
                 },
                 { icon: Globe, label: 'Language', value: 'English', action: () => { } },
                 { icon: Bell, label: 'Notifications', action: () => navigate('/notifications') },
@@ -292,7 +308,7 @@ export default function Profile() {
 
                 {/* Logout Button */}
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={() => setShowLogoutConfirm(true)}
                     style={{
                         width: '100%',
                         display: 'flex',
@@ -413,6 +429,17 @@ export default function Profile() {
                     </div>
                 </div>
             )}
+
+            {/* Logout Confirmation Modal */}
+            <ConfirmModal
+                isOpen={showLogoutConfirm}
+                title="Log Out?"
+                message="Are you sure you want to log out of your account?"
+                confirmText="Log Out"
+                confirmType="danger"
+                onConfirm={handleLogout}
+                onCancel={() => setShowLogoutConfirm(false)}
+            />
         </div>
     );
 }

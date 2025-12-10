@@ -5,11 +5,13 @@ import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
 import { useMarket } from '../context/MarketContext';
 import { useCMS } from '../context/CMSContext';
+import { useToast } from '../components/shared/Toast';
 import { BookOpen, TrendingUp, Target, Award, Lock, Play, CheckCircle, Clock } from 'lucide-react';
 
 export default function Academy() {
     const navigate = useNavigate();
     const { market } = useMarket();
+    const { showToast } = useToast();
     const { lessons: cmsLessons, loading } = useCMS();
     const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -199,6 +201,8 @@ export default function Academy() {
                             onClick={() => {
                                 if (!lesson.locked) {
                                     navigate(`/academy/lesson/${lesson.id}`);
+                                } else {
+                                    showToast('Complete previous lessons to unlock this one! 🔒', 'warning');
                                 }
                             }}
                             style={{

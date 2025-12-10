@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import {
     Bell, ArrowLeft, Plus, TrendingUp, TrendingDown, X, Check,
     Settings, Trash2, Edit2, Clock, AlertCircle, Target, Volume2,
-    BellOff, ChevronDown
+    BellOff, ChevronDown, Search
 } from 'lucide-react';
+import { useToast } from '../../components/shared/Toast';
+import Tooltip from '../../components/shared/Tooltip';
+import ConfirmModal from '../../components/shared/ConfirmModal';
 
 // Mock alerts
 const SAMPLE_ALERTS = [
@@ -243,23 +246,76 @@ function AlertCard({ alert, onToggle, onDelete, onEdit }) {
 
 export default function InvestorAlerts() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [alerts, setAlerts] = useState(SAMPLE_ALERTS);
-    const [filter, setFilter] = useState('all'); // 'all', 'active', 'triggered'
+    const [filter, setFilter] = useState('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(null);
+
+    // Create form state
+    const [newAlert, setNewAlert] = useState({
+        symbol: '',
+        type: 'price_above',
+        targetPrice: '',
+        targetPercent: '5',
+    });
 
     const handleToggle = (id) => {
-        setAlerts(prev => prev.map(a =>
-            a.id === id ? { ...a, enabled: !a.enabled } : a
-        ));
+        setAlerts(prev => prev.map(a => {
+            if (a.id === id) {
+                showToast(
+                    a.enabled ? `Alert for ${a.symbol} disabled` : `Alert for ${a.symbol} enabled`,
+                    a.enabled ? 'info' : 'success'
+                );
+                return { ...a, enabled: !a.enabled };
+            }
+            return a;
+        }));
     };
 
-    const handleDelete = (id) => {
-        setAlerts(prev => prev.filter(a => a.id !== id));
+    const handleDeleteClick = (id) => {
+        setConfirmDelete(id);
+    };
+
+    const handleConfirmDelete = () => {
+        const alertToDelete = alerts.find(a => a.id === confirmDelete);
+        setAlerts(prev => prev.filter(a => a.id !== confirmDelete));
+        showToast(`Alert for ${alertToDelete?.symbol} deleted`, 'success');
+        setConfirmDelete(null);
     };
 
     const handleEdit = (alert) => {
-        // Would open edit modal
-        console.log('Edit:', alert);
+        showToast('Edit functionality coming soon!', 'info');
+    };
+
+    const handleCreateAlert = () => {
+        if (!newAlert.symbol.trim()) {
+            showToast('Please enter a stock symbol', 'error');
+            return;
+        }
+        if (newAlert.type !== 'percent_change' && !newAlert.targetPrice) {
+            showToast('Please enter a target price', 'error');
+            return;
+        }
+
+        const newId = Math.max(...alerts.map(a => a.id), 0) + 1;
+        const newAlertObj = {
+            id: newId,
+            symbol: newAlert.symbol.toUpperCase(),
+            name: newAlert.symbol.toUpperCase(),
+            type: newAlert.type,
+            targetPrice: parseFloat(newAlert.targetPrice) || 0,
+            targetPercent: parseFloat(newAlert.targetPercent) || 5,
+            currentPrice: 100 + Math.random() * 100, // Mock current price
+            enabled: true,
+            triggered: false,
+            createdAt: new Date().toISOString().split('T')[0],
+        };
+
+        setAlerts(prev => [newAlertObj, ...prev]);
+        showToast(`Alert created for ${newAlert.symbol.toUpperCase()}! 🔔`, 'success');
+        setShowCreateModal(false);
+        setNewAlert({ symbol: '', type: 'price_above', targetPrice: '', targetPercent: '5' });
     };
 
     const filteredAlerts = alerts.filter(a => {
@@ -393,7 +449,7 @@ export default function InvestorAlerts() {
                             key={alert.id}
                             alert={alert}
                             onToggle={handleToggle}
-                            onDelete={handleDelete}
+                            onDelete={handleDeleteClick}
                             onEdit={handleEdit}
                         />
                     ))
@@ -446,6 +502,8 @@ export default function InvestorAlerts() {
                             borderRadius: '24px 24px 0 0',
                             padding: '1.5rem',
                             width: '100%',
+                            maxHeight: '80vh',
+                            overflowY: 'auto',
                         }}
                     >
                         <div style={{
@@ -459,23 +517,45 @@ export default function InvestorAlerts() {
                             Create Alert
                         </h3>
 
+                        {/* Stock Symbol Input */}
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+                                Stock Symbol
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g., AAPL, MSFT, GOOGL"
+                                value={newAlert.symbol}
+                                onChange={(e) => setNewAlert(prev => ({ ...prev, symbol: e.target.value }))}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.875rem',
+                                    borderRadius: '12px',
+                                    border: '1px solid #E5E7EB',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                }}
+                            />
+                        </div>
+
                         {/* Alert Type Selection */}
-                        <div style={{ marginBottom: '1.25rem' }}>
+                        <div style={{ marginBottom: '1rem' }}>
                             <label style={{ fontSize: '0.8rem', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
                                 Alert Type
                             </label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.625rem' }}>
-                                {ALERT_TYPES.map(type => (
+                                {ALERT_TYPES.slice(0, 3).map(type => (
                                     <button
                                         key={type.id}
+                                        onClick={() => setNewAlert(prev => ({ ...prev, type: type.id }))}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '0.5rem',
                                             padding: '0.75rem',
                                             borderRadius: '10px',
-                                            border: '2px solid #E5E7EB',
-                                            background: 'white',
+                                            border: newAlert.type === type.id ? `2px solid ${type.color}` : '2px solid #E5E7EB',
+                                            background: newAlert.type === type.id ? `${type.color}15` : 'white',
                                             cursor: 'pointer',
                                         }}
                                     >
@@ -488,8 +568,32 @@ export default function InvestorAlerts() {
                             </div>
                         </div>
 
+                        {/* Target Price/Percent Input */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+                                {newAlert.type === 'percent_change' ? 'Target Change %' : 'Target Price ($)'}
+                            </label>
+                            <input
+                                type="number"
+                                placeholder={newAlert.type === 'percent_change' ? 'e.g., 5' : 'e.g., 195.00'}
+                                value={newAlert.type === 'percent_change' ? newAlert.targetPercent : newAlert.targetPrice}
+                                onChange={(e) => setNewAlert(prev => ({
+                                    ...prev,
+                                    [newAlert.type === 'percent_change' ? 'targetPercent' : 'targetPrice']: e.target.value
+                                }))}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.875rem',
+                                    borderRadius: '12px',
+                                    border: '1px solid #E5E7EB',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                }}
+                            />
+                        </div>
+
                         <button
-                            onClick={() => setShowCreateModal(false)}
+                            onClick={handleCreateAlert}
                             style={{
                                 width: '100%',
                                 padding: '0.875rem',
@@ -501,11 +605,22 @@ export default function InvestorAlerts() {
                                 cursor: 'pointer',
                             }}
                         >
-                            Search for Stock
+                            Create Alert 🔔
                         </button>
                     </div>
                 </div>
             )}
+
+            {/* Confirm Delete Modal */}
+            <ConfirmModal
+                isOpen={confirmDelete !== null}
+                title="Delete Alert?"
+                message="Are you sure you want to delete this price alert?"
+                confirmText="Delete"
+                confirmType="danger"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setConfirmDelete(null)}
+            />
         </div>
     );
 }

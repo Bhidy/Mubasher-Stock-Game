@@ -18,7 +18,7 @@ export default function BurgerMenu({ variant = 'default' }) {
     const [marketDropdownOpen, setMarketDropdownOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { setShowChat, userProfile } = useContext(UserContext);
+    const { setShowChat, userProfile, user } = useContext(UserContext);
     const { market, selectMarket } = useMarket();
     const { mode, isPlayerMode, isInvestorMode, currentMode } = useMode();
     const dropdownRef = useRef(null);
@@ -99,9 +99,6 @@ export default function BurgerMenu({ variant = 'default' }) {
                 { icon: Calendar, label: 'Economic Calendar', path: '/investor/calendar' },
                 { divider: true, label: 'Research' },
                 { icon: FileText, label: 'Research Notes', path: '/investor/notes' },
-                { icon: BookOpen, label: 'Education', path: '/academy' },
-                { divider: true, label: 'Competition' },
-                { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
                 { divider: true, label: 'Account' },
                 { icon: User, label: 'Profile', path: '/profile' },
                 { icon: Bell, label: 'Notifications', path: '/notifications' },
@@ -180,9 +177,14 @@ export default function BurgerMenu({ variant = 'default' }) {
                                 background: 'rgba(255,255,255,0.2)',
                                 backdropFilter: 'blur(10px)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                border: '2px solid rgba(255,255,255,0.3)'
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                overflow: 'hidden'
                             }}>
-                                <User size={24} color="white" />
+                                {user?.avatar ? (
+                                    <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <User size={24} color="white" />
+                                )}
                             </div>
                             <div>
                                 <div style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem' }}>

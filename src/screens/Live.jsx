@@ -11,8 +11,12 @@ import { StockLogo } from '../components/StockCard';
 
 import BurgerMenu from '../components/BurgerMenu';
 
+import { useToast } from '../components/shared/Toast';
+import Tooltip from '../components/shared/Tooltip';
+
 export default function Live() {
     const { user } = useContext(UserContext);
+    const { showToast } = useToast();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('performance');
     const [showTooltip, setShowTooltip] = useState(false);
@@ -77,24 +81,35 @@ export default function Live() {
     const targetDeck = MARKET_DECKS[market.id] || MARKET_DECKS['SA'];
     const stockSuffix = market.suffix || '';
 
-    // Map real stocks to component format or use fallback
-    const allStocks = targetDeck.map((ticker, index) => {
+    // Determine which picks to show: User's actual picks OR fallback mock deck
+    const currentPicks = user.picks && user.picks.length > 0
+        ? user.picks
+        : targetDeck.map((ticker, index) => ({ id: ticker, symbol: ticker, prediction: 'UP' }));
+
+    // Enhance picks with real-time price data
+    const picks = currentPicks.map((pick, index) => {
+        const ticker = pick.symbol || pick.ticker; // Handle both structures
+
         // Try to find in prices
         const priceKey = Object.keys(prices).find(k =>
             k === ticker || k === `${ticker}${stockSuffix}` || k.startsWith(ticker)
         );
         const stockData = priceKey ? prices[priceKey] : null;
 
+        // Calculate logical change based on prediction
+        // If they predicted UP, real change is correct. If DOWN, inverse it? 
+        // For simplicity, we just show the stock's performance. 
+        // Later we can add points logic: if (pred == UP && change > 0) -> Points ++
+
         return {
             id: index + 1,
             ticker: ticker,
             name: stockData?.name || FALLBACK_NAMES[ticker] || ticker,
             price: stockData?.price || (50 + Math.random() * 100),
-            change: stockData?.changePercent || ((Math.random() - 0.5) * 2)
+            change: stockData?.changePercent || ((Math.random() - 0.5) * 2),
+            prediction: pick.prediction || 'UP' // Default to UP if missing
         };
     });
-
-    const picks = allStocks;
 
     const topPlayers = [
         { rank: 1, name: 'Yasser Al-Qahtani', gain: 5.4, avatar: '👑' },
@@ -434,7 +449,22 @@ export default function Live() {
                                             <StockLogo ticker={stock.ticker} size={44} />
                                         </div>
                                         <div>
-                                            <h3 className="h3" style={{ fontSize: '1.125rem', marginBottom: '0.25rem' }}>{stock.ticker}</h3>
+                                            <div className="flex-center" style={{ gap: '0.5rem' }}>
+                                                <h3 className="h3" style={{ fontSize: '1.125rem', marginBottom: '0.25rem' }}>{stock.ticker}</h3>
+                                                {stock.prediction && (
+                                                    <span style={{
+                                                        fontSize: '0.65rem',
+                                                        fontWeight: 800,
+                                                        padding: '2px 6px',
+                                                        borderRadius: '4px',
+                                                        background: stock.prediction === 'UP' ? '#dcfce7' : '#fee2e2',
+                                                        color: stock.prediction === 'UP' ? '#16a34a' : '#dc2626',
+                                                        border: `1px solid ${stock.prediction === 'UP' ? '#bbf7d0' : '#fecaca'}`
+                                                    }}>
+                                                        {stock.prediction}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="caption">{stock.name}</p>
                                         </div>
                                     </div>

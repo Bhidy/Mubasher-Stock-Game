@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Clock, Filter, Newspaper, Search, ChevronDown, Calendar } from 'lucide-react';
+import { useToast } from '../components/shared/Toast';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
@@ -35,6 +36,7 @@ export default function NewsFeed() {
     // Contexts
     const { market: globalMarket } = useMarket();
     const { getPublishedNews } = useCMS();
+    const { showToast } = useToast();
 
     // Use global market ID
     const market = globalMarket.id;
@@ -235,6 +237,7 @@ export default function NewsFeed() {
                                     onClick={() => {
                                         setDateFilter(d);
                                         setShowDateMenu(false);
+                                        showToast(`Date filter: ${d === 'All' ? 'All History' : d}`, 'info');
                                     }}
                                     style={{
                                         display: 'block',
@@ -265,7 +268,12 @@ export default function NewsFeed() {
                     {sources.map(source => (
                         <button
                             key={source}
-                            onClick={() => setSelectedSource(source)}
+                            onClick={() => {
+                                setSelectedSource(source);
+                                if (source !== selectedSource) {
+                                    showToast(`Source: ${source}`, 'info');
+                                }
+                            }}
                             style={{
                                 padding: '0.4rem 1rem',
                                 borderRadius: '20px',

@@ -34,36 +34,38 @@ const TAG_CONFIG = {
 };
 
 // US Stocks Mapping (Major Tech & Popular) - Using reliable Clearbit logos
+// US Stocks Mapping (Major Tech & Popular) - Using High Quality Wikimedia/Official SVGs
 export const US_STOCKS = {
-    'AAPL': { name: 'Apple', logo: 'https://logo.clearbit.com/apple.com', color: '#000000', initials: 'AP' },
-    'TSLA': { name: 'Tesla', logo: 'https://logo.clearbit.com/tesla.com', color: '#cc0000', initials: 'TS' },
-    'NVDA': { name: 'Nvidia', logo: 'https://logo.clearbit.com/nvidia.com', color: '#76b900', initials: 'NV' },
-    'AMZN': { name: 'Amazon', logo: 'https://logo.clearbit.com/amazon.com', color: '#ff9900', initials: 'AZ' },
-    'MSFT': { name: 'Microsoft', logo: 'https://logo.clearbit.com/microsoft.com', color: '#00a4ef', initials: 'MS' },
-    'GOOGL': { name: 'Alphabet', logo: 'https://logo.clearbit.com/google.com', color: '#4285f4', initials: 'GO' },
-    'META': { name: 'Meta', logo: 'https://logo.clearbit.com/meta.com', color: '#0081fb', initials: 'MT' },
-    'AMD': { name: 'AMD', logo: 'https://logo.clearbit.com/amd.com', color: '#ED1C24', initials: 'AMD' },
-    'NFLX': { name: 'Netflix', logo: 'https://logo.clearbit.com/netflix.com', color: '#E50914', initials: 'NF' },
-    'INTC': { name: 'Intel', logo: 'https://logo.clearbit.com/intel.com', color: '#0071C5', initials: 'IN' },
+    'AAPL': { name: 'Apple', logo: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg', color: '#000000', initials: 'AP' },
+    'TSLA': { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png', color: '#cc0000', initials: 'TS' },
+    'NVDA': { name: 'Nvidia', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/21/Nvidia_logo.svg', color: '#76b900', initials: 'NV' },
+    'AMZN': { name: 'Amazon', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg', color: '#ff9900', initials: 'AZ' },
+    'MSFT': { name: 'Microsoft', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg', color: '#00a4ef', initials: 'MS' },
+    'GOOGL': { name: 'Alphabet', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg', color: '#4285f4', initials: 'GO' },
+    'META': { name: 'Meta', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg', color: '#0081fb', initials: 'MT' },
+    'AMD': { name: 'AMD', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg', color: '#ED1C24', initials: 'AMD' },
+    'NFLX': { name: 'Netflix', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg', color: '#E50914', initials: 'NF' },
+    'INTC': { name: 'Intel', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Intel-logo.svg', color: '#0071C5', initials: 'IN' },
 };
 
 // Egypt Stocks Mapping
+// Egypt Stocks Mapping
 export const EGYPT_STOCKS = {
-    'COMI': { name: 'CIB Egypt', initials: 'CIB', color: '#0055a5', tag: 'safe' },
-    'EAST': { name: 'Eastern Company', initials: 'EC', color: '#2e7d32', tag: 'safe' },
-    'HRHO': { name: 'EFG Hermes', initials: 'EFG', color: '#e53935', tag: 'trending' },
-    'TMGH': { name: 'TMG Holding', initials: 'TMG', color: '#1e88e5', tag: 'trending' },
-    'SWDY': { name: 'Elsewedy Electric', initials: 'SE', color: '#d32f2f', tag: 'volatile' },
-    'ETEL': { name: 'Telecom Egypt', initials: 'TE', color: '#6a1b9a', tag: 'safe' },
-    'ESRS': { name: 'Ezz Steel', initials: 'EZZ', color: '#455a64', tag: 'volatile' },
-    'EKHO': { name: 'Egypt Kuwait Holding', initials: 'EK', color: '#5c6bc0', tag: 'trending' },
-    'OCDI': { name: 'Orascom Dev', initials: 'ODH', color: '#00838f', tag: 'volatile' },
-    'CLHO': { name: 'Cleopatra Hospitals', initials: 'CH', color: '#00acc1', tag: 'safe' },
+    'COMI': { name: 'CIB Egypt', initials: 'CIB', color: '#0055a5', tag: 'safe', logo: 'https://companiesmarketcap.com/img/company-logos/64/COMI.CA.png' },
+    'EAST': { name: 'Eastern Company', initials: 'EC', color: '#2e7d32', tag: 'safe', logo: 'https://companiesmarketcap.com/img/company-logos/64/EAST.CA.png' },
+    'HRHO': { name: 'EFG Hermes', initials: 'EFG', color: '#e53935', tag: 'trending', logo: 'https://companiesmarketcap.com/img/company-logos/64/HRHO.CA.png' },
+    'TMGH': { name: 'TMG Holding', initials: 'TMG', color: '#1e88e5', tag: 'trending', logo: 'https://companiesmarketcap.com/img/company-logos/64/TMGH.CA.png' },
+    'SWDY': { name: 'Elsewedy Electric', initials: 'SE', color: '#d32f2f', tag: 'volatile', logo: 'https://companiesmarketcap.com/img/company-logos/64/SWDY.CA.png' },
+    'ETEL': { name: 'Telecom Egypt', initials: 'TE', color: '#6a1b9a', tag: 'safe', logo: 'https://companiesmarketcap.com/img/company-logos/64/ETEL.CA.png' },
+    'ESRS': { name: 'Ezz Steel', initials: 'EZZ', color: '#455a64', tag: 'volatile', logo: 'https://companiesmarketcap.com/img/company-logos/64/ESRS.CA.png' },
+    'EKHO': { name: 'Egypt Kuwait Holding', initials: 'EK', color: '#5c6bc0', tag: 'trending', logo: 'https://companiesmarketcap.com/img/company-logos/64/EKHO.CA.png' },
+    'OCDI': { name: 'Orascom Dev', initials: 'ODH', color: '#00838f', tag: 'volatile', logo: 'https://logo.clearbit.com/orascomdh.com' },
+    'CLHO': { name: 'Cleopatra Hospitals', initials: 'CH', color: '#00acc1', tag: 'safe', logo: 'https://logo.clearbit.com/cleopatrahospitals.com' },
     'SKPC': { name: 'Sidi Kerir Petro', initials: 'SK', color: '#f57c00', tag: 'volatile' },
-    'PHDC': { name: 'Palm Hills Dev', initials: 'PHD', color: '#43a047', tag: 'trending' },
-    'MNHD': { name: 'Madinet Nasr', initials: 'MN', color: '#1565c0', tag: 'trending' },
+    'PHDC': { name: 'Palm Hills Dev', initials: 'PHD', color: '#43a047', tag: 'trending', logo: 'https://logo.clearbit.com/palmhillsdevelopments.com' },
+    'MNHD': { name: 'Madinet Nasr', initials: 'MN', color: '#1565c0', tag: 'trending', logo: 'https://logo.clearbit.com/mnhd.com' },
     'ABUK': { name: 'Abu Qir Fertilizers', initials: 'AQ', color: '#558b2f', tag: 'safe' },
-    'ORWE': { name: 'Obour Land', initials: 'OL', color: '#f9a825', tag: 'safe' },
+    'ORWE': { name: 'Obour Land', initials: 'OL', color: '#f9a825', tag: 'safe', logo: 'https://logo.clearbit.com/obourland.com' },
     'HELI': { name: 'Heliopolis Housing', initials: 'HH', color: '#6d4c41', tag: 'safe' },
 };
 
@@ -335,12 +337,14 @@ function StockLogo({ ticker, size = 56, logoUrl = null }) {
     // Handle Image Load Error - Try multiple fallback sources
     const handleError = () => {
         const fallbacks = [
-            // Fallback 1: TradingView
+            // Fallback 1: CompaniesMarketCap (High Quality)
+            `https://companiesmarketcap.com/img/company-logos/64/${cleanTicker.toUpperCase()}.png`,
+            // Fallback 2: General Google
+            mappedStock?.website ? `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${mappedStock.website}&size=128` : null,
+            // Fallback 3: TradingView (Reliable but sometimes generic)
             `https://s3-symbol-logo.tradingview.com/${cleanTicker.toLowerCase()}--big.svg`,
-            // Fallback 2: Google Favicon (works for most company domains)
-            mappedStock?.website ? `https://www.google.com/s2/favicons?domain=${mappedStock.website}&sz=128` : null,
-            // Fallback 3: DuckDuckGo Icon service
-            `https://icons.duckduckgo.com/ip3/${cleanTicker.toLowerCase()}.com.ico`,
+            // Fallback 4: Clearbit (often blocked but good)
+            mappedStock?.website ? `https://logo.clearbit.com/${mappedStock.website}` : null,
         ].filter(Boolean);
 
         if (fallbackIndex < fallbacks.length) {

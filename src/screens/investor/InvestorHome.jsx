@@ -12,15 +12,23 @@ import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
 import InvestorHeader from '../../components/investor/InvestorHeader';
 import MarketCard from '../../components/investor/MarketCard';
+import { StockLogo } from '../../components/StockCard';
+import Tooltip from '../../components/shared/Tooltip';
+import { useToast } from '../../components/shared/Toast';
 
 // Market Indices Mock Data
-const MARKET_INDICES = [
-    { symbol: 'TASI', name: 'Tadawul All Share', value: 12847.32, change: 1.24, region: '🇸🇦' },
-    { symbol: 'EGX30', name: 'EGX 30', value: 28934.56, change: -0.45, region: '🇪🇬' },
-    { symbol: 'S&P 500', name: 'S&P 500', value: 5892.14, change: 0.87, region: '🇺🇸' },
-    { symbol: 'NASDAQ', name: 'NASDAQ', value: 19234.67, change: 1.12, region: '🇺🇸' },
+// Global Indices Configuration for Live Data
+const INDICES_CONFIG = [
+    { symbol: '^TASI.SR', name: 'TASI', flag: '🇸🇦', color: '#10b981' },
+    { symbol: '^CASE30', name: 'EGX 30', flag: '🇪🇬', color: '#ef4444' },
+    { symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸', color: '#3b82f6' },
+    { symbol: '^IXIC', name: 'NASDAQ', flag: '🇺🇸', color: '#8b5cf6' },
+    { symbol: '^DJI', name: 'DOW', flag: '🇺🇸', color: '#0ea5e9' },
+    { symbol: '^GDAXI', name: 'DAX', flag: '🇩🇪', color: '#f59e0b' },
+    { symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧', color: '#64748b' },
+    { symbol: '^N225', name: 'Nikkei', flag: '🇯🇵', color: '#dc2626' },
+    { symbol: '^HSI', name: 'Hang Seng', flag: '🇭🇰', color: '#ec4899' },
 ];
-
 // Portfolio Holdings Mock
 const HOLDINGS = [
     { symbol: 'ARAMCO', name: 'Saudi Aramco', shares: 100, price: 32.50, change: 2.3, value: 3250, sector: 'Energy' },
@@ -43,10 +51,29 @@ const UPCOMING_EVENTS = [
 ];
 
 // News Mock
+// News Mock
 const NEWS_ITEMS = [
-    { title: 'Oil Prices Surge on OPEC+ Production Cuts', source: 'Reuters', time: '2h ago', category: 'Commodities' },
-    { title: 'Tech Rally Continues as AI Investments Grow', source: 'Bloomberg', time: '4h ago', category: 'Technology' },
-    { title: 'Egyptian Pound Stabilizes After Central Bank Move', source: 'Al-Ahram', time: '6h ago', category: 'Forex' },
+    {
+        title: 'Oil Prices Surge on OPEC+ Production Cuts',
+        source: 'Reuters',
+        time: '2h ago',
+        category: 'Commodities',
+        imageUrl: 'https://plus.unsplash.com/premium_photo-1661962692059-55d5a4319814?w=400&q=80'
+    },
+    {
+        title: 'Tech Rally Continues as AI Investments Grow',
+        source: 'Bloomberg',
+        time: '4h ago',
+        category: 'Technology',
+        imageUrl: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&q=80'
+    },
+    {
+        title: 'Egyptian Pound Stabilizes After Central Bank Move',
+        source: 'Al-Ahram',
+        time: '6h ago',
+        category: 'Forex',
+        imageUrl: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=400&q=80'
+    },
 ];
 
 export default function InvestorHome() {
@@ -55,7 +82,50 @@ export default function InvestorHome() {
     const { announcements } = useCMS();
     const navigate = useNavigate();
     const [greeting, setGreeting] = useState('');
+    // Live Indices State
+    const [indicesData, setIndicesData] = useState([]);
+    const [loadingIndices, setLoadingIndices] = useState(true);
     const [currentTime, setCurrentTime] = useState(new Date());
+
+    // Fetch Global Indices
+    useEffect(() => {
+        const fetchIndices = async () => {
+            try {
+                const promises = INDICES_CONFIG.map(async (idx) => {
+                    try {
+                        const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
+                        const data = await res.json();
+                        // Check if data is valid
+                        if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: 'closed' };
+
+                        const price = data.price || data.regularMarketPrice || 0;
+                        const changePercent = data.regularMarketChangePercent || 0;
+                        const isPositive = changePercent >= 0;
+                        const status = (data.marketState === 'REGULAR' || data.marketState === 'OPEN') ? 'open' : 'closed';
+
+                        return {
+                            ...idx,
+                            value: price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                            change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
+                            isPositive,
+                            chartData: [50, 52, 55, 53, 58, 62, 60, 65, 70, 72, 75], // Fallback/Mock chart
+                            status
+                        };
+                    } catch (e) {
+                        console.warn(`Failed to fetch ${idx.symbol}`, e);
+                        return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [], status: 'closed' };
+                    }
+                });
+                const results = await Promise.all(promises);
+                setIndicesData(results);
+            } catch (err) {
+                console.error("Global Indices Error:", err);
+            } finally {
+                setLoadingIndices(false);
+            }
+        };
+        fetchIndices();
+    }, []);
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -185,7 +255,7 @@ export default function InvestorHome() {
                     </button>
                 </div>
 
-                {/* Market Cards Carousel */}
+                {/* Market Cards Carousel - Live Data */}
                 <div style={{
                     display: 'flex',
                     gap: '1rem',
@@ -199,15 +269,27 @@ export default function InvestorHome() {
                     paddingLeft: '0.5rem',
                     paddingRight: '0.5rem',
                 }} className="no-scrollbar">
-                    <MarketCard name="TASI" flag="🇸🇦" value="12,450.23" change="+0.45%" isPositive={true} chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]} color="#10b981" status="open" onClick={() => navigate('/market')} />
-                    <MarketCard name="EGX 30" flag="🇪🇬" value="28,934.56" change="-0.45%" isPositive={false} chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]} color="#ef4444" status="closed" onClick={() => navigate('/market')} />
-                    <MarketCard name="S&P 500" flag="🇺🇸" value="5,105.20" change="+0.30%" isPositive={true} chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]} color="#3b82f6" status="pre" onClick={() => navigate('/market')} />
-                    <MarketCard name="NASDAQ" flag="🇺🇸" value="19,234.67" change="+1.12%" isPositive={true} chartData={[50, 55, 60, 58, 65, 70, 75, 80, 78, 85, 90]} color="#8b5cf6" status="pre" onClick={() => navigate('/market')} />
-                    <MarketCard name="DOW" flag="🇺🇸" value="43,828.06" change="+0.25%" isPositive={true} chartData={[55, 58, 60, 62, 58, 60, 62, 65, 68, 70, 72]} color="#0ea5e9" status="pre" onClick={() => navigate('/market')} />
-                    <MarketCard name="DAX" flag="🇩🇪" value="20,314.81" change="+0.68%" isPositive={true} chartData={[45, 48, 52, 50, 55, 58, 62, 60, 65, 70, 72]} color="#f59e0b" status="open" onClick={() => navigate('/market')} />
-                    <MarketCard name="FTSE 100" flag="🇬🇧" value="8,308.61" change="-0.12%" isPositive={false} chartData={[60, 58, 55, 57, 54, 52, 55, 53, 50, 52, 51]} color="#64748b" status="open" onClick={() => navigate('/market')} />
-                    <MarketCard name="Nikkei" flag="🇯🇵" value="39,160.50" change="+0.95%" isPositive={true} chartData={[40, 45, 50, 55, 52, 58, 62, 65, 70, 75, 80]} color="#dc2626" status="closed" onClick={() => navigate('/market')} />
-                    <MarketCard name="Hang Seng" flag="🇭🇰" value="20,397.05" change="+1.35%" isPositive={true} chartData={[35, 40, 38, 45, 50, 55, 60, 58, 65, 70, 75]} color="#ec4899" status="closed" onClick={() => navigate('/market')} />
+                    {loadingIndices ? (
+                        // Skeleton Loading
+                        [1, 2, 3].map(i => (
+                            <div key={i} style={{ minWidth: '170px', height: '180px', background: '#f1f5f9', borderRadius: '24px', flexShrink: 0, animation: 'pulse 1.5s infinite' }} />
+                        ))
+                    ) : (
+                        indicesData.map((idx, i) => (
+                            <MarketCard
+                                key={i}
+                                name={idx.name}
+                                flag={idx.flag}
+                                value={idx.value}
+                                change={idx.change}
+                                isPositive={idx.isPositive}
+                                chartData={idx.chartData}
+                                color={idx.color}
+                                status={idx.status}
+                                onClick={() => navigate('/market')}
+                            />
+                        ))
+                    )}
                 </div>
 
                 {/* Scroll indicator dots */}
@@ -457,20 +539,7 @@ export default function InvestorHome() {
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '10px',
-                                        background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'white',
-                                        fontWeight: 700,
-                                        fontSize: '0.7rem',
-                                    }}>
-                                        {stock.symbol.substring(0, 2)}
-                                    </div>
+                                    <StockLogo ticker={stock.symbol} size={40} />
                                     <div>
                                         <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.9rem' }}>{stock.symbol}</div>
                                         <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{stock.name}</div>
@@ -602,30 +671,56 @@ export default function InvestorHome() {
                         </button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+
                         {NEWS_ITEMS.map((news, index) => (
                             <div key={index} style={{
                                 padding: '0.875rem',
                                 background: '#F8FAFC',
                                 borderRadius: '12px',
                                 cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '1rem'
                             }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-                                    <span style={{
-                                        padding: '0.125rem 0.5rem',
-                                        background: '#E0F2FE',
-                                        borderRadius: '4px',
-                                        fontSize: '0.6rem',
-                                        fontWeight: 700,
-                                        color: '#0284C7',
-                                    }}>{news.category}</span>
-                                    <span style={{ fontSize: '0.65rem', color: '#94A3B8' }}>{news.time}</span>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                                        <span style={{
+                                            padding: '0.125rem 0.5rem',
+                                            background: '#E0F2FE',
+                                            borderRadius: '4px',
+                                            fontSize: '0.6rem',
+                                            fontWeight: 700,
+                                            color: '#0284C7',
+                                        }}>{news.category}</span>
+                                        <span style={{ fontSize: '0.65rem', color: '#94A3B8' }}>{news.time}</span>
+                                    </div>
+                                    <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '0.9rem', marginBottom: '0.25rem', lineHeight: '1.4' }}>
+                                        {news.title}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: '#64748B' }}>
+                                        {news.source}
+                                    </div>
                                 </div>
-                                <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                                    {news.title}
-                                </div>
-                                <div style={{ fontSize: '0.7rem', color: '#64748B' }}>
-                                    {news.source}
-                                </div>
+                                {news.imageUrl && (
+                                    <div style={{
+                                        width: '80px',
+                                        height: '60px',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        flexShrink: 0
+                                    }}>
+                                        <img
+                                            src={news.imageUrl}
+                                            alt={news.title}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover'
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

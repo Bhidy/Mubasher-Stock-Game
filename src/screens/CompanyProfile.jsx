@@ -10,6 +10,8 @@ import { usePrices } from '../context/PriceContext';
 import { StockLogo, SAUDI_STOCKS, US_STOCKS, EGYPT_STOCKS } from '../components/StockCard';
 import ProgressBar from '../components/ProgressBar';
 import StockMovementCard from '../components/StockMovementCard';
+import { useToast } from '../components/shared/Toast';
+import Tooltip from '../components/shared/Tooltip';
 
 // Static content (news, posts) - these would come from a content API in production
 const STATIC_CONTENT = {
@@ -90,11 +92,42 @@ export default function CompanyProfile() {
     const { symbol } = useParams();
     const navigate = useNavigate();
     const { prices, loading: pricesLoading } = usePrices();
+    const { showToast } = useToast();
     const [isWatchlisted, setIsWatchlisted] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [activeTooltip, setActiveTooltip] = useState(null);
     const [detailedStock, setDetailedStock] = useState(null);
     const [profileLoading, setProfileLoading] = useState(true);
+
+    const handleToggleWatchlist = () => {
+        setIsWatchlisted(!isWatchlisted);
+        showToast(
+            isWatchlisted ? 'Removed from watchlist' : 'Added to watchlist ⭐',
+            isWatchlisted ? 'info' : 'success'
+        );
+    };
+
+    const handleShare = async () => {
+        const shareUrl = window.location.href;
+        const shareText = `Check out ${stockMeta.name || symbol} on Bhidy!`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: shareText, url: shareUrl });
+                showToast('Shared successfully!', 'success');
+            } catch (e) {
+                // User cancelled
+            }
+        } else {
+            navigator.clipboard.writeText(shareUrl);
+            showToast('Link copied to clipboard!', 'success');
+        }
+    };
+
+    const handleSetAlert = () => {
+        showToast('Set price alerts in the Alerts section', 'info');
+        navigate('/investor/alerts');
+    };
 
     // Scroll to top on mount
     useEffect(() => {
@@ -377,29 +410,34 @@ export default function CompanyProfile() {
                         <ArrowLeft size={20} />
                     </button>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                            onClick={() => setIsWatchlisted(!isWatchlisted)}
-                            style={{
-                                background: isWatchlisted ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                borderRadius: '12px',
-                                padding: '0.75rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <Star size={20} color="white" fill={isWatchlisted ? 'white' : 'none'} />
-                        </button>
-                        <button
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                borderRadius: '12px',
-                                padding: '0.75rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <Share2 size={20} color="white" />
-                        </button>
+                        <Tooltip text={isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'}>
+                            <button
+                                onClick={handleToggleWatchlist}
+                                style={{
+                                    background: isWatchlisted ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    padding: '0.75rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Star size={20} color="white" fill={isWatchlisted ? 'white' : 'none'} />
+                            </button>
+                        </Tooltip>
+                        <Tooltip text="Share this stock">
+                            <button
+                                onClick={handleShare}
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    padding: '0.75rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Share2 size={20} color="white" />
+                            </button>
+                        </Tooltip>
                     </div>
                 </div>
 
@@ -525,6 +563,7 @@ export default function CompanyProfile() {
                             Pick Stock
                         </button>
                         <button
+                            onClick={handleSetAlert}
                             style={{
                                 background: 'rgba(255,255,255,0.2)',
                                 color: 'white',

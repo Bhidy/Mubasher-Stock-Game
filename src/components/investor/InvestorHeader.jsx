@@ -1,12 +1,17 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Bell, ArrowUpRight, ArrowDownRight, ChevronRight } from 'lucide-react';
 import { UserContext } from '../../App';
 import BurgerMenu from '../BurgerMenu';
+import { useMarket, MARKETS } from '../../context/MarketContext';
 
 export default function InvestorHeader({ alertsCount, marketStatus, portfolioData, greeting }) {
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
+    const { market, selectMarket } = useMarket();
+    const [showMarkets, setShowMarkets] = useState(false);
+    // market is already the full object from context
+    const currentMarket = market;
 
     return (
         <div style={{
@@ -94,57 +99,104 @@ export default function InvestorHeader({ alertsCount, marketStatus, portfolioDat
                         )}
                     </button>
 
-                    {/* Profile - Image Enforced */}
-                    <button
-                        onClick={() => navigate('/profile')}
-                        style={{
-                            background: 'rgba(255,255,255,0.1)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '12px',
-                            padding: '0',
-                            width: '42px',
-                            height: '42px',
-                            cursor: 'pointer',
-                            backdropFilter: 'blur(10px)',
-                            overflow: 'hidden',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                    >
-                        {user.avatar ? (
-                            <img
-                                src={user.avatar}
-                                alt="Profile"
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                        ) : (
-                            <div style={{
-                                width: '100%', height: '100%',
+                    {/* Market Selector Button with Dropdown */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setShowMarkets(!showMarkets)}
+                            style={{
                                 background: 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1rem', color: 'white', fontWeight: 700,
+                                borderRadius: '999px',
+                                padding: '0.4rem 0.875rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                border: 'none',
+                                color: 'white',
+                                height: '42px',
+                                boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)',
+                                transition: 'transform 0.2s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>
+                                {currentMarket?.flag || '🌍'}
+                            </span>
+                            <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.05em' }}>
+                                {currentMarket?.id || 'ALL'}
+                            </span>
+                            <ChevronRight size={16} strokeWidth={3} style={{ transform: showMarkets ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showMarkets && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '120%',
+                                right: 0,
+                                background: '#1E293B',
+                                border: '1px solid #334155',
+                                borderRadius: '16px',
+                                padding: '0.5rem',
+                                minWidth: '180px',
+                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                                zIndex: 100,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.25rem',
+                                maxHeight: '280px', // Limit to ~5 items
+                                overflowY: 'auto',
                             }}>
-                                {user.name?.charAt(0)?.toUpperCase()}
+                                {MARKETS.map(m => {
+                                    // 3-Char Mapping
+                                    const ISO3 = {
+                                        SA: 'KSA', EG: 'EGY', US: 'USA', IN: 'IND', UK: 'GBR', CA: 'CAN',
+                                        AU: 'AUS', HK: 'HKG', DE: 'DEU', JP: 'JPN', AE: 'UAE', ZA: 'ZAF',
+                                        QA: 'QAT', FR: 'FRA', CH: 'CHE', NL: 'NLD', ES: 'ESP', IT: 'ITA',
+                                        BR: 'BRA', MX: 'MEX', KR: 'KOR', TW: 'TWN', SG: 'SGP'
+                                    };
+                                    const shortName = ISO3[m.id] || m.id;
+
+                                    return (
+                                        <div
+                                            key={m.id}
+                                            onClick={() => {
+                                                selectMarket(m.id);
+                                                setShowMarkets(false);
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                padding: '0.625rem 0.875rem',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                background: market?.id === m.id ? 'rgba(14, 165, 233, 0.2)' : 'transparent',
+                                                color: 'white',
+                                                transition: 'background 0.2s',
+                                                flexShrink: 0, // Prevent shrinking
+                                            }}
+                                            onMouseEnter={e => {
+                                                if (market?.id !== m.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                            }}
+                                            onMouseLeave={e => {
+                                                if (market?.id !== m.id) e.currentTarget.style.background = 'transparent';
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '1.2rem' }}>{m.flag}</span>
+                                            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{shortName}</span>
+                                            {market?.id === m.id && (
+                                                <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
-                    </button>
-
-                    {/* Market Status Pill */}
-                    <div style={{
-                        padding: '0.5rem 0.875rem',
-                        background: marketStatus.bg,
-                        borderRadius: '999px',
-                        display: 'flex', alignItems: 'center', gap: '0.375rem',
-                        height: '42px',
-                    }}>
-                        <div style={{
-                            width: '6px', height: '6px', borderRadius: '50%',
-                            background: marketStatus.color,
-                            animation: marketStatus.status === 'Open' ? 'pulse 2s infinite' : 'none',
-                        }} />
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: marketStatus.color }}>
-                            {marketStatus.status}
-                        </span>
                     </div>
+
+
                 </div>
             </div>
 

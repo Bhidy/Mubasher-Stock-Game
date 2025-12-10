@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Calendar, ArrowLeft, ChevronLeft, ChevronRight, Clock,
-    AlertCircle, TrendingUp, DollarSign, Globe, Flag, Filter
+    AlertCircle, TrendingUp, DollarSign, Globe, Flag, Filter, Download
 } from 'lucide-react';
+import { useToast } from '../../components/shared/Toast';
+import Tooltip from '../../components/shared/Tooltip';
 
 // Mock economic events
 const ECONOMIC_EVENTS = [
@@ -220,6 +222,7 @@ function EventCard({ event }) {
 
 export default function InvestorCalendar() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [activeCategory, setActiveCategory] = useState('all');
     const [impactFilter, setImpactFilter] = useState('all');
@@ -287,6 +290,20 @@ export default function InvestorCalendar() {
                     <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0, flex: 1 }}>
                         Economic Calendar
                     </h1>
+                    <Tooltip text="Sync to your calendar">
+                        <button
+                            onClick={() => showToast('Events synced to calendar! 📅', 'success')}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '0.625rem',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <Download size={20} color="white" />
+                        </button>
+                    </Tooltip>
                 </div>
 
                 {/* Week Navigation */}

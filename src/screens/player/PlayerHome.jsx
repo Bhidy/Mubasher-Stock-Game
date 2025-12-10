@@ -14,6 +14,8 @@ import XPProgressBar from '../../components/player/XPProgressBar';
 import CoinDisplay from '../../components/player/CoinDisplay';
 import StreakDisplay from '../../components/player/StreakDisplay';
 import { AchievementShowcase, ACHIEVEMENTS } from '../../components/player/AchievementBadge';
+import Tooltip from '../../components/shared/Tooltip';
+import { useToast } from '../../components/shared/Toast';
 
 // Daily Challenges Data
 const DAILY_CHALLENGES = [
@@ -36,8 +38,10 @@ export default function PlayerHome() {
     const { currentMode } = useMode();
     const { announcements, loading: cmsLoading } = useCMS();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [greeting, setGreeting] = useState('');
     const [showDailyReward, setShowDailyReward] = useState(false);
+    const [challenges, setChallenges] = useState(DAILY_CHALLENGES);
 
     // Set greeting based on time of day
     useEffect(() => {
@@ -117,65 +121,73 @@ export default function PlayerHome() {
                     <BurgerMenu variant="glass" />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <CoinDisplay coins={playerData.coins} size="sm" variant="glass" />
-                        <StreakDisplay streak={playerData.streak} compact />
+                        <Tooltip text="Your coin balance. Earn coins by completing challenges!">
+                            <CoinDisplay coins={playerData.coins} size="sm" variant="glass" />
+                        </Tooltip>
+                        <Tooltip text={`🔥 ${playerData.streak} day streak! Keep it going!`}>
+                            <StreakDisplay streak={playerData.streak} compact />
+                        </Tooltip>
 
                         {/* Notifications */}
-                        <button
-                            onClick={() => navigate('/notifications')}
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                borderRadius: '12px',
-                                padding: '0.5rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                position: 'relative',
-                            }}
-                        >
-                            <Bell size={18} color="white" />
-                            <span style={{
-                                position: 'absolute',
-                                top: '2px',
-                                right: '2px',
-                                width: '8px',
-                                height: '8px',
-                                background: '#EF4444',
-                                borderRadius: '50%',
-                            }} />
-                        </button>
+                        <Tooltip text="View your notifications">
+                            <button
+                                onClick={() => navigate('/notifications')}
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    padding: '0.5rem',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                }}
+                            >
+                                <Bell size={18} color="white" />
+                                <span style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    width: '8px',
+                                    height: '8px',
+                                    background: '#EF4444',
+                                    borderRadius: '50%',
+                                }} />
+                            </button>
+                        </Tooltip>
 
                         {/* Profile */}
-                        <button
-                            onClick={() => navigate('/profile')}
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                borderRadius: '12px',
-                                padding: '0.25rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '8px',
-                                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.9rem',
-                                color: 'white',
-                                fontWeight: 700,
-                            }}>
-                                {user.name?.charAt(0)?.toUpperCase() || '👤'}
-                            </div>
-                        </button>
+                        <Tooltip text="View your profile">
+                            <button
+                                onClick={() => navigate('/profile')}
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    padding: '0.25rem',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <div style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '8px',
+                                    background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.9rem',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                }}>
+                                    {user.name?.charAt(0)?.toUpperCase() || '👤'}
+                                </div>
+                            </button>
+                        </Tooltip>
                     </div>
                 </div>
 

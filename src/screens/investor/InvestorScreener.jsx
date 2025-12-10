@@ -5,6 +5,8 @@ import {
     ChevronRight, ArrowUpRight, ArrowDownRight, X, Check, RotateCcw,
     BarChart3, DollarSign, Percent, Activity
 } from 'lucide-react';
+import { useToast } from '../../components/shared/Toast';
+import Tooltip from '../../components/shared/Tooltip';
 
 // Mock screener results
 const SAMPLE_STOCKS = [
@@ -31,6 +33,7 @@ const SECTORS = ['All Sectors', 'Technology', 'Financial', 'Healthcare', 'Consum
 
 export default function InvestorScreener() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [activePreset, setActivePreset] = useState(null);
@@ -71,6 +74,15 @@ export default function InvestorScreener() {
         );
     }
 
+    const handlePresetChange = (presetId) => {
+        const isActive = activePreset === presetId;
+        setActivePreset(isActive ? null : presetId);
+        if (!isActive) {
+            const presetLabel = FILTER_PRESETS.find(p => p.id === presetId)?.label;
+            showToast(`Applied ${presetLabel} filter`, 'info');
+        }
+    };
+
     const resetFilters = () => {
         setFilters({
             sector: 'All Sectors',
@@ -82,6 +94,7 @@ export default function InvestorScreener() {
             maxChange: '',
         });
         setActivePreset(null);
+        showToast('All filters cleared', 'success');
     };
 
     return (
@@ -269,7 +282,7 @@ export default function InvestorScreener() {
                     return (
                         <button
                             key={preset.id}
-                            onClick={() => setActivePreset(isActive ? null : preset.id)}
+                            onClick={() => handlePresetChange(preset.id)}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

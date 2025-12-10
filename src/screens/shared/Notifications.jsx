@@ -8,6 +8,8 @@ import { UserContext } from '../../App';
 import { useMode } from '../../context/ModeContext';
 
 import { useCMS } from '../../context/CMSContext';
+import { useToast } from '../../components/shared/Toast';
+import Tooltip from '../../components/shared/Tooltip';
 
 // Notification types
 const NOTIFICATION_TYPES = {
@@ -37,6 +39,7 @@ export default function Notifications() {
     const navigate = useNavigate();
     const { mode, isPlayerMode } = useMode();
     const { notifications: cmsNotifications } = useCMS();
+    const { showToast } = useToast();
 
     // Transform CMS notifications to local format
     const transformedCMS = (cmsNotifications || [])
@@ -95,14 +98,17 @@ export default function Notifications() {
 
     const markAllAsRead = () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        showToast('All notifications marked as read', 'success');
     };
 
     const deleteNotification = (id) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
+        showToast('Notification deleted', 'info');
     };
 
     const clearAll = () => {
         setNotifications([]);
+        showToast('All notifications cleared', 'success');
     };
 
     const gradientColor = isPlayerMode

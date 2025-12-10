@@ -7,6 +7,8 @@ import {
 import { UserContext } from '../../App';
 import { useCMS } from '../../context/CMSContext';
 import CoinDisplay from '../../components/player/CoinDisplay';
+import { useToast } from '../../components/shared/Toast';
+import Tooltip from '../../components/shared/Tooltip';
 
 const RARITY_STYLES = {
     common: { bg: '#F3F4F6', border: '#D1D5DB', glow: 'none' },
@@ -179,9 +181,11 @@ export default function PlayerShop() {
     const navigate = useNavigate();
     const { user, setUser } = useContext(UserContext);
     const { shopItems, getAvailableShopItems, loading } = useCMS();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState('avatars');
     const [purchaseModal, setPurchaseModal] = useState(null);
     const [ownedItems, setOwnedItems] = useState(['shop-1']); // Mock owned items
+    const [isPurchasing, setIsPurchasing] = useState(false);
 
     const handleBuy = (item) => {
         const finalPrice = item.discount > 0
@@ -190,17 +194,27 @@ export default function PlayerShop() {
 
         if (user.coins >= finalPrice) {
             setPurchaseModal({ ...item, finalPrice });
+        } else {
+            showToast(`Not enough coins! You need ${finalPrice - user.coins} more coins.`, 'error');
         }
     };
 
-    const confirmPurchase = () => {
+    const confirmPurchase = async () => {
         if (purchaseModal) {
+            setIsPurchasing(true);
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             setUser(prev => ({
                 ...prev,
-                coins: prev.coins - purchaseModal.finalPrice,
+                coins: (prev.coins || 0) - purchaseModal.finalPrice,
             }));
             setOwnedItems(prev => [...prev, purchaseModal.id]);
+
+            showToast(`🎉 Successfully purchased ${purchaseModal.name}!`, 'success');
             setPurchaseModal(null);
+            setIsPurchasing(false);
         }
     };
 

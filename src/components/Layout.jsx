@@ -8,7 +8,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const mainRef = useRef(null);
-  const { mode, isPlayerMode, isInvestorMode, currentMode } = useMode();
+  const { mode, isPlayerMode, isInvestorMode, currentMode, switchMode } = useMode();
 
   // Scroll to top on every route change
   useEffect(() => {
@@ -104,8 +104,9 @@ export default function Layout({ children }) {
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
-        zIndex: 50,
-        boxShadow: navShadow,
+        zIndex: 1000,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        pointerEvents: 'auto',
         padding: '0 0.5rem'
       }}>
         {navItems.map((item) => {
@@ -167,29 +168,36 @@ export default function Layout({ children }) {
       </nav>
 
       {/* Mode indicator pill */}
-      <div style={{
-        position: 'fixed',
-        bottom: 'calc(68px + 2rem)',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: isPlayerMode
-          ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-          : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
-        color: 'white',
-        padding: '0.25rem 0.75rem',
-        borderRadius: '999px',
-        fontSize: '0.65rem',
-        fontWeight: 700,
-        letterSpacing: '0.05em',
-        textTransform: 'uppercase',
-        boxShadow: isPlayerMode
-          ? '0 4px 12px rgba(139, 92, 246, 0.3)'
-          : '0 4px 12px rgba(14, 165, 233, 0.3)',
-        zIndex: 49,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.375rem',
-      }}>
+      <div
+        onClick={() => {
+          const newMode = isPlayerMode ? 'investor' : 'player';
+          switchMode(newMode);
+          navigate(isPlayerMode ? '/investor/home' : '/player/home');
+        }}
+        style={{
+          position: 'fixed',
+          bottom: 'calc(68px + 2rem)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: isPlayerMode
+            ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+            : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
+          color: 'white',
+          padding: '0.25rem 0.75rem',
+          borderRadius: '999px',
+          fontSize: '0.65rem',
+          fontWeight: 700,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          boxShadow: isPlayerMode
+            ? '0 4px 12px rgba(139, 92, 246, 0.3)'
+            : '0 4px 12px rgba(14, 165, 233, 0.3)',
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.375rem',
+          cursor: 'pointer',
+        }}>
         <span>{isPlayerMode ? '🎮' : '📈'}</span>
         <span>{isPlayerMode ? 'Player' : 'Investor'}</span>
       </div>

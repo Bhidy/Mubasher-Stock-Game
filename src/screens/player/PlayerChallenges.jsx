@@ -10,6 +10,8 @@ import { useMode } from '../../context/ModeContext';
 import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
 import { PageLoading, EmptyState } from '../../components/shared/LoadingStates';
+import { useToast } from '../../components/shared/Toast';
+import Tooltip from '../../components/shared/Tooltip';
 
 const DIFFICULTY_COLORS = {
     easy: { bg: '#DCFCE7', text: '#16A34A', border: '#86EFAC' },
@@ -185,8 +187,10 @@ export default function PlayerChallenges() {
     const navigate = useNavigate();
     const { user, setUser } = useContext(UserContext);
     const { challenges, getActiveChallenges, loading } = useCMS();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState('daily');
     const [claimedIds, setClaimedIds] = useState([]);
+    const [claimingId, setClaimingId] = useState(null);
 
     // Mock user progress - in production, this would come from user context/API
     const [userProgress] = useState({
@@ -196,14 +200,25 @@ export default function PlayerChallenges() {
         'weekend_prediction': 0,
     });
 
-    const handleClaim = (challenge) => {
+    const handleClaim = async (challenge) => {
+        setClaimingId(challenge.id);
+
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 800));
+
         setClaimedIds([...claimedIds, challenge.id]);
         // Update user coins/xp
         setUser(prev => ({
             ...prev,
-            coins: prev.coins + (challenge.coinReward || 0),
+            coins: (prev.coins || 0) + (challenge.coinReward || 0),
             xp: (prev.xp || 0) + (challenge.xpReward || 0),
         }));
+
+        showToast(
+            `🎉 Claimed! +${challenge.coinReward || 0} coins & +${challenge.xpReward || 0} XP`,
+            'success'
+        );
+        setClaimingId(null);
     };
 
     const tabs = [

@@ -1,12 +1,15 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Star, TrendingUp, TrendingDown, ArrowLeft, Plus, Search,
-    MoreVertical, Bell, BellOff, Trash2, ChevronRight, ArrowUpRight,
-    ArrowDownRight, Filter, X, Check, Folder
+    Star, ArrowLeft, Plus, Search,
+    MoreVertical, Bell, BellOff, Trash2, ArrowUpRight,
+    ArrowDownRight, X, Info
 } from 'lucide-react';
-import { UserContext } from '../../App';
 import { useMarket } from '../../context/MarketContext';
+import { StockLogo } from '../../components/StockCard';
+import { useToast } from '../../components/shared/Toast';
+import ConfirmModal from '../../components/shared/ConfirmModal';
+import Tooltip from '../../components/shared/Tooltip';
 
 // Mock watchlist data
 const WATCHLIST_GROUPS = [
@@ -16,7 +19,7 @@ const WATCHLIST_GROUPS = [
     { id: 'volatile', name: 'High Volatility', icon: '📈', color: '#EF4444' },
 ];
 
-const WATCHLIST_STOCKS = [
+const INITIAL_STOCKS = [
     { symbol: 'AAPL', name: 'Apple Inc.', price: 189.72, change: 2.45, changePercent: 1.31, alertSet: true, groups: ['favorites', 'tech'] },
     { symbol: 'MSFT', name: 'Microsoft Corp.', price: 378.91, change: -1.23, changePercent: -0.32, alertSet: false, groups: ['favorites', 'tech'] },
     { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 141.80, change: 3.12, changePercent: 2.25, alertSet: false, groups: ['tech'] },
@@ -25,6 +28,16 @@ const WATCHLIST_STOCKS = [
     { symbol: 'TSLA', name: 'Tesla Inc.', price: 245.67, change: -5.32, changePercent: -2.12, alertSet: false, groups: ['volatile'] },
     { symbol: 'JNJ', name: 'Johnson & Johnson', price: 155.25, change: 0.45, changePercent: 0.29, alertSet: false, groups: ['dividend'] },
     { symbol: 'KO', name: 'Coca-Cola Co.', price: 58.92, change: 0.23, changePercent: 0.39, alertSet: false, groups: ['dividend'] },
+];
+
+// Available stocks to add
+const AVAILABLE_STOCKS = [
+    { symbol: 'META', name: 'Meta Platforms', price: 505.23 },
+    { symbol: 'NFLX', name: 'Netflix Inc.', price: 628.45 },
+    { symbol: 'AMD', name: 'AMD Inc.', price: 178.92 },
+    { symbol: 'INTC', name: 'Intel Corp.', price: 45.67 },
+    { symbol: 'CRM', name: 'Salesforce Inc.', price: 312.45 },
+    { symbol: 'ORCL', name: 'Oracle Corp.', price: 178.34 },
 ];
 
 function WatchlistItem({ stock, onToggleAlert, onRemove, onClick }) {
@@ -46,8 +59,11 @@ function WatchlistItem({ stock, onToggleAlert, onRemove, onClick }) {
                 onClick={onClick}
                 style={{ flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
             >
+                {/* Logo */}
+                <StockLogo ticker={stock.symbol} size={40} />
+
                 {/* Symbol */}
-                <div style={{ minWidth: '70px' }}>
+                <div style={{ minWidth: '70px', marginLeft: '0.75rem' }}>
                     <div style={{ fontWeight: 700, color: '#1F2937', fontSize: '0.95rem' }}>
                         {stock.symbol}
                     </div>
@@ -101,22 +117,24 @@ function WatchlistItem({ stock, onToggleAlert, onRemove, onClick }) {
 
             {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.75rem' }}>
-                <button
-                    onClick={() => onToggleAlert(stock.symbol)}
-                    style={{
-                        background: stock.alertSet ? '#FEF3C7' : '#F3F4F6',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '0.5rem',
-                        cursor: 'pointer',
-                    }}
-                >
-                    {stock.alertSet ? (
-                        <Bell size={16} color="#D97706" fill="#D97706" />
-                    ) : (
-                        <BellOff size={16} color="#9CA3AF" />
-                    )}
-                </button>
+                <Tooltip text={stock.alertSet ? 'Price alert is ON. Tap to disable.' : 'Tap to set a price alert'}>
+                    <button
+                        onClick={() => onToggleAlert(stock.symbol)}
+                        style={{
+                            background: stock.alertSet ? '#FEF3C7' : '#F3F4F6',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.5rem',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {stock.alertSet ? (
+                            <Bell size={16} color="#D97706" fill="#D97706" />
+                        ) : (
+                            <BellOff size={16} color="#9CA3AF" />
+                        )}
+                    </button>
+                </Tooltip>
                 <button
                     onClick={() => setShowActions(!showActions)}
                     style={{
@@ -172,19 +190,58 @@ function WatchlistItem({ stock, onToggleAlert, onRemove, onClick }) {
 
 export default function InvestorWatchlist() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [activeGroup, setActiveGroup] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [stocks, setStocks] = useState(WATCHLIST_STOCKS);
+    const [stocks, setStocks] = useState(INITIAL_STOCKS);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [addSearchQuery, setAddSearchQuery] = useState('');
+
+    // Confirmation modal state
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, symbol: null });
 
     const handleToggleAlert = (symbol) => {
-        setStocks(prev => prev.map(s =>
-            s.symbol === symbol ? { ...s, alertSet: !s.alertSet } : s
-        ));
+        setStocks(prev => prev.map(s => {
+            if (s.symbol === symbol) {
+                const newAlertState = !s.alertSet;
+                showToast(
+                    newAlertState ? `Price alert enabled for ${symbol}` : `Price alert disabled for ${symbol}`,
+                    newAlertState ? 'success' : 'info'
+                );
+                return { ...s, alertSet: newAlertState };
+            }
+            return s;
+        }));
     };
 
-    const handleRemove = (symbol) => {
+    const handleRemoveClick = (symbol) => {
+        setConfirmModal({ isOpen: true, symbol });
+    };
+
+    const handleConfirmRemove = () => {
+        const { symbol } = confirmModal;
         setStocks(prev => prev.filter(s => s.symbol !== symbol));
+        showToast(`${symbol} removed from watchlist`, 'success');
+        setConfirmModal({ isOpen: false, symbol: null });
+    };
+
+    const handleAddStock = (stock) => {
+        // Check if already in watchlist
+        if (stocks.find(s => s.symbol === stock.symbol)) {
+            showToast(`${stock.symbol} is already in your watchlist`, 'warning');
+            return;
+        }
+
+        setStocks(prev => [...prev, {
+            ...stock,
+            change: 0,
+            changePercent: 0,
+            alertSet: false,
+            groups: ['favorites']
+        }]);
+        showToast(`${stock.symbol} added to watchlist!`, 'success');
+        setShowAddModal(false);
+        setAddSearchQuery('');
     };
 
     // Filter stocks
@@ -194,6 +251,13 @@ export default function InvestorWatchlist() {
             s.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesGroup && matchesSearch;
     });
+
+    // Filter available stocks for add modal
+    const availableToAdd = AVAILABLE_STOCKS.filter(s =>
+        !stocks.find(existing => existing.symbol === s.symbol) &&
+        (s.symbol.toLowerCase().includes(addSearchQuery.toLowerCase()) ||
+            s.name.toLowerCase().includes(addSearchQuery.toLowerCase()))
+    );
 
     return (
         <div style={{
@@ -212,33 +276,37 @@ export default function InvestorWatchlist() {
                     gap: '1rem',
                     marginBottom: '1rem',
                 }}>
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{
-                            background: 'rgba(255,255,255,0.2)',
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '0.625rem',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        <ArrowLeft size={20} color="white" />
-                    </button>
+                    <Tooltip text="Go back to previous page">
+                        <button
+                            onClick={() => navigate(-1)}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '0.625rem',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <ArrowLeft size={20} color="white" />
+                        </button>
+                    </Tooltip>
                     <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0, flex: 1 }}>
                         Watchlist
                     </h1>
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        style={{
-                            background: 'rgba(255,255,255,0.2)',
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '0.625rem',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        <Plus size={20} color="white" />
-                    </button>
+                    <Tooltip text="Add a new stock to your watchlist">
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '0.625rem',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <Plus size={20} color="white" />
+                        </button>
+                    </Tooltip>
                 </div>
 
                 {/* Search */}
@@ -342,7 +410,7 @@ export default function InvestorWatchlist() {
                             key={stock.symbol}
                             stock={stock}
                             onToggleAlert={handleToggleAlert}
-                            onRemove={handleRemove}
+                            onRemove={handleRemoveClick}
                             onClick={() => navigate(`/company/${stock.symbol}`)}
                         />
                     ))
@@ -381,6 +449,7 @@ export default function InvestorWatchlist() {
                             padding: '1.5rem',
                             width: '100%',
                             maxHeight: '70vh',
+                            overflowY: 'auto',
                         }}
                     >
                         <div style={{
@@ -406,6 +475,8 @@ export default function InvestorWatchlist() {
                             <input
                                 type="text"
                                 placeholder="Search for stocks..."
+                                value={addSearchQuery}
+                                onChange={(e) => setAddSearchQuery(e.target.value)}
                                 style={{
                                     flex: 1,
                                     border: 'none',
@@ -416,12 +487,54 @@ export default function InvestorWatchlist() {
                                 autoFocus
                             />
                         </div>
-                        <p style={{ color: '#9CA3AF', fontSize: '0.85rem', textAlign: 'center' }}>
-                            Search for a stock symbol or company name to add it to your watchlist.
-                        </p>
+
+                        {/* Available stocks list */}
+                        <div style={{ marginTop: '1rem' }}>
+                            {availableToAdd.length > 0 ? (
+                                availableToAdd.map(stock => (
+                                    <div
+                                        key={stock.symbol}
+                                        onClick={() => handleAddStock(stock)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: '0.875rem',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                            marginBottom: '0.5rem',
+                                            background: '#F9FAFB',
+                                            transition: 'background 0.2s',
+                                        }}
+                                    >
+                                        <StockLogo ticker={stock.symbol} size={40} />
+                                        <div style={{ marginLeft: '0.75rem', flex: 1 }}>
+                                            <div style={{ fontWeight: 700, color: '#1F2937' }}>{stock.symbol}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>{stock.name}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 600, color: '#1F2937' }}>${stock.price.toFixed(2)}</div>
+                                        <Plus size={20} color="#10B981" style={{ marginLeft: '0.75rem' }} />
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: '#9CA3AF', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+                                    {addSearchQuery ? 'No matching stocks found' : 'Search for a stock to add'}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
+
+            {/* Confirmation Modal */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title="Remove from Watchlist?"
+                message={`Are you sure you want to remove ${confirmModal.symbol} from your watchlist?`}
+                confirmText="Remove"
+                confirmType="danger"
+                onConfirm={handleConfirmRemove}
+                onCancel={() => setConfirmModal({ isOpen: false, symbol: null })}
+            />
         </div>
     );
 }
