@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ChevronRight, TrendingUp, TrendingDown, BarChart3, Briefcase,
     Star, Bell, Calendar, FileText, ArrowUpRight, ArrowDownRight,
-    Clock, Activity, Globe, Zap, Eye, Settings, PieChart
+    Clock, Activity, Globe, Zap, Eye, Settings, PieChart, ArrowRight
 } from 'lucide-react';
 import { UserContext } from '../../App';
 import { useMarket } from '../../context/MarketContext';
@@ -11,6 +11,7 @@ import { useMode } from '../../context/ModeContext';
 import { useCMS } from '../../context/CMSContext';
 import BurgerMenu from '../../components/BurgerMenu';
 import InvestorHeader from '../../components/investor/InvestorHeader';
+import MarketCard from '../../components/investor/MarketCard';
 
 // Market Indices Mock Data
 const MARKET_INDICES = [
