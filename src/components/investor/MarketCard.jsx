@@ -2,8 +2,8 @@ import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 /**
- * Premium Market Card Component - Light Frosted Glass Design
- * Beautiful, clean, and modern with vibrant accents
+ * Premium Market Card - Pure White Stunning Design
+ * Clean, crisp, and visually striking
  */
 export default function MarketCard({
     name,
@@ -14,201 +14,188 @@ export default function MarketCard({
     chartData = [],
     color = '#10b981',
     onClick,
-    status = 'open', // 'open', 'closed', 'pre'
+    status = 'open',
 }) {
-    // Generate SVG path from chart data
+    // Generate smooth bezier path from chart data
     const generatePath = () => {
         if (!chartData.length) return '';
         const max = Math.max(...chartData);
         const min = Math.min(...chartData);
         const range = max - min || 1;
-        const height = 40;
+        const height = 45;
         const width = 100;
         const step = width / (chartData.length - 1);
 
         const points = chartData.map((val, i) => {
             const x = i * step;
-            const y = height - ((val - min) / range) * height;
-            return `${x},${y}`;
+            const y = height - ((val - min) / range) * height * 0.9;
+            return { x, y };
         });
 
-        return `M${points.join(' L')}`;
+        // Create smooth bezier curve
+        let path = `M${points[0].x},${points[0].y}`;
+        for (let i = 1; i < points.length; i++) {
+            const prev = points[i - 1];
+            const curr = points[i];
+            const cpx = (prev.x + curr.x) / 2;
+            path += ` C${cpx},${prev.y} ${cpx},${curr.y} ${curr.x},${curr.y}`;
+        }
+        return path;
     };
 
-    const statusConfig = {
-        open: { bg: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', color: '#059669', text: 'OPEN', dot: '#10B981' },
-        closed: { bg: 'linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%)', color: '#DC2626', text: 'CLOSED', dot: '#EF4444' },
-        pre: { bg: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#D97706', text: 'PRE', dot: '#F59E0B' },
+    const statusColors = {
+        open: { text: '#059669', bg: '#D1FAE5' },
+        closed: { text: '#DC2626', bg: '#FEE2E2' },
+        pre: { text: '#D97706', bg: '#FEF3C7' },
     };
-
-    const currentStatus = statusConfig[status] || statusConfig.open;
+    const currentStatus = statusColors[status] || statusColors.open;
 
     return (
         <div
             onClick={onClick}
             style={{
-                minWidth: '175px',
-                maxWidth: '175px',
-                padding: '1.125rem',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%)',
-                borderRadius: '22px',
-                border: '1px solid rgba(255,255,255,0.8)',
+                width: '170px',
+                minWidth: '170px',
+                padding: '1.25rem',
+                background: '#FFFFFF',
+                borderRadius: '24px',
                 cursor: onClick ? 'pointer' : 'default',
-                boxShadow: `
-                    0 4px 24px rgba(0, 0, 0, 0.06),
-                    0 1px 3px rgba(0, 0, 0, 0.04),
-                    inset 0 1px 0 rgba(255,255,255,1),
-                    0 0 0 1px rgba(0,0,0,0.02)
-                `,
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.625rem',
                 scrollSnapAlign: 'start',
                 flexShrink: 0,
-                backdropFilter: 'blur(20px)',
                 position: 'relative',
                 overflow: 'hidden',
             }}
             onMouseOver={e => {
                 if (onClick) {
-                    e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
-                    e.currentTarget.style.boxShadow = `
-                        0 20px 40px rgba(0, 0, 0, 0.12),
-                        0 8px 16px rgba(0, 0, 0, 0.08),
-                        inset 0 1px 0 rgba(255,255,255,1),
-                        0 0 0 1px ${color}30
-                    `;
+                    e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 24px 48px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.08)';
                 }
             }}
             onMouseOut={e => {
                 if (onClick) {
                     e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                    e.currentTarget.style.boxShadow = `
-                        0 4px 24px rgba(0, 0, 0, 0.06),
-                        0 1px 3px rgba(0, 0, 0, 0.04),
-                        inset 0 1px 0 rgba(255,255,255,1),
-                        0 0 0 1px rgba(0,0,0,0.02)
-                    `;
+                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)';
                 }
             }}
         >
-            {/* Colored accent line at top */}
+            {/* Top Row - Flag & Name */}
             <div style={{
-                position: 'absolute',
-                top: 0,
-                left: '20%',
-                right: '20%',
-                height: '3px',
-                background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
-                borderRadius: '0 0 3px 3px',
-            }} />
-
-            {/* Header Row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {flag && (
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                marginBottom: '0.875rem',
+            }}>
+                {flag && (
+                    <div style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '10px',
+                        background: 'linear-gradient(145deg, #F8FAFC, #F1F5F9)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.25rem',
+                        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+                    }}>
+                        {flag}
+                    </div>
+                )}
+                <div>
+                    <div style={{
+                        fontSize: '0.9rem',
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        letterSpacing: '-0.01em',
+                        lineHeight: 1.2,
+                    }}>{name}</div>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        marginTop: '0.2rem',
+                    }}>
                         <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '10px',
-                            background: 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.1rem',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)',
-                        }}>
-                            {flag}
-                        </div>
-                    )}
-                    <div>
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: currentStatus.text,
+                            boxShadow: `0 0 8px ${currentStatus.text}80`,
+                        }} />
                         <span style={{
-                            fontSize: '0.8rem',
+                            fontSize: '0.65rem',
                             fontWeight: 700,
-                            color: '#1E293B',
-                            letterSpacing: '0.01em',
-                            display: 'block',
-                        }}>{name}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.125rem' }}>
-                            <div style={{
-                                width: '5px',
-                                height: '5px',
-                                borderRadius: '50%',
-                                background: currentStatus.dot,
-                                boxShadow: `0 0 6px ${currentStatus.dot}`,
-                            }} />
-                            <span style={{
-                                fontSize: '0.55rem',
-                                fontWeight: 700,
-                                color: currentStatus.color,
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase',
-                            }}>{currentStatus.text}</span>
-                        </div>
+                            color: currentStatus.text,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                        }}>{status}</span>
                     </div>
                 </div>
             </div>
 
-            {/* Value */}
+            {/* Value - Big and Bold */}
             <div style={{
-                fontSize: '1.35rem',
+                fontSize: '1.6rem',
                 fontWeight: 900,
                 color: '#0F172A',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.03em',
                 lineHeight: 1,
+                marginBottom: '0.75rem',
             }}>{value}</div>
 
-            {/* Change Indicator */}
+            {/* Change Badge */}
             <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.25rem',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '8px',
+                gap: '0.35rem',
+                padding: '0.4rem 0.65rem',
+                borderRadius: '10px',
                 background: isPositive
                     ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)'
                     : 'linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%)',
                 color: isPositive ? '#059669' : '#DC2626',
-                fontWeight: 700,
-                fontSize: '0.8rem',
+                fontWeight: 800,
+                fontSize: '0.85rem',
                 width: 'fit-content',
-                boxShadow: isPositive
-                    ? '0 2px 8px rgba(16, 185, 129, 0.15)'
-                    : '0 2px 8px rgba(239, 68, 68, 0.15)',
+                marginBottom: '0.875rem',
             }}>
-                {isPositive ? <TrendingUp size={14} strokeWidth={2.5} /> : <TrendingDown size={14} strokeWidth={2.5} />}
+                {isPositive ? <TrendingUp size={15} strokeWidth={2.5} /> : <TrendingDown size={15} strokeWidth={2.5} />}
                 {change}
             </div>
 
-            {/* Mini Chart */}
+            {/* Chart Area */}
             <div style={{
-                height: '38px',
-                width: '100%',
-                marginTop: 'auto',
+                height: '50px',
+                width: 'calc(100% + 2.5rem)',
+                marginLeft: '-1.25rem',
+                marginRight: '-1.25rem',
+                marginBottom: '-1.25rem',
                 position: 'relative',
-                borderRadius: '8px',
+                background: 'linear-gradient(180deg, transparent 0%, rgba(248,250,252,0.5) 100%)',
+                borderRadius: '0 0 24px 24px',
                 overflow: 'hidden',
-                background: 'linear-gradient(180deg, rgba(248,250,252,0.5) 0%, rgba(241,245,249,0.8) 100%)',
             }}>
                 <svg
                     width="100%"
                     height="100%"
-                    viewBox="0 0 100 40"
+                    viewBox="0 0 100 50"
                     preserveAspectRatio="none"
-                    style={{ overflow: 'visible' }}
+                    style={{ position: 'absolute', bottom: 0, left: 0 }}
                 >
                     <defs>
-                        <linearGradient id={`chartGrad-${name.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-                            <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+                        <linearGradient id={`fill-${name.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+                            <stop offset="100%" stopColor={color} stopOpacity="0.02" />
                         </linearGradient>
                     </defs>
 
                     {/* Area fill */}
                     <path
-                        d={`${generatePath()} L100,40 L0,40 Z`}
-                        fill={`url(#chartGrad-${name.replace(/\s/g, '')})`}
+                        d={`${generatePath()} L100,50 L0,50 Z`}
+                        fill={`url(#fill-${name.replace(/\s/g, '')})`}
                     />
 
                     {/* Line */}
@@ -221,27 +208,6 @@ export default function MarketCard({
                         strokeLinejoin="round"
                         vectorEffect="non-scaling-stroke"
                     />
-
-                    {/* End dot with glow */}
-                    {chartData.length > 0 && (
-                        <>
-                            <circle
-                                cx="100"
-                                cy={40 - ((chartData[chartData.length - 1] - Math.min(...chartData)) / (Math.max(...chartData) - Math.min(...chartData) || 1)) * 40}
-                                r="5"
-                                fill={color}
-                                opacity="0.2"
-                            />
-                            <circle
-                                cx="100"
-                                cy={40 - ((chartData[chartData.length - 1] - Math.min(...chartData)) / (Math.max(...chartData) - Math.min(...chartData) || 1)) * 40}
-                                r="3"
-                                fill="white"
-                                stroke={color}
-                                strokeWidth="2"
-                            />
-                        </>
-                    )}
                 </svg>
             </div>
         </div>

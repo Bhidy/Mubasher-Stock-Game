@@ -119,8 +119,14 @@ export default function NewsArticle() {
     }, [article]);
 
     const displayImage = article?.imageUrl || article?.thumbnail;
-    const isDirectImage = displayImage && (displayImage.includes('blob:') || displayImage.includes('data:'));
-    const imageSrc = isDirectImage ? displayImage : (displayImage?.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(displayImage)}` : displayImage);
+    // For CMS images (already full URLs or data URLs), use directly. For external images, proxy them.
+    const imageSrc = displayImage
+        ? (displayImage.startsWith('data:') || displayImage.startsWith('blob:') || displayImage.startsWith('/')
+            ? displayImage
+            : displayImage.startsWith('http')
+                ? displayImage // Use directly, most images work without proxy
+                : displayImage)
+        : null;
 
     if (!article) {
         return (
@@ -377,7 +383,7 @@ export default function NewsArticle() {
                         {isTranslated && translatedContent ? (
                             <div dangerouslySetInnerHTML={{ __html: translatedContent }} />
                         ) : fullContent ? (
-                            <div dangerouslySetInnerHTML={{ __html: fullContent.replace(/<img[^>]*>/gi, '') }} />
+                            <div dangerouslySetInnerHTML={{ __html: fullContent }} />
                         ) : (
                             <p>
                                 {article.summary || <>This is a developing story available on {article.publisher}.</>}
