@@ -109,69 +109,73 @@ export default function InvestorHome() {
                 greeting={greeting}
             />
 
-            {/* Market Indices Ticker */}
+            {/* Global Markets Section - Dark Theme */}
             <div style={{
                 margin: '-1rem 1rem 0 1rem',
-                background: 'white',
-                borderRadius: '16px',
-                padding: '1rem',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #E2E8F0',
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                borderRadius: '24px',
+                padding: '1.25rem',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
                 position: 'relative',
+                overflow: 'hidden',
             }}>
+                {/* Subtle glow effect */}
+                <div style={{
+                    position: 'absolute',
+                    top: '-50px',
+                    right: '-50px',
+                    width: '150px',
+                    height: '150px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%)',
+                }} />
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '0.875rem',
+                    marginBottom: '1rem',
+                    position: 'relative',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Globe size={16} color="#64748B" />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Market Indices</span>
+                        <Globe size={18} color="white" />
+                        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white' }}>Global Markets</span>
                     </div>
-                    <button onClick={() => navigate('/market')} style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#0EA5E9',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                    }}>
-                        View All <ChevronRight size={14} />
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <div style={{
+                            width: '8px', height: '8px', borderRadius: '50%',
+                            background: '#10B981',
+                            animation: 'pulse 2s infinite',
+                        }} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94A3B8' }}>Live Session</span>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
-                    {MARKET_INDICES.map(index => (
-                        <div key={index.symbol} style={{
-                            minWidth: '140px',
-                            padding: '0.75rem',
-                            background: '#F8FAFC',
-                            borderRadius: '12px',
-                            flexShrink: 0,
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.375rem' }}>
-                                <span style={{ fontSize: '1rem' }}>{index.region}</span>
-                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1E293B' }}>{index.symbol}</span>
-                            </div>
-                            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.125rem' }}>
-                                {index.value.toLocaleString()}
-                            </div>
-                            <div style={{
-                                fontSize: '0.7rem',
-                                fontWeight: 600,
-                                color: index.change >= 0 ? '#10B981' : '#EF4444',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.125rem',
-                            }}>
-                                {index.change >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                                {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)}%
-                            </div>
-                        </div>
-                    ))}
+                <div style={{
+                    display: 'flex',
+                    gap: '0.75rem',
+                    overflowX: 'auto',
+                    paddingBottom: '0.5rem',
+                    scrollbarWidth: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollSnapType: 'x mandatory',
+                }} className="no-scrollbar">
+                    {/* Saudi Arabia - TASI */}
+                    <MarketCard name="TASI" flag="🇸🇦" value="12,450.23" change="+0.45%" isPositive={true} chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]} color="#10b981" onClick={() => navigate('/market')} />
+                    {/* Egypt - EGX30 */}
+                    <MarketCard name="EGX 30" flag="🇪🇬" value="28,934.56" change="-0.45%" isPositive={false} chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]} color="#ef4444" onClick={() => navigate('/market')} />
+                    {/* USA - S&P 500 */}
+                    <MarketCard name="S&P 500" flag="🇺🇸" value="5,105.20" change="+0.30%" isPositive={true} chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]} color="#3b82f6" onClick={() => navigate('/market')} />
+                    {/* USA - NASDAQ */}
+                    <MarketCard name="NASDAQ" flag="🇺🇸" value="19,234.67" change="+1.12%" isPositive={true} chartData={[50, 55, 60, 58, 65, 70, 75, 80, 78, 85, 90]} color="#8b5cf6" onClick={() => navigate('/market')} />
+                    {/* USA - Dow Jones */}
+                    <MarketCard name="DOW" flag="🇺🇸" value="43,828.06" change="+0.25%" isPositive={true} chartData={[55, 58, 60, 62, 58, 60, 62, 65, 68, 70, 72]} color="#0ea5e9" onClick={() => navigate('/market')} />
+                    {/* Germany - DAX */}
+                    <MarketCard name="DAX" flag="🇩🇪" value="20,314.81" change="+0.68%" isPositive={true} chartData={[45, 48, 52, 50, 55, 58, 62, 60, 65, 70, 72]} color="#f59e0b" onClick={() => navigate('/market')} />
+                    {/* UK - FTSE */}
+                    <MarketCard name="FTSE 100" flag="🇬🇧" value="8,308.61" change="-0.12%" isPositive={false} chartData={[60, 58, 55, 57, 54, 52, 55, 53, 50, 52, 51]} color="#64748b" onClick={() => navigate('/market')} />
+                    {/* Japan - Nikkei */}
+                    <MarketCard name="Nikkei 225" flag="🇯🇵" value="39,160.50" change="+0.95%" isPositive={true} chartData={[40, 45, 50, 55, 52, 58, 62, 65, 70, 75, 80]} color="#dc2626" onClick={() => navigate('/market')} />
+                    {/* Hong Kong - Hang Seng */}
+                    <MarketCard name="Hang Seng" flag="🇭🇰" value="20,397.05" change="+1.35%" isPositive={true} chartData={[35, 40, 38, 45, 50, 55, 60, 58, 65, 70, 75]} color="#ec4899" onClick={() => navigate('/market')} />
                 </div>
             </div>
 
@@ -236,140 +240,7 @@ export default function InvestorHome() {
                         </div>
                     ))}
 
-                {/* Market Summary Card */}
-                <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
-                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>Market Pulse</h2>
-
-                        {/* Short cut to new Dashboard */}
-                        <button
-                            onClick={() => navigate('/investor/markets')}
-                            style={{
-                                color: '#0ea5e9',
-                                fontWeight: 700,
-                                fontSize: '0.9rem',
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem'
-                            }}
-                        >
-                            Global Dashboard <ArrowRight size={16} />
-                        </button>
-                    </div>
-
-                    <div style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        overflowX: 'auto',
-                        paddingBottom: '0.5rem',
-                        scrollbarWidth: 'none',
-                        WebkitOverflowScrolling: 'touch',
-                        scrollSnapType: 'x mandatory',
-                    }} className="no-scrollbar">
-                        {/* Saudi Arabia - TASI */}
-                        <MarketCard
-                            name="TASI"
-                            flag="🇸🇦"
-                            value="12,450.23"
-                            change="+0.45%"
-                            isPositive={true}
-                            chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]}
-                            color="#10b981"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* Egypt - EGX30 */}
-                        <MarketCard
-                            name="EGX 30"
-                            flag="🇪🇬"
-                            value="28,934.56"
-                            change="-0.45%"
-                            isPositive={false}
-                            chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]}
-                            color="#ef4444"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* USA - S&P 500 */}
-                        <MarketCard
-                            name="S&P 500"
-                            flag="🇺🇸"
-                            value="5,105.20"
-                            change="+0.30%"
-                            isPositive={true}
-                            chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]}
-                            color="#3b82f6"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* USA - NASDAQ */}
-                        <MarketCard
-                            name="NASDAQ"
-                            flag="🇺🇸"
-                            value="19,234.67"
-                            change="+1.12%"
-                            isPositive={true}
-                            chartData={[50, 55, 60, 58, 65, 70, 75, 80, 78, 85, 90]}
-                            color="#8b5cf6"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* USA - Dow Jones */}
-                        <MarketCard
-                            name="DOW"
-                            flag="🇺🇸"
-                            value="43,828.06"
-                            change="+0.25%"
-                            isPositive={true}
-                            chartData={[55, 58, 60, 62, 58, 60, 62, 65, 68, 70, 72]}
-                            color="#0ea5e9"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* Germany - DAX */}
-                        <MarketCard
-                            name="DAX"
-                            flag="🇩🇪"
-                            value="20,314.81"
-                            change="+0.68%"
-                            isPositive={true}
-                            chartData={[45, 48, 52, 50, 55, 58, 62, 60, 65, 70, 72]}
-                            color="#f59e0b"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* UK - FTSE */}
-                        <MarketCard
-                            name="FTSE 100"
-                            flag="🇬🇧"
-                            value="8,308.61"
-                            change="-0.12%"
-                            isPositive={false}
-                            chartData={[60, 58, 55, 57, 54, 52, 55, 53, 50, 52, 51]}
-                            color="#64748b"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* Japan - Nikkei */}
-                        <MarketCard
-                            name="Nikkei 225"
-                            flag="🇯🇵"
-                            value="39,160.50"
-                            change="+0.95%"
-                            isPositive={true}
-                            chartData={[40, 45, 50, 55, 52, 58, 62, 65, 70, 75, 80]}
-                            color="#dc2626"
-                            onClick={() => navigate('/market')}
-                        />
-                        {/* Hong Kong - Hang Seng */}
-                        <MarketCard
-                            name="Hang Seng"
-                            flag="🇭🇰"
-                            value="20,397.05"
-                            change="+1.35%"
-                            isPositive={true}
-                            chartData={[35, 40, 38, 45, 50, 55, 60, 58, 65, 70, 75]}
-                            color="#ec4899"
-                            onClick={() => navigate('/market')}
-                        />
-                    </div>
-                </div>{/* Quick Actions */}
+                {/* Quick Actions */}
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(4, 1fr)',
