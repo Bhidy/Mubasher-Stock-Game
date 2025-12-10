@@ -109,47 +109,17 @@ export default function InvestorHome() {
                 greeting={greeting}
             />
 
-            {/* Global Markets Section - Premium Dark Theme */}
+            {/* Global Markets Section - Clean White Theme */}
             <div style={{
                 margin: '-1rem 1rem 0 1rem',
-                background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+                background: '#FFFFFF',
                 borderRadius: '28px',
                 padding: '1.5rem',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
+                boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
                 position: 'relative',
                 overflow: 'hidden',
+                border: '1px solid rgba(0,0,0,0.04)',
             }}>
-                {/* Animated gradient orbs */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-80px',
-                    right: '-60px',
-                    width: '200px',
-                    height: '200px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 60%)',
-                    animation: 'float 6s ease-in-out infinite',
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    bottom: '-60px',
-                    left: '-40px',
-                    width: '150px',
-                    height: '150px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 60%)',
-                    animation: 'float 8s ease-in-out infinite reverse',
-                }} />
-
-                {/* Grid pattern overlay */}
-                <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23ffffff' stroke-opacity='0.03'/%3E%3C/g%3E%3C/svg%3E")`,
-                    borderRadius: '28px',
-                    pointerEvents: 'none',
-                }} />
-
                 {/* Header */}
                 <div style={{
                     display: 'flex',
@@ -160,40 +130,40 @@ export default function InvestorHome() {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '14px',
+                            background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)',
                         }}>
-                            <Globe size={20} color="#10B981" />
+                            <Globe size={22} color="#059669" />
                         </div>
                         <div>
-                            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white', margin: 0, letterSpacing: '-0.01em' }}>Global Markets</h2>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.125rem' }}>
+                            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Global Markets</h2>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.2rem' }}>
                                 <div style={{
                                     width: '6px', height: '6px', borderRadius: '50%',
                                     background: '#10B981',
                                     boxShadow: '0 0 8px #10B981',
                                     animation: 'pulse 2s infinite',
                                 }} />
-                                <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94A3B8' }}>Live • 9 Markets</span>
+                                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B' }}>Live • 9 Markets</span>
                             </div>
                         </div>
                     </div>
                     <button
                         onClick={() => navigate('/investor/markets')}
                         style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '10px',
-                            padding: '0.5rem 0.875rem',
-                            color: '#94A3B8',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
+                            background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '12px',
+                            padding: '0.625rem 1rem',
+                            color: '#475569',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -201,31 +171,33 @@ export default function InvestorHome() {
                             transition: 'all 0.2s',
                         }}
                         onMouseOver={e => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
-                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)';
+                            e.currentTarget.style.borderColor = '#C7D2FE';
+                            e.currentTarget.style.color = '#4F46E5';
                         }}
                         onMouseOut={e => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                            e.currentTarget.style.color = '#94A3B8';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)';
+                            e.currentTarget.style.borderColor = '#E2E8F0';
+                            e.currentTarget.style.color = '#475569';
                         }}
                     >
-                        See All <ChevronRight size={14} />
+                        See All <ChevronRight size={16} />
                     </button>
                 </div>
 
                 {/* Market Cards Carousel */}
                 <div style={{
                     display: 'flex',
-                    gap: '0.875rem',
+                    gap: '1rem',
                     overflowX: 'auto',
-                    paddingBottom: '0.5rem',
+                    paddingBottom: '0.75rem',
                     scrollbarWidth: 'none',
                     WebkitOverflowScrolling: 'touch',
                     scrollSnapType: 'x mandatory',
-                    marginLeft: '-0.25rem',
-                    marginRight: '-0.25rem',
-                    paddingLeft: '0.25rem',
-                    paddingRight: '0.25rem',
+                    marginLeft: '-0.5rem',
+                    marginRight: '-0.5rem',
+                    paddingLeft: '0.5rem',
+                    paddingRight: '0.5rem',
                 }} className="no-scrollbar">
                     <MarketCard name="TASI" flag="🇸🇦" value="12,450.23" change="+0.45%" isPositive={true} chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]} color="#10b981" status="open" onClick={() => navigate('/market')} />
                     <MarketCard name="EGX 30" flag="🇪🇬" value="28,934.56" change="-0.45%" isPositive={false} chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]} color="#ef4444" status="closed" onClick={() => navigate('/market')} />
@@ -243,25 +215,18 @@ export default function InvestorHome() {
                     display: 'flex',
                     justifyContent: 'center',
                     gap: '0.375rem',
-                    marginTop: '0.75rem',
+                    marginTop: '0.5rem',
                 }}>
                     {[0, 1, 2].map((i) => (
                         <div key={i} style={{
-                            width: i === 0 ? '16px' : '6px',
+                            width: i === 0 ? '18px' : '6px',
                             height: '6px',
                             borderRadius: '3px',
-                            background: i === 0 ? '#10B981' : 'rgba(255,255,255,0.2)',
+                            background: i === 0 ? '#10B981' : '#E2E8F0',
                             transition: 'all 0.3s',
                         }} />
                     ))}
                 </div>
-
-                <style>{`
-                    @keyframes float {
-                        0%, 100% { transform: translateY(0) rotate(0deg); }
-                        50% { transform: translateY(-10px) rotate(5deg); }
-                    }
-                `}</style>
             </div>
 
             {/* Content */}
