@@ -4,9 +4,51 @@ import { Globe, TrendingUp, TrendingDown, Zap, Calendar, ArrowRight, Activity, L
 import BurgerMenu from '../../components/BurgerMenu';
 import { useMarket } from '../../context/MarketContext';
 
+// Consolidated Indices Config
+const INDICES_CONFIG = [
+    { id: 'SA', symbol: '^TASI.SR', name: 'TASI', flag: '🇸🇦', color: '#10b981' },
+    { id: 'US', symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸', color: '#3b82f6' },
+    { id: 'EG', symbol: '^CASE30', name: 'EGX 30', flag: '🇪🇬', color: '#ef4444' },
+    { id: 'DE', symbol: '^GDAXI', name: 'DAX', flag: '🇩🇪', color: '#f59e0b' },
+    { id: 'UK', symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧', color: '#64748b' },
+    { id: 'JP', symbol: '^N225', name: 'Nikkei', flag: '🇯🇵', color: '#dc2626' },
+];
+
 export default function InvestorMarkets() {
     const navigate = useNavigate();
-    const { setMarket } = useMarket();
+    const { selectMarket, isMarketOpen } = useMarket();
+    const [indicesData, setIndicesData] = useState([]);
+
+    React.useEffect(() => {
+        const fetchIndices = async () => {
+            const promises = INDICES_CONFIG.map(async (idx) => {
+                try {
+                    const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
+                    const data = await res.json();
+
+                    if (!data || data.error) return { ...idx, value: '---', change: 0, isPositive: true };
+
+                    const price = data.price || data.regularMarketPrice || 0;
+                    const changePercent = data.regularMarketChangePercent || 0;
+
+                    return {
+                        ...idx,
+                        value: price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        change: changePercent,
+                        isPositive: changePercent >= 0
+                    };
+                } catch {
+                    return { ...idx, value: '---', change: 0, isPositive: true };
+                }
+            });
+            const results = await Promise.all(promises);
+            setIndicesData(results);
+        };
+
+        fetchIndices();
+        const interval = setInterval(fetchIndices, 60000); // Live poll
+        return () => clearInterval(interval);
+    }, []);
 
     // Visual Sparkline (SVG)
     const Sparkline = ({ color, trend = 'up' }) => (
@@ -55,70 +97,61 @@ export default function InvestorMarkets() {
 
                 {/* Major Indices Cards */}
                 <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }} className="no-scrollbar">
-                    {/* Saudi Arabia */}
-                    <div
-                        onClick={() => { setMarket('sa'); navigate('/market'); }}
-                        style={{ minWidth: '200px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', borderRadius: '20px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
-                    >
-                        <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '1.2rem' }}>🇸🇦</span>
-                                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>TASI</span>
+                    {indicesData.length > 0 ? indicesData.map((marketData) => {
+                        const isOpen = isMarketOpen(marketData.id);
+                        return (
+                            <div
+                                key={marketData.id}
+                                onClick={() => { selectMarket(marketData.id); navigate('/investor/home'); }}
+                                style={{
+                                    minWidth: '200px',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    backdropFilter: 'blur(10px)',
+                                    borderRadius: '20px',
+                                    padding: '1.25rem',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span style={{ fontSize: '1.2rem' }}>{marketData.flag}</span>
+                                        <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{marketData.name}</span>
+                                    </div>
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        color: isOpen ? '#10b981' : '#ef4444',
+                                        background: isOpen ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+                                        padding: '0.15rem 0.5rem',
+                                        borderRadius: '4px'
+                                    }}>
+                                        {isOpen ? 'OPEN' : 'CLOSED'}
+                                    </span>
+                                </div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>{marketData.value}</div>
+                                <div style={{
+                                    color: marketData.isPositive ? '#10b981' : '#ef4444',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem'
+                                }}>
+                                    {marketData.isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                    {marketData.isPositive ? '+' : ''}{Number(marketData.change).toFixed(2)}%
+                                </div>
+                                <div style={{ marginTop: '0.75rem' }}>
+                                    <Sparkline color={marketData.color} trend={marketData.isPositive ? 'up' : 'down'} />
+                                </div>
                             </div>
-                            <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.2)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>OPEN</span>
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>12,450.20</div>
-                        <div style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <TrendingUp size={14} /> +0.65%
-                        </div>
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <Sparkline color="#10b981" trend="up" />
-                        </div>
-                    </div>
-
-                    {/* US */}
-                    <div
-                        onClick={() => { setMarket('us'); navigate('/market'); }}
-                        style={{ minWidth: '200px', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', borderRadius: '20px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
-                    >
-                        <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '1.2rem' }}>🇺🇸</span>
-                                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>S&P 500</span>
-                            </div>
-                            <span style={{ fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(251,191,36,0.2)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>PRE</span>
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>5,105.30</div>
-                        <div style={{ color: '#fbbf24', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <TrendingUp size={14} /> +0.10%
-                        </div>
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <Sparkline color="#fbbf24" trend="up" />
-                        </div>
-                    </div>
-
-                    {/* Egypt */}
-                    <div
-                        onClick={() => { setMarket('eg'); navigate('/market'); }}
-                        style={{ minWidth: '200px', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', borderRadius: '20px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
-                    >
-                        <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '1.2rem' }}>🇪🇬</span>
-                                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>EGX 30</span>
-                            </div>
-                            <span style={{ fontSize: '0.75rem', color: '#ef4444', background: 'rgba(239,68,68,0.2)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>CLOSED</span>
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>28,950.00</div>
-                        <div style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <TrendingDown size={14} /> -1.25%
-                        </div>
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <Sparkline color="#ef4444" trend="down" />
-                        </div>
-                    </div>
+                        );
+                    }) : (
+                        <div style={{ color: 'rgba(255,255,255,0.6)', padding: '1rem' }}>Loading global markets...</div>
+                    )}
                 </div>
+
             </div>
+
 
             <div style={{ padding: '0 1.5rem', marginTop: '-1.5rem', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
@@ -247,7 +280,7 @@ export default function InvestorMarkets() {
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 }
 

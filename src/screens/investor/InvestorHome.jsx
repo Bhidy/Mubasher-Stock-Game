@@ -78,7 +78,7 @@ const NEWS_ITEMS = [
 
 export default function InvestorHome() {
     const { user } = useContext(UserContext);
-    const { market } = useMarket();
+    const { market, isMarketOpen } = useMarket(); // Import isMarketOpen
     const { announcements } = useCMS();
     const navigate = useNavigate();
     const [greeting, setGreeting] = useState('');
@@ -89,43 +89,64 @@ export default function InvestorHome() {
 
     // Fetch Global Indices
     useEffect(() => {
-        const fetchIndices = async () => {
-            try {
-                const promises = INDICES_CONFIG.map(async (idx) => {
-                    try {
-                        const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
-                        const data = await res.json();
-                        // Check if data is valid
-                        if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: 'closed' };
-
-                        const price = data.price || data.regularMarketPrice || 0;
-                        const changePercent = data.regularMarketChangePercent || 0;
-                        const isPositive = changePercent >= 0;
-                        const status = (data.marketState === 'REGULAR' || data.marketState === 'OPEN') ? 'open' : 'closed';
-
-                        return {
-                            ...idx,
-                            value: price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                            change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
-                            isPositive,
-                            chartData: [50, 52, 55, 53, 58, 62, 60, 65, 70, 72, 75], // Fallback/Mock chart
-                            status
-                        };
-                    } catch (e) {
-                        console.warn(`Failed to fetch ${idx.symbol}`, e);
-                        return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [], status: 'closed' };
-                    }
-                });
-                const results = await Promise.all(promises);
-                setIndicesData(results);
-            } catch (err) {
-                console.error("Global Indices Error:", err);
-            } finally {
-                setLoadingIndices(false);
-            }
-        };
+        // Initial Fetch
         fetchIndices();
+
+        // Poll every 60 seconds for live updates
+        const interval = setInterval(fetchIndices, 60000);
+        return () => clearInterval(interval);
     }, []);
+
+    // Helper to get status for the current SELECTED market
+    const getMarketStatus = () => {
+        const isOpen = isMarketOpen(market.id); // Use robust Context logic
+        if (isOpen) return { status: 'Open', color: '#10B981', bg: '#ECFDF5' };
+        return { status: 'Closed', color: '#64748B', bg: '#F1F5F9' };
+    };
+
+    const fetchIndices = async () => {
+        try {
+            const promises = INDICES_CONFIG.map(async (idx) => {
+                let status = 'closed';
+                // Try to find market by approx flag match or symbol derived
+                // Use robust isMarketOpen if mapped
+                // Mapping index symbol to market ID is tricky, so we do best guess or simple open check
+                // BUT for the main "Market Status" badge, we use the SELECTED market.
+
+                try {
+                    const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
+                    const data = await res.json();
+
+                    if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: 'closed' };
+
+                    const price = data.price || data.regularMarketPrice || 0;
+                    const changePercent = data.regularMarketChangePercent || 0;
+                    const isPositive = changePercent >= 0;
+
+                    // For the individual index cards, we can imply status from data or just show if it's "live"
+                    // If change is moving, it's open.
+
+                    return {
+                        ...idx,
+                        value: price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
+                        isPositive,
+                        chartData: [50, 52, 55, 53, 58, 62, 60, 65, 70, 72, 75],
+                        status: (data.marketState === 'REGULAR' || data.marketState === 'OPEN') ? 'open' : 'closed'
+                    };
+                } catch (e) {
+                    // console.warn(`Failed to fetch ${idx.symbol}`, e);
+                    return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [], status: 'closed' };
+                }
+            });
+            const results = await Promise.all(promises);
+            setIndicesData(results);
+        } catch (err) {
+            console.error("Global Indices Error:", err);
+        } finally {
+            setLoadingIndices(false);
+        }
+    };
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -147,16 +168,6 @@ export default function InvestorHome() {
         openPositions: 8,
         watchlistCount: 12,
         alertsActive: 5,
-    };
-
-    // Get market status
-    const getMarketStatus = () => {
-        const hour = currentTime.getHours();
-        const day = currentTime.getDay();
-        if (day === 0 || day === 6) return { status: 'Closed', color: '#64748B', bg: '#F1F5F9' };
-        if (hour >= 9 && hour < 16) return { status: 'Open', color: '#10B981', bg: '#ECFDF5' };
-        if (hour >= 8 && hour < 9) return { status: 'Pre-Market', color: '#F59E0B', bg: '#FEF3C7' };
-        return { status: 'Closed', color: '#64748B', bg: '#F1F5F9' };
     };
 
     const marketStatus = getMarketStatus();

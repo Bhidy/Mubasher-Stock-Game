@@ -46,7 +46,7 @@ export const MARKET_HOURS = {
     'HK': { open: '09:30', close: '16:00', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'DE': { open: '09:00', close: '17:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'JP': { open: '09:00', close: '15:00', days: [1, 2, 3, 4, 5] }, // Mon-Fri
-    'AE': { open: '10:00', close: '14:00', days: [0, 1, 2, 3, 4] }, // Sun-Thu
+    'AE': { open: '10:00', close: '15:00', days: [1, 2, 3, 4, 5] }, // Mon-Fri (Changed Jan 2022)
     'ZA': { open: '09:00', close: '17:00', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'QA': { open: '09:30', close: '13:15', days: [0, 1, 2, 3, 4] }, // Sun-Thu
     // Phase 2 Tier 1
@@ -55,7 +55,7 @@ export const MARKET_HOURS = {
     'NL': { open: '09:00', close: '17:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'ES': { open: '09:00', close: '17:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'IT': { open: '09:00', close: '17:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
-    'BR': { open: '10:00', close: '17:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
+    'BR': { open: '10:00', close: '17:00', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'MX': { open: '08:30', close: '15:00', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'KR': { open: '09:00', close: '15:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
     'TW': { open: '09:00', close: '13:30', days: [1, 2, 3, 4, 5] }, // Mon-Fri
