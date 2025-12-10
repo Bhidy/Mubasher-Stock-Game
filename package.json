@@ -1,7 +1,7 @@
 {
   "name": "stockduel",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,37 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor/android": "latest",
-    "@capacitor/cli": "latest",
-    "@capacitor/core": "latest",
-    "@google/generative-ai": "latest",
-    "axios": "^1.6.8",
-    "cheerio": "^1.0.0-rc.12",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "expo": "latest",
-    "express": "^4.19.2",
-    "groq-sdk": "latest",
-    "lucide-react": "^0.363.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-quill-new": "^3.3.0",
-    "react-router-dom": "^6.22.3",
-    "recharts": "^2.12.3",
-    "rss-parser": "^3.13.0",
-    "yahoo-finance2": "^2.11.3"
+    "axios": "1.6.8",
+    "lucide-react": "0.344.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-quill-new": "3.3.2",
+    "react-router-dom": "6.22.3",
+    "recharts": "2.12.3"
   },
   "devDependencies": {
-    "@eslint/js": "^8.57.0",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "globals": "^15.0.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "wrangler": "latest"
+    "@types/react": "18.2.66",
+    "@types/react-dom": "18.2.22",
+    "@vitejs/plugin-react": "4.2.1",
+    "eslint": "8.57.0",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "eslint-plugin-react-refresh": "0.4.6",
+    "vite": "5.2.0"
   }
 }
