@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, HelpCircle, BarChart2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, HelpCircle, BarChart2, Brain } from 'lucide-react';
 import { UserContext } from '../App';
 
 // Typing indicator component
@@ -268,12 +268,12 @@ export default function Chatbot() {
                     position: 'fixed',
                     bottom: 'calc(var(--nav-height) + 1.5rem)',
                     right: '1.5rem',
-                    width: '56px',
-                    height: '56px',
+                    width: '48px', // Smaller size
+                    height: '48px', // Smaller size
                     borderRadius: '50%',
                     background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
                     border: 'none',
-                    boxShadow: '0 6px 24px rgba(16, 185, 129, 0.4)',
+                    boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -283,7 +283,7 @@ export default function Chatbot() {
                     transform: showChat ? 'scale(0)' : 'scale(1)'
                 }}
             >
-                <Sparkles size={24} color="white" />
+                <Brain size={20} color="white" />
             </button>
 
             {/* Chat Window - Only render when visible to prevent click interference */}
@@ -327,7 +327,7 @@ export default function Chatbot() {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                             }}>
-                                <Sparkles size={22} color="white" />
+                                <Brain size={22} color="white" />
                             </div>
                             <div>
                                 <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Hero Ai</h3>
