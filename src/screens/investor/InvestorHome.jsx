@@ -109,74 +109,159 @@ export default function InvestorHome() {
                 greeting={greeting}
             />
 
-            {/* Global Markets Section - Dark Theme */}
+            {/* Global Markets Section - Premium Dark Theme */}
             <div style={{
                 margin: '-1rem 1rem 0 1rem',
-                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-                borderRadius: '24px',
-                padding: '1.25rem',
-                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+                background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+                borderRadius: '28px',
+                padding: '1.5rem',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
                 position: 'relative',
                 overflow: 'hidden',
             }}>
-                {/* Subtle glow effect */}
+                {/* Animated gradient orbs */}
                 <div style={{
                     position: 'absolute',
-                    top: '-50px',
-                    right: '-50px',
+                    top: '-80px',
+                    right: '-60px',
+                    width: '200px',
+                    height: '200px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 60%)',
+                    animation: 'float 6s ease-in-out infinite',
+                }} />
+                <div style={{
+                    position: 'absolute',
+                    bottom: '-60px',
+                    left: '-40px',
                     width: '150px',
                     height: '150px',
                     borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 60%)',
+                    animation: 'float 8s ease-in-out infinite reverse',
                 }} />
+
+                {/* Grid pattern overlay */}
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23ffffff' stroke-opacity='0.03'/%3E%3C/g%3E%3C/svg%3E")`,
+                    borderRadius: '28px',
+                    pointerEvents: 'none',
+                }} />
+
+                {/* Header */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '1rem',
+                    marginBottom: '1.25rem',
                     position: 'relative',
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Globe size={18} color="white" />
-                        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white' }}>Global Markets</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{
-                            width: '8px', height: '8px', borderRadius: '50%',
-                            background: '#10B981',
-                            animation: 'pulse 2s infinite',
-                        }} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94A3B8' }}>Live Session</span>
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                        }}>
+                            <Globe size={20} color="#10B981" />
+                        </div>
+                        <div>
+                            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white', margin: 0, letterSpacing: '-0.01em' }}>Global Markets</h2>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.125rem' }}>
+                                <div style={{
+                                    width: '6px', height: '6px', borderRadius: '50%',
+                                    background: '#10B981',
+                                    boxShadow: '0 0 8px #10B981',
+                                    animation: 'pulse 2s infinite',
+                                }} />
+                                <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94A3B8' }}>Live • 9 Markets</span>
+                            </div>
+                        </div>
                     </div>
+                    <button
+                        onClick={() => navigate('/investor/markets')}
+                        style={{
+                            background: 'rgba(255,255,255,0.08)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '10px',
+                            padding: '0.5rem 0.875rem',
+                            color: '#94A3B8',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.375rem',
+                            transition: 'all 0.2s',
+                        }}
+                        onMouseOver={e => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+                            e.currentTarget.style.color = 'white';
+                        }}
+                        onMouseOut={e => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.color = '#94A3B8';
+                        }}
+                    >
+                        See All <ChevronRight size={14} />
+                    </button>
                 </div>
+
+                {/* Market Cards Carousel */}
                 <div style={{
                     display: 'flex',
-                    gap: '0.75rem',
+                    gap: '0.875rem',
                     overflowX: 'auto',
                     paddingBottom: '0.5rem',
                     scrollbarWidth: 'none',
                     WebkitOverflowScrolling: 'touch',
                     scrollSnapType: 'x mandatory',
+                    marginLeft: '-0.25rem',
+                    marginRight: '-0.25rem',
+                    paddingLeft: '0.25rem',
+                    paddingRight: '0.25rem',
                 }} className="no-scrollbar">
-                    {/* Saudi Arabia - TASI */}
-                    <MarketCard name="TASI" flag="🇸🇦" value="12,450.23" change="+0.45%" isPositive={true} chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]} color="#10b981" onClick={() => navigate('/market')} />
-                    {/* Egypt - EGX30 */}
-                    <MarketCard name="EGX 30" flag="🇪🇬" value="28,934.56" change="-0.45%" isPositive={false} chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]} color="#ef4444" onClick={() => navigate('/market')} />
-                    {/* USA - S&P 500 */}
-                    <MarketCard name="S&P 500" flag="🇺🇸" value="5,105.20" change="+0.30%" isPositive={true} chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]} color="#3b82f6" onClick={() => navigate('/market')} />
-                    {/* USA - NASDAQ */}
-                    <MarketCard name="NASDAQ" flag="🇺🇸" value="19,234.67" change="+1.12%" isPositive={true} chartData={[50, 55, 60, 58, 65, 70, 75, 80, 78, 85, 90]} color="#8b5cf6" onClick={() => navigate('/market')} />
-                    {/* USA - Dow Jones */}
-                    <MarketCard name="DOW" flag="🇺🇸" value="43,828.06" change="+0.25%" isPositive={true} chartData={[55, 58, 60, 62, 58, 60, 62, 65, 68, 70, 72]} color="#0ea5e9" onClick={() => navigate('/market')} />
-                    {/* Germany - DAX */}
-                    <MarketCard name="DAX" flag="🇩🇪" value="20,314.81" change="+0.68%" isPositive={true} chartData={[45, 48, 52, 50, 55, 58, 62, 60, 65, 70, 72]} color="#f59e0b" onClick={() => navigate('/market')} />
-                    {/* UK - FTSE */}
-                    <MarketCard name="FTSE 100" flag="🇬🇧" value="8,308.61" change="-0.12%" isPositive={false} chartData={[60, 58, 55, 57, 54, 52, 55, 53, 50, 52, 51]} color="#64748b" onClick={() => navigate('/market')} />
-                    {/* Japan - Nikkei */}
-                    <MarketCard name="Nikkei 225" flag="🇯🇵" value="39,160.50" change="+0.95%" isPositive={true} chartData={[40, 45, 50, 55, 52, 58, 62, 65, 70, 75, 80]} color="#dc2626" onClick={() => navigate('/market')} />
-                    {/* Hong Kong - Hang Seng */}
-                    <MarketCard name="Hang Seng" flag="🇭🇰" value="20,397.05" change="+1.35%" isPositive={true} chartData={[35, 40, 38, 45, 50, 55, 60, 58, 65, 70, 75]} color="#ec4899" onClick={() => navigate('/market')} />
+                    <MarketCard name="TASI" flag="🇸🇦" value="12,450.23" change="+0.45%" isPositive={true} chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]} color="#10b981" status="open" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="EGX 30" flag="🇪🇬" value="28,934.56" change="-0.45%" isPositive={false} chartData={[70, 65, 60, 62, 55, 58, 52, 50, 48, 45, 42]} color="#ef4444" status="closed" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="S&P 500" flag="🇺🇸" value="5,105.20" change="+0.30%" isPositive={true} chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]} color="#3b82f6" status="pre" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="NASDAQ" flag="🇺🇸" value="19,234.67" change="+1.12%" isPositive={true} chartData={[50, 55, 60, 58, 65, 70, 75, 80, 78, 85, 90]} color="#8b5cf6" status="pre" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="DOW" flag="🇺🇸" value="43,828.06" change="+0.25%" isPositive={true} chartData={[55, 58, 60, 62, 58, 60, 62, 65, 68, 70, 72]} color="#0ea5e9" status="pre" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="DAX" flag="🇩🇪" value="20,314.81" change="+0.68%" isPositive={true} chartData={[45, 48, 52, 50, 55, 58, 62, 60, 65, 70, 72]} color="#f59e0b" status="open" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="FTSE 100" flag="🇬🇧" value="8,308.61" change="-0.12%" isPositive={false} chartData={[60, 58, 55, 57, 54, 52, 55, 53, 50, 52, 51]} color="#64748b" status="open" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="Nikkei" flag="🇯🇵" value="39,160.50" change="+0.95%" isPositive={true} chartData={[40, 45, 50, 55, 52, 58, 62, 65, 70, 75, 80]} color="#dc2626" status="closed" variant="dark" onClick={() => navigate('/market')} />
+                    <MarketCard name="Hang Seng" flag="🇭🇰" value="20,397.05" change="+1.35%" isPositive={true} chartData={[35, 40, 38, 45, 50, 55, 60, 58, 65, 70, 75]} color="#ec4899" status="closed" variant="dark" onClick={() => navigate('/market')} />
                 </div>
+
+                {/* Scroll indicator dots */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '0.375rem',
+                    marginTop: '0.75rem',
+                }}>
+                    {[0, 1, 2].map((i) => (
+                        <div key={i} style={{
+                            width: i === 0 ? '16px' : '6px',
+                            height: '6px',
+                            borderRadius: '3px',
+                            background: i === 0 ? '#10B981' : 'rgba(255,255,255,0.2)',
+                            transition: 'all 0.3s',
+                        }} />
+                    ))}
+                </div>
+
+                <style>{`
+                    @keyframes float {
+                        0%, 100% { transform: translateY(0) rotate(0deg); }
+                        50% { transform: translateY(-10px) rotate(5deg); }
+                    }
+                `}</style>
             </div>
 
             {/* Content */}
