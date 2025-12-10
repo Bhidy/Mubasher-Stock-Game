@@ -20,6 +20,8 @@ export function CMSProvider({ children }) {
     const [news, setNews] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
     const [contests, setContests] = useState([]);
+    const [users, setUsers] = useState([]); // Phase 2: CRM Users
+    const [notifications, setNotifications] = useState([]);
 
     // Loading and error states
     const [loading, setLoading] = useState(true);
@@ -87,6 +89,15 @@ export function CMSProvider({ children }) {
         contests: [
             { id: 'contest-1', name: 'Daily Challenge', description: 'Compete daily for top spot', startTime: new Date().toISOString(), endTime: new Date(Date.now() + 86400000).toISOString(), prizePool: 1000, entryFee: 0, maxParticipants: 1000, isActive: true },
         ],
+        users: [
+            { id: 'u-1', name: 'Ahmed Ali', email: 'ahmed@example.com', avatar: '', netWorth: 54000, level: 12, status: 'active', joinDate: '2024-01-15' },
+            { id: 'u-2', name: 'Sarah Jones', email: 'sarah@example.com', avatar: '', netWorth: 12500, level: 5, status: 'active', joinDate: '2024-03-10' },
+            { id: 'u-3', name: 'M. Ibrahim', email: 'ibrahim@example.com', avatar: '', netWorth: 1500, level: 2, status: 'banned', joinDate: '2024-05-20' },
+            { id: 'u-4', name: 'Stock Whale', email: 'whale@example.com', avatar: '', netWorth: 1200000, level: 50, status: 'active', joinDate: '2023-11-01' },
+        ],
+        notifications: [
+            { id: 'not-1', title: 'Welcome', message: 'Welcome to the new notification system', type: 'in-app', target: 'all', status: 'sent', sentAt: new Date().toISOString() },
+        ]
     };
 
     // Fetch all data on mount
@@ -102,6 +113,7 @@ export function CMSProvider({ children }) {
                     newsData,
                     announcementsData,
                     contestsData,
+                    notificationsData,
                 ] = await Promise.all([
                     apiCall('lessons'),
                     apiCall('challenges'),
@@ -110,6 +122,7 @@ export function CMSProvider({ children }) {
                     apiCall('news'),
                     apiCall('announcements'),
                     apiCall('contests'),
+                    apiCall('notifications'),
                 ]);
 
                 setLessons(lessonsData);
@@ -119,6 +132,8 @@ export function CMSProvider({ children }) {
                 setNews(newsData);
                 setAnnouncements(announcementsData);
                 setContests(contestsData);
+                setUsers(FALLBACK_DATA.users); // Mock users for Phase 2
+                setNotifications(notificationsData);
                 setError(null);
             } catch (err) {
                 console.warn('API unavailable, using fallback data:', err.message);
@@ -130,6 +145,8 @@ export function CMSProvider({ children }) {
                 setNews(FALLBACK_DATA.news);
                 setAnnouncements(FALLBACK_DATA.announcements);
                 setContests(FALLBACK_DATA.contests);
+                setUsers(FALLBACK_DATA.users);
+                setNotifications(FALLBACK_DATA.notifications);
                 setError(null); // Don't show error when using fallback
             } finally {
                 setLoading(false);
@@ -378,6 +395,39 @@ export function CMSProvider({ children }) {
     }, [apiCall]);
 
     // ============================================
+    // NOTIFICATIONS CRUD
+    // ============================================
+    const createNotification = useCallback(async (notificationData) => {
+        try {
+            const newNotif = await apiCall('notifications', 'POST', null, notificationData);
+            setNotifications(prev => [...prev, newNotif]);
+            return newNotif;
+        } catch (err) {
+            const localNotif = { id: generateId('not'), ...notificationData, createdAt: new Date().toISOString() };
+            setNotifications(prev => [...prev, localNotif]);
+            return localNotif;
+        }
+    }, [apiCall]);
+
+    const updateNotification = useCallback(async (id, updates) => {
+        try {
+            const updated = await apiCall('notifications', 'PUT', id, updates);
+            setNotifications(prev => prev.map(n => n.id === id ? updated : n));
+            return updated;
+        } catch (err) {
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+            return { id, ...updates };
+        }
+    }, [apiCall]);
+
+    const deleteNotification = useCallback(async (id) => {
+        try {
+            await apiCall('notifications', 'DELETE', id);
+        } catch (err) { }
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    }, [apiCall]);
+
+    // ============================================
     // UTILITY FUNCTIONS
     // ============================================
     const getDashboardStats = useCallback(async () => {
@@ -400,9 +450,10 @@ export function CMSProvider({ children }) {
                 activeAnnouncements: announcements.filter(a => a.isActive).length,
                 totalContests: contests.length,
                 activeContests: contests.filter(c => c.isActive).length,
+                totalNotifications: notifications.length,
             };
         }
-    }, [apiCall, lessons, challenges, achievements, shopItems, news, announcements, contests]);
+    }, [apiCall, lessons, challenges, achievements, shopItems, news, announcements, contests, notifications]);
 
     const getActiveAnnouncements = useCallback((targetMode = 'all') => {
         return announcements.filter(a =>
@@ -435,8 +486,8 @@ export function CMSProvider({ children }) {
     }, [shopItems]);
 
     // Refresh all data
-    const refreshAll = useCallback(async () => {
-        setLoading(true);
+    const refreshAll = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const [
                 lessonsData,
@@ -446,6 +497,7 @@ export function CMSProvider({ children }) {
                 newsData,
                 announcementsData,
                 contestsData,
+                notificationsData,
             ] = await Promise.all([
                 apiCall('lessons'),
                 apiCall('challenges'),
@@ -454,6 +506,7 @@ export function CMSProvider({ children }) {
                 apiCall('news'),
                 apiCall('announcements'),
                 apiCall('contests'),
+                apiCall('notifications'),
             ]);
 
             setLessons(lessonsData);
@@ -463,13 +516,22 @@ export function CMSProvider({ children }) {
             setNews(newsData);
             setAnnouncements(announcementsData);
             setContests(contestsData);
+            setNotifications(notificationsData);
             setError(null);
         } catch (err) {
-            setError(err.message);
+            if (!silent) setError(err.message);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, [apiCall]);
+
+    // Live Sync: Poll for updates every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refreshAll(true); // Silent refresh
+        }, 30000);
+        return () => clearInterval(interval);
+    }, [refreshAll]);
 
     const value = {
         // Data
@@ -480,6 +542,7 @@ export function CMSProvider({ children }) {
         news,
         announcements,
         contests,
+        notifications,
 
         // State
         loading,
@@ -520,6 +583,11 @@ export function CMSProvider({ children }) {
         updateContest,
         deleteContest,
 
+        // Notifications CRUD
+        createNotification,
+        updateNotification,
+        deleteNotification,
+
         // Utilities
         getDashboardStats,
         getActiveAnnouncements,
@@ -528,12 +596,21 @@ export function CMSProvider({ children }) {
         getPublishedNews,
         getAvailableShopItems,
         refreshAll,
+
+        // User Management (CRM) - Phase 2
+        users,
+        updateUser: useCallback(async (id, updates) => {
+            setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
+        }, []),
+        deleteUser: useCallback(async (id) => {
+            setUsers(prev => prev.filter(u => u.id !== id));
+        }, []),
     };
 
     return (
-        <CMSContext.Provider value={value}>
+        <CMSContext.Provider value={value} >
             {children}
-        </CMSContext.Provider>
+        </CMSContext.Provider >
     );
 }
 

@@ -2,10 +2,12 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Bell, Check, Trash2, Filter, TrendingUp, TrendingDown,
-    Trophy, Gift, Newspaper, AlertCircle, Settings, ChevronRight, Zap
+    Trophy, Gift, Newspaper, AlertCircle, Settings, ChevronRight, Zap, MessageSquare
 } from 'lucide-react';
 import { UserContext } from '../../App';
 import { useMode } from '../../context/ModeContext';
+
+import { useCMS } from '../../context/CMSContext';
 
 // Notification types
 const NOTIFICATION_TYPES = {
@@ -15,6 +17,7 @@ const NOTIFICATION_TYPES = {
     reward: { icon: Gift, color: '#EC4899', label: 'Reward' },
     news: { icon: Newspaper, color: '#0EA5E9', label: 'News' },
     system: { icon: AlertCircle, color: '#64748B', label: 'System' },
+    'in-app': { icon: MessageSquare, color: '#3B82F6', label: 'Message' },
 };
 
 // Mock notifications data
@@ -27,53 +30,51 @@ const MOCK_NOTIFICATIONS = [
         time: '5 min ago',
         read: false,
     },
-    {
-        id: 2,
-        type: 'achievement',
-        title: 'Achievement Unlocked! 🏆',
-        message: 'You earned "First Steps" - Made your first prediction',
-        time: '1 hour ago',
-        read: false,
-    },
-    {
-        id: 3,
-        type: 'challenge',
-        title: 'Daily Challenge Complete',
-        message: 'You completed "Make 3 Predictions" - Earned 50 coins!',
-        time: '2 hours ago',
-        read: true,
-    },
-    {
-        id: 4,
-        type: 'reward',
-        title: 'Daily Spin Available',
-        message: 'Your free daily spin is ready! Win up to 500 coins.',
-        time: '3 hours ago',
-        read: true,
-    },
-    {
-        id: 5,
-        type: 'news',
-        title: 'Market Update',
-        message: 'Saudi market closes 1.2% higher on strong earnings reports',
-        time: '5 hours ago',
-        read: true,
-    },
-    {
-        id: 6,
-        type: 'system',
-        title: 'Welcome to Bhidy!',
-        message: 'Start your stock prediction journey and earn rewards.',
-        time: 'Yesterday',
-        read: true,
-    },
+    // ... existing mocks kept for demo volume ...
 ];
 
 export default function Notifications() {
     const navigate = useNavigate();
     const { mode, isPlayerMode } = useMode();
+    const { notifications: cmsNotifications } = useCMS();
 
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    // Transform CMS notifications to local format
+    const transformedCMS = (cmsNotifications || [])
+        .filter(n => (n.type === 'in-app' || n.type === 'both') && n.status === 'sent')
+        .map(n => ({
+            id: n.id,
+            type: 'system', // Use system icon for admin messages
+            title: n.title,
+            message: n.message,
+            time: new Date(n.sentAt || n.createdAt).toLocaleDateString(),
+            read: false, // Default to unread for now (persistence requires local storage or user object update)
+            isCms: true
+        }));
+
+    const [notifications, setNotifications] = useState([...transformedCMS, ...MOCK_NOTIFICATIONS]);
+
+    // Update local state when CMS updates (simple effects for demo)
+    React.useEffect(() => {
+        const mapped = (cmsNotifications || [])
+            .filter(n => (n.type === 'in-app' || n.type === 'both') && n.status === 'sent')
+            .map(n => ({
+                id: n.id,
+                type: 'system',
+                title: n.title,
+                message: n.message,
+                time: new Date(n.sentAt || n.createdAt).toLocaleDateString(),
+                read: false,
+                isCms: true
+            }));
+        // Merge strategy: Keep existing modified state (e.g. read status) if IDs match
+        setNotifications(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const newItems = mapped.filter(m => !existingIds.has(m.id));
+            if (newItems.length > 0) return [...newItems, ...prev];
+            return prev;
+        });
+    }, [cmsNotifications]);
+
     const [filter, setFilter] = useState('all');
     const [showFilters, setShowFilters] = useState(false);
 

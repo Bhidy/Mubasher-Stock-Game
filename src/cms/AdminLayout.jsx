@@ -17,6 +17,7 @@ const SIDEBAR_ITEMS = [
     { divider: true, label: 'Publishing' },
     { id: 'news', label: 'News', icon: Newspaper, path: '/admin/news' },
     { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/admin/announcements' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
     { divider: true, label: 'System' },
     { id: 'contests', label: 'Contests', icon: Calendar, path: '/admin/contests' },
     { id: 'users', label: 'Users', icon: Users, path: '/admin/users' },

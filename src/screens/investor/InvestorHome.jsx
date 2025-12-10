@@ -235,7 +235,57 @@ export default function InvestorHome() {
                         </div>
                     ))}
 
-                {/* Quick Actions */}
+                {/* Market Summary Card */}
+                <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
+                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>Market Pulse</h2>
+
+                        {/* Short cut to new Dashboard */}
+                        <button
+                            onClick={() => navigate('/investor/markets')}
+                            style={{
+                                color: '#0ea5e9',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem'
+                            }}
+                        >
+                            Global Dashboard <ArrowRight size={16} />
+                        </button>
+                    </div>
+
+                    <div style={{
+                        display: 'flex',
+                        gap: '1rem',
+                        overflowX: 'auto',
+                        paddingBottom: '0.5rem',
+                        scrollbarWidth: 'none'
+                    }} className="no-scrollbar">
+                        <MarketCard
+                            name="TASI"
+                            value="12,450.23"
+                            change="+0.45%"
+                            isPositive={true}
+                            chartData={[65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 85]}
+                            color="#10b981"
+                            onClick={() => navigate('/market')}
+                        />
+                        <MarketCard
+                            name="S&P 500"
+                            value="5,105.20"
+                            change="+0.30%"
+                            isPositive={true}
+                            chartData={[40, 45, 50, 48, 52, 55, 58, 60, 62, 65, 68]}
+                            color="#3b82f6"
+                            onClick={() => navigate('/market')}
+                        />
+                    </div>
+                </div>{/* Quick Actions */}
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(4, 1fr)',

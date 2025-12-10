@@ -7,6 +7,8 @@ import Badge from '../components/Badge';
 import BurgerMenu from '../components/BurgerMenu';
 import { useMarket } from '../context/MarketContext';
 
+import { useCMS } from '../context/CMSContext';
+
 const timeAgo = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -30,12 +32,14 @@ export default function NewsFeed() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { market: globalMarket, selectMarket } = useMarket();
+    // Contexts
+    const { market: globalMarket } = useMarket();
+    const { getPublishedNews } = useCMS();
+
     // Use global market ID
     const market = globalMarket.id;
 
-    // Initialize state from navigation state if available (for Back button support)
-    // const [market, setMarket] = useState(location.state?.market || 'EG'); // REMOVED
+    // State
     const [newsItems, setNewsItems] = useState([]);
     const [filteredNews, setFilteredNews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -63,69 +67,72 @@ export default function NewsFeed() {
         return true;
     };
 
-    // Reuse fetch logic from original file...
-    // Load cached news on market change
-    useEffect(() => {
-        const cached = localStorage.getItem(`news_cache_${market}`);
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setNewsItems(parsed);
-                    setLoading(false);
-                }
-            } catch (e) { }
-        } else {
-            setNewsItems([]); // Reset if no cache
-            setLoading(true);
-        }
-        setSelectedSource('All'); // Reset filter on market change
-    }, [market]);
-
+    // Fetch scraped news
     const fetchNews = async () => {
         try {
             const res = await fetch(`${NEWS_API_URL}?market=${market}`);
             const data = await res.json();
-
-            if (Array.isArray(data) && data.length > 0) {
-                setNewsItems(prevItems => {
-                    // Create Map for deduplication by ID or Link
-                    const uniqueMap = new Map();
-
-                    // 1. Add existing items
-                    prevItems.forEach(item => uniqueMap.set(item.id || item.link, item));
-
-                    // 2. Add/Update with new items (Fresh data overrides old if needed, or just adds)
-                    data.forEach(item => uniqueMap.set(item.id || item.link, item));
-
-                    // 3. Convert back to array
-                    const merged = Array.from(uniqueMap.values());
-
-                    // 4. Sort by Time (Newest First)
-                    merged.sort((a, b) => new Date(b.time) - new Date(a.time));
-
-                    // 5. Limit Cache Size (Keep history valid but manageable)
-                    const finalItems = merged.slice(0, 500);
-
-                    // 6. Save to Vault
-                    localStorage.setItem(`news_cache_${market}`, JSON.stringify(finalItems));
-
-                    return finalItems;
-                });
-            }
+            return Array.isArray(data) ? data : [];
         } catch (e) {
             console.error(e);
-        } finally {
-            setLoading(false);
+            return [];
         }
     };
 
-    // Fetch News when market changes + auto-refresh
+    // Combine Scraped + CMS News
     useEffect(() => {
-        fetchNews();
-        const interval = setInterval(fetchNews, 60000);
+        const loadMixedNews = async () => {
+            // 1. Get CMS News (Manual)
+            const cmsData = getPublishedNews(market);
+            const formattedCmsNews = cmsData.map(item => ({
+                id: item.id,
+                title: item.title,
+                publisher: item.source || 'Stocks Hero', // Default publisher
+                time: item.publishedAt,
+                thumbnail: item.imageUrl,
+                summary: item.summary,
+                content: item.content,
+                link: '#' // CMS news is internal
+            }));
+
+            // 2. Get Scraped News (API)
+            let scrapedData = [];
+
+            // Checks cache first to avoid flicker/delay
+            const cached = localStorage.getItem(`news_cache_${market}`);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed)) scrapedData = parsed;
+                } catch (e) { }
+            }
+
+            // If no cache or needs update, we fetch (but don't block render if we have cache?)
+            // For simplicity, let's fetch fresh and merge.
+            const freshScraped = await fetchNews();
+            if (freshScraped.length > 0) {
+                scrapedData = freshScraped;
+                // Update Cache
+                localStorage.setItem(`news_cache_${market}`, JSON.stringify(freshScraped.slice(0, 100)));
+            }
+
+            // 3. Merge
+            const combined = [...formattedCmsNews, ...scrapedData];
+
+            // 4. Sort by Time (Newest First)
+            combined.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+            setNewsItems(combined);
+            setLoading(false);
+        };
+
+        setLoading(true);
+        loadMixedNews();
+
+        const interval = setInterval(loadMixedNews, 60000); // Auto refresh every minute
         return () => clearInterval(interval);
-    }, [market]);
+
+    }, [market, getPublishedNews]); // Re-run when market or CMS updates
 
     // Calculate source counts based on CURRENT Date Filter
     const sourceCounts = React.useMemo(() => {

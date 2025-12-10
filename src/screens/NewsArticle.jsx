@@ -99,8 +99,12 @@ export default function NewsArticle() {
         // Scroll top on mount
         window.scrollTo(0, 0);
 
-        // Fetch full content if link is available
-        if (article?.link) {
+        // If the article has direct content (CMS), use it.
+        if (article?.content) {
+            setFullContent(article.content);
+        }
+        // Otherwise, if it has an external link, try to fetch/scrape it.
+        else if (article?.link) {
             setFullContentLoading(true);
             fetch(`/api/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
                 .then(res => res.json())
@@ -113,6 +117,10 @@ export default function NewsArticle() {
                 .finally(() => setFullContentLoading(false));
         }
     }, [article]);
+
+    const displayImage = article?.imageUrl || article?.thumbnail;
+    const isDirectImage = displayImage && (displayImage.includes('blob:') || displayImage.includes('data:'));
+    const imageSrc = isDirectImage ? displayImage : (displayImage?.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(displayImage)}` : displayImage);
 
     if (!article) {
         return (
@@ -237,7 +245,7 @@ export default function NewsArticle() {
 
             <div className="animate-fade-in" style={{ padding: '0 1.5rem' }}>
                 {/* Hero Image */}
-                {article.thumbnail && (
+                {displayImage && (
                     <div style={{
                         width: '100%',
                         borderRadius: '16px',
@@ -246,7 +254,7 @@ export default function NewsArticle() {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
                     }}>
                         <img
-                            src={article.thumbnail?.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(article.thumbnail)}` : article.thumbnail}
+                            src={imageSrc}
                             alt="News"
                             referrerPolicy="no-referrer"
                             onError={(e) => {

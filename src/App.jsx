@@ -43,6 +43,8 @@ import InvestorHome from './screens/investor/InvestorHome';
 import InvestorPortfolio from './screens/investor/InvestorPortfolio';
 import InvestorWatchlist from './screens/investor/InvestorWatchlist';
 import InvestorScreener from './screens/investor/InvestorScreener';
+import InvestorAnalysis from './screens/investor/InvestorAnalysis';
+import InvestorMarkets from './screens/investor/InvestorMarkets';
 import InvestorCalendar from './screens/investor/InvestorCalendar';
 import InvestorAlerts from './screens/investor/InvestorAlerts';
 import InvestorNotes from './screens/investor/InvestorNotes';
@@ -62,8 +64,9 @@ import AdminNews from './cms/AdminNews';
 import AdminAnnouncements from './cms/AdminAnnouncements';
 import AdminLogin from './cms/AdminLogin';
 import AdminContests from './cms/AdminContests';
-import AdminUsers from './cms/AdminUsers';
+import UserManagement from './cms/UserManagement';
 import AdminSettings from './cms/AdminSettings';
+import AdminNotifications from './cms/AdminNotifications';
 
 import profileImg from './assets/profile.jpg';
 
@@ -111,7 +114,8 @@ function ModeAwareRoutes() {
         <Route path="portfolio" element={<InvestorPortfolio />} />
         <Route path="watchlist" element={<InvestorWatchlist />} />
         <Route path="screener" element={<InvestorScreener />} />
-        <Route path="analysis" element={<MarketSummary />} />
+        <Route path="analysis" element={<InvestorAnalysis />} />
+        <Route path="markets" element={<InvestorMarkets />} />
         <Route path="calendar" element={<InvestorCalendar />} />
         <Route path="alerts" element={<InvestorAlerts />} />
         <Route path="notes" element={<InvestorNotes />} />
@@ -158,7 +162,7 @@ function ModeAwareRoutes() {
 
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    </Routes >
   );
 }
 
@@ -172,7 +176,6 @@ export default function App() {
         // and restore avatar import
         return {
           name: 'BHIDY',
-          avatar: profileImg,
           coins: 1250,
           level: 7,
           levelTitle: 'Market Rookie',
@@ -291,8 +294,9 @@ function AdminRoutes() {
       <Route path="shop" element={<AdminLayout><AdminShop /></AdminLayout>} />
       <Route path="news" element={<AdminLayout><AdminNews /></AdminLayout>} />
       <Route path="announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
+      <Route path="notifications" element={<AdminLayout><AdminNotifications /></AdminLayout>} />
       <Route path="contests" element={<AdminLayout><AdminContests /></AdminLayout>} />
-      <Route path="users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
+      <Route path="users" element={<AdminLayout><UserManagement /></AdminLayout>} />
       <Route path="settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
       <Route path="*" element={<Navigate to="login" replace />} />
     </Routes>

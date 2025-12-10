@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Eye, EyeOff, X, Save, Newspaper, Globe, Star, Clock } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Save, ExternalLink, Newspaper, Star, Clock } from 'lucide-react';
 import { useCMS } from '../context/CMSContext';
+import NewsEditor from './NewsEditor';
+import DebugErrorBoundary from '../components/DebugErrorBoundary';
 
 const CATEGORIES = ['Market Analysis', 'Company News', 'Economic Data', 'Commodities', 'Forex', 'Technology', 'Banking'];
 const MARKETS = ['all', 'SA', 'EG', 'US'];
+const SOURCES = ['Stocks Hero', 'Mubasher', 'Argaam', 'Zawya', 'Reuters', 'Bloomberg', 'Yahoo Finance', 'CNBC', 'Enterprise', 'Daily News Egypt', 'Saudi Gazette'];
 
 export default function AdminNews() {
     const [searchParams] = useSearchParams();
@@ -15,6 +18,7 @@ export default function AdminNews() {
     const [filterCategory, setFilterCategory] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editingNews, setEditingNews] = useState(null);
+    const [isCustomSource, setIsCustomSource] = useState(false);
     const [formData, setFormData] = useState({
         title: '', summary: '', content: '', source: '', category: 'Market Analysis',
         market: 'all', imageUrl: '', isPublished: false, isFeatured: false,
@@ -34,6 +38,7 @@ export default function AdminNews() {
     const handleEdit = (article) => {
         setEditingNews(article);
         setFormData({ ...article });
+        setIsCustomSource(!SOURCES.includes(article.source));
         setShowModal(true);
     };
 
@@ -60,6 +65,7 @@ export default function AdminNews() {
         setShowModal(false);
         setEditingNews(null);
         setFormData({ title: '', summary: '', content: '', source: '', category: 'Market Analysis', market: 'all', imageUrl: '', isPublished: false, isFeatured: false });
+        setIsCustomSource(false);
     };
 
     const getMarketFlag = (market) => {
@@ -74,6 +80,29 @@ export default function AdminNews() {
     const featuredArticles = filteredNews.filter(n => n.isFeatured && n.isPublished);
     const regularArticles = filteredNews.filter(n => !n.isFeatured || !n.isPublished);
 
+    const handleSave = (data) => {
+        if (editingNews) {
+            updateNews(editingNews.id, data);
+        } else {
+            createNews({ ...data, publishedAt: new Date().toISOString() });
+        }
+        setShowModal(false);
+        setEditingNews(null);
+    };
+
+    if (showModal) {
+        return (
+            <DebugErrorBoundary>
+                <NewsEditor
+                    initialData={editingNews ? editingNews : null}
+                    onClose={() => { setShowModal(false); setEditingNews(null); }}
+                    onSave={handleSave}
+                    isSaving={false}
+                />
+            </DebugErrorBoundary>
+        );
+    }
+
     return (
         <div>
             {/* Header */}
@@ -82,7 +111,7 @@ export default function AdminNews() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.25rem' }}>News Management</h1>
                     <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Manage market news across all regions • Changes sync instantly</p>
                 </div>
-                <button onClick={() => { setEditingNews(null); setFormData({ title: '', summary: '', content: '', source: '', category: 'Market Analysis', market: 'all', imageUrl: '', isPublished: false, isFeatured: false }); setShowModal(true); }}
+                <button onClick={() => { setEditingNews(null); setShowModal(true); }}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
                     <Plus size={18} /> Post News
                 </button>
@@ -239,70 +268,7 @@ export default function AdminNews() {
                 )}
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div onClick={() => setShowModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflow: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{editingNews ? 'Edit Article' : 'New Article'}</h2>
-                            <button onClick={() => setShowModal(false)} style={{ background: '#F1F5F9', border: 'none', borderRadius: '8px', padding: '0.5rem', cursor: 'pointer' }}><X size={18} /></button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Title</label>
-                                <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Summary</label>
-                                <input type="text" value={formData.summary} onChange={e => setFormData({ ...formData, summary: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Content</label>
-                                <textarea value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} rows={5} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem', resize: 'vertical' }} />
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Source</label>
-                                    <input type="text" value={formData.source} onChange={e => setFormData({ ...formData, source: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Market</label>
-                                    <select value={formData.market} onChange={e => setFormData({ ...formData, market: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }}>
-                                        <option value="all">Global</option>
-                                        <option value="SA">Saudi Arabia</option>
-                                        <option value="EG">Egypt</option>
-                                        <option value="US">United States</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Category</label>
-                                    <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }}>
-                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '1.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <input type="checkbox" id="published" checked={formData.isPublished} onChange={e => setFormData({ ...formData, isPublished: e.target.checked })} />
-                                    <label htmlFor="published" style={{ fontSize: '0.9rem', color: '#475569' }}>Publish immediately</label>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <input type="checkbox" id="featured" checked={formData.isFeatured} onChange={e => setFormData({ ...formData, isFeatured: e.target.checked })} />
-                                    <label htmlFor="featured" style={{ fontSize: '0.9rem', color: '#475569' }}>Mark as featured</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: '0.875rem', border: '1px solid #E2E8F0', borderRadius: '10px', background: 'white', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={handleSubmit} style={{ flex: 1, padding: '0.875rem', border: 'none', borderRadius: '10px', background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)', color: 'white', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                <Save size={18} /> {editingNews ? 'Save Changes' : 'Post Article'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Modal Remove */}
         </div>
     );
 }

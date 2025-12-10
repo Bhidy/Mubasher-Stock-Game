@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Eye, EyeOff, X, Save, Clock } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Save, Clock, Book, AlertCircle } from 'lucide-react';
 import { useCMS } from '../context/CMSContext';
+import LessonEditor from './LessonEditor';
 
 const CATEGORIES = ['beginner', 'intermediate', 'advanced'];
-const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
 export default function AdminLessons() {
     const [searchParams] = useSearchParams();
@@ -14,10 +14,6 @@ export default function AdminLessons() {
     const [filterCategory, setFilterCategory] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editingLesson, setEditingLesson] = useState(null);
-    const [formData, setFormData] = useState({
-        title: '', description: '', category: 'beginner', difficulty: 'easy',
-        duration: 5, xpReward: 50, coinReward: 25, isPublished: false,
-    });
 
     useEffect(() => {
         if (searchParams.get('action') === 'new') setShowModal(true);
@@ -31,7 +27,6 @@ export default function AdminLessons() {
 
     const handleEdit = (lesson) => {
         setEditingLesson(lesson);
-        setFormData({ ...lesson });
         setShowModal(true);
     };
 
@@ -45,16 +40,26 @@ export default function AdminLessons() {
         updateLesson(lesson.id, { isPublished: !lesson.isPublished });
     };
 
-    const handleSubmit = () => {
+    const handleSave = (data) => {
         if (editingLesson) {
-            updateLesson(editingLesson.id, formData);
+            updateLesson(editingLesson.id, data);
         } else {
-            createLesson(formData);
+            createLesson({ ...data, createdAt: new Date().toISOString() });
         }
         setShowModal(false);
         setEditingLesson(null);
-        setFormData({ title: '', description: '', category: 'beginner', difficulty: 'easy', duration: 5, xpReward: 50, coinReward: 25, isPublished: false });
     };
+
+    if (showModal) {
+        return (
+            <LessonEditor
+                initialData={editingLesson || null}
+                onClose={() => { setShowModal(false); setEditingLesson(null); }}
+                onSave={handleSave}
+                isSaving={false}
+            />
+        );
+    }
 
     return (
         <div>
@@ -64,7 +69,7 @@ export default function AdminLessons() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.25rem' }}>Lessons</h1>
                     <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Manage educational content for Player Mode • Changes sync instantly</p>
                 </div>
-                <button onClick={() => { setEditingLesson(null); setFormData({ title: '', description: '', category: 'beginner', difficulty: 'easy', duration: 5, xpReward: 50, coinReward: 25, isPublished: false }); setShowModal(true); }}
+                <button onClick={() => { setEditingLesson(null); setShowModal(true); }}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
                     <Plus size={18} /> Add Lesson
                 </button>
@@ -93,6 +98,7 @@ export default function AdminLessons() {
                             <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Category</th>
                             <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Duration</th>
                             <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Rewards</th>
+                            <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Quiz</th>
                             <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Status</th>
                             <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Actions</th>
                         </tr>
@@ -102,7 +108,10 @@ export default function AdminLessons() {
                             <tr key={lesson.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ fontWeight: 600, color: '#1E293B' }}>{lesson.title}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>{lesson.description}</div>
+                                    <div
+                                        style={{ fontSize: '0.8rem', color: '#94A3B8', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                        dangerouslySetInnerHTML={{ __html: lesson.description?.replace(/<[^>]+>/g, '') || '' }}
+                                    />
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <span style={{ padding: '0.25rem 0.625rem', background: '#F1F5F9', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{lesson.category}</span>
@@ -115,6 +124,9 @@ export default function AdminLessons() {
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.125rem', fontSize: '0.8rem', color: '#8B5CF6' }}>⚡{lesson.xpReward}</span>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.125rem', fontSize: '0.8rem', color: '#F59E0B' }}>🪙{lesson.coinReward}</span>
                                     </div>
+                                </td>
+                                <td style={{ padding: '1rem', textAlign: 'right', fontSize: '0.8rem', color: '#64748B' }}>
+                                    {lesson.quiz?.length || 0} Qs
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                                     <span style={{ padding: '0.25rem 0.625rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600, background: lesson.isPublished ? '#DCFCE7' : '#FEF3C7', color: lesson.isPublished ? '#16A34A' : '#D97706' }}>
@@ -144,68 +156,6 @@ export default function AdminLessons() {
                     </div>
                 )}
             </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div onClick={() => setShowModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflow: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{editingLesson ? 'Edit Lesson' : 'New Lesson'}</h2>
-                            <button onClick={() => setShowModal(false)} style={{ background: '#F1F5F9', border: 'none', borderRadius: '8px', padding: '0.5rem', cursor: 'pointer' }}><X size={18} /></button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Title</label>
-                                <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Description</label>
-                                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem', minHeight: '80px' }} />
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Category</label>
-                                    <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }}>
-                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Difficulty</label>
-                                    <select value={formData.difficulty} onChange={e => setFormData({ ...formData, difficulty: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }}>
-                                        {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Duration (min)</label>
-                                    <input type="number" value={formData.duration} onChange={e => setFormData({ ...formData, duration: parseInt(e.target.value) })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>XP Reward</label>
-                                    <input type="number" value={formData.xpReward} onChange={e => setFormData({ ...formData, xpReward: parseInt(e.target.value) })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.375rem' }}>Coins</label>
-                                    <input type="number" value={formData.coinReward} onChange={e => setFormData({ ...formData, coinReward: parseInt(e.target.value) })} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.9rem' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <input type="checkbox" id="published" checked={formData.isPublished} onChange={e => setFormData({ ...formData, isPublished: e.target.checked })} />
-                                <label htmlFor="published" style={{ fontSize: '0.9rem', color: '#475569' }}>Publish immediately</label>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: '0.875rem', border: '1px solid #E2E8F0', borderRadius: '10px', background: 'white', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={handleSubmit} style={{ flex: 1, padding: '0.875rem', border: 'none', borderRadius: '10px', background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: 'white', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                <Save size={18} /> Save Lesson
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
