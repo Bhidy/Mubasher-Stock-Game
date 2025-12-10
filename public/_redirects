@@ -1,6 +1,14 @@
 # Cloudflare Pages Redirects
-# Proxy API requests to Vercel Backend (Hybrid Architecture)
-/api/*  https://bhidy.vercel.app/api/:splat  200
 
-# SPA fallback
+# CMS API handled by Cloudflare Functions (NOT proxied to Vercel)
+# /api/cms is handled by functions/api/cms.js
+
+# Proxy other API requests to Vercel Backend
+/api/stocks/*  https://bhidy.vercel.app/api/stocks/:splat  200
+/api/news/*  https://bhidy.vercel.app/api/news/:splat  200
+/api/chart/*  https://bhidy.vercel.app/api/chart/:splat  200
+/api/stock-profile/*  https://bhidy.vercel.app/api/stock-profile/:splat  200
+/api/content/*  https://bhidy.vercel.app/api/content/:splat  200
+
+# SPA fallback - must be last
 /*  /index.html  200

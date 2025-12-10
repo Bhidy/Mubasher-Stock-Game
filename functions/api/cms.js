@@ -1,60 +1,151 @@
-// Cloudflare Pages Function - CMS Proxy
-// Proxies requests to Vercel backend for CMS operations
+// Cloudflare Pages Function - CMS API (DIRECT - No Vercel Proxy)
+// Connects directly to JSONBlob for persistence
+
+const BLOB_ID = '019b0534-29ba-7c7d-92f7-afd3ac34b85e';
+const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
+
+const INITIAL_DATA = {
+    lessons: [
+        { id: 'l-101', title: 'What is a Stock?', description: 'Concept of ownership.', category: 'basics', difficulty: 'beginner', duration: 5, xpReward: 50, coinReward: 25, isPublished: true, order: 1 },
+        { id: 'l-102', title: 'Stock Exchanges', description: 'Where trading happens.', category: 'basics', difficulty: 'beginner', duration: 5, xpReward: 50, coinReward: 25, isPublished: true, order: 2 },
+        { id: 'l-103', title: 'Market Orders vs Limit', description: 'Execution types.', category: 'basics', difficulty: 'intermediate', duration: 10, xpReward: 75, coinReward: 35, isPublished: true, order: 3 },
+    ],
+    challenges: [
+        { id: 'c-1', title: 'Early Bird', description: 'Login before 9 AM', type: 'daily', coinReward: 20, xpReward: 10, isActive: true },
+        { id: 'c-2', title: 'News Buff', description: 'Read 3 articles', type: 'daily', coinReward: 30, xpReward: 15, isActive: true },
+    ],
+    achievements: [
+        { id: 'a-1', title: 'Newbie', description: 'Registered account', rarity: 'common', xpReward: 10 },
+        { id: 'a-2', title: 'First Blood', description: 'First profitable trade', rarity: 'common', xpReward: 50 },
+    ],
+    shopItems: [
+        { id: 's-1', name: 'Bull Avatar', category: 'avatars', price: 500, isAvailable: true },
+        { id: 's-2', name: 'Gold Frame', category: 'frames', price: 2000, isAvailable: true },
+    ],
+    news: [
+        { id: 'n-1', title: 'Markets Rally', summary: 'Strong earnings drive gains', isPublished: true },
+    ],
+    announcements: [
+        { id: 'an-1', title: 'Welcome!', message: 'Thanks for joining.', type: 'info', isActive: true },
+    ],
+    contests: [
+        { id: 'co-1', name: 'Daily Sprint', isActive: true },
+    ],
+    users: [
+        { id: 'u-1', name: 'Admin', role: 'admin', status: 'active' },
+    ],
+    notifications: [
+        { id: 'not-1', title: 'Welcome', message: 'Welcome to notifications!', type: 'in-app', target: 'all', status: 'sent', sentAt: new Date().toISOString() },
+    ]
+};
+
+async function getCMSData() {
+    try {
+        const res = await fetch(BLOB_URL);
+        if (!res.ok) return INITIAL_DATA;
+        const data = await res.json();
+        return data && data.lessons ? data : INITIAL_DATA;
+    } catch (e) {
+        return INITIAL_DATA;
+    }
+}
+
+async function saveCMSData(data) {
+    try {
+        await fetch(BLOB_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (e) {
+        console.error('Save failed:', e);
+    }
+}
+
+const generateId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
 
-    // Handle CORS preflight
+    // CORS headers
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-store, no-cache, must-revalidate'
+    };
+
     if (request.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 204,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            }
+        return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    const entity = url.searchParams.get('entity');
+    const id = url.searchParams.get('id');
+    const method = request.method;
+
+    const validEntities = ['lessons', 'challenges', 'achievements', 'shopItems', 'news', 'announcements', 'contests', 'dashboard', 'users', 'notifications'];
+
+    if (!validEntities.includes(entity)) {
+        return new Response(JSON.stringify({ error: `Invalid entity: ${entity}` }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
     }
 
-    // Forward all query params to Vercel
-    const vercelUrl = `https://bhidy.vercel.app/api/cms${url.search}`;
+    let cmsData = await getCMSData();
 
-    try {
-        const fetchOptions = {
-            method: request.method,
-            headers: {
-                'User-Agent': 'StocksHero-Cloudflare/1.0',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+    // Dashboard stats
+    if (entity === 'dashboard') {
+        return new Response(JSON.stringify({
+            stats: {
+                totalLessons: cmsData.lessons?.length || 0,
+                totalChallenges: cmsData.challenges?.length || 0,
+                totalAchievements: cmsData.achievements?.length || 0,
+                totalShopItems: cmsData.shopItems?.length || 0,
+                totalNews: cmsData.news?.length || 0,
+                totalAnnouncements: cmsData.announcements?.length || 0,
+                totalContests: cmsData.contests?.length || 0,
+                totalUsers: cmsData.users?.length || 0,
+                totalNotifications: cmsData.notifications?.length || 0,
             }
-        };
+        }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
 
-        // Forward body for POST/PUT requests
-        if (request.method === 'POST' || request.method === 'PUT') {
-            fetchOptions.body = await request.text();
-        }
+    const prefixMap = { lessons: 'lesson', challenges: 'chal', achievements: 'ach', shopItems: 'shop', news: 'news', announcements: 'ann', contests: 'contest', users: 'user', notifications: 'not' };
 
-        const response = await fetch(vercelUrl, fetchOptions);
-        const data = await response.json();
+    if (!cmsData[entity]) cmsData[entity] = [];
 
-        return new Response(JSON.stringify(data), {
-            status: response.status,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'no-store, no-cache, must-revalidate'
-            }
-        });
+    let result;
 
-    } catch (error) {
-        console.error('CMS Proxy Error:', error);
-        return new Response(JSON.stringify({ error: 'Backend unavailable', fallback: true }), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        });
+    switch (method) {
+        case 'GET':
+            result = id ? cmsData[entity].find(i => i.id === id) : cmsData[entity];
+            return new Response(JSON.stringify(result || []), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+
+        case 'POST':
+            const newItem = { id: generateId(prefixMap[entity]), ...await request.json(), createdAt: new Date().toISOString() };
+            cmsData[entity].push(newItem);
+            await saveCMSData(cmsData);
+            return new Response(JSON.stringify(newItem), { status: 201, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+
+        case 'PUT':
+            if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            const idx = cmsData[entity].findIndex(i => i.id === id);
+            if (idx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            cmsData[entity][idx] = { ...cmsData[entity][idx], ...await request.json(), updatedAt: new Date().toISOString() };
+            await saveCMSData(cmsData);
+            return new Response(JSON.stringify(cmsData[entity][idx]), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+
+        case 'DELETE':
+            if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            const delIdx = cmsData[entity].findIndex(i => i.id === id);
+            if (delIdx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            const deleted = cmsData[entity].splice(delIdx, 1)[0];
+            await saveCMSData(cmsData);
+            return new Response(JSON.stringify({ message: 'Deleted', item: deleted }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+
+        default:
+            return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
     }
 }
