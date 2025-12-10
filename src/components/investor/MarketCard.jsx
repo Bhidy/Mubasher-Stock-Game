@@ -56,7 +56,7 @@ export default function MarketCard({
             style={{
                 width: '170px',
                 minWidth: '170px',
-                padding: '1.25rem',
+                padding: '1rem',
                 background: '#FFFFFF',
                 borderRadius: '24px',
                 cursor: onClick ? 'pointer' : 'default',

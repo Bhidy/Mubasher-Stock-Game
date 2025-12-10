@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ChevronRight, TrendingUp, TrendingDown, BarChart3, Briefcase,
-    Star, Bell, Calendar, FileText, ArrowUpRight, ArrowDownRight,
+    Star, Bell, Calendar, FileText, ArrowUpRight, ArrowDownRight, Newspaper,
     Clock, Activity, Globe, Zap, Eye, Settings, PieChart, ArrowRight
 } from 'lucide-react';
 import { UserContext } from '../../App';
@@ -114,7 +114,7 @@ export default function InvestorHome() {
                 margin: '-1rem 1rem 0 1rem',
                 background: '#FFFFFF',
                 borderRadius: '28px',
-                padding: '1.5rem',
+                padding: '1.125rem 1.25rem',
                 boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
                 position: 'relative',
                 overflow: 'hidden',
@@ -125,7 +125,7 @@ export default function InvestorHome() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '1.25rem',
+                    marginBottom: '0.875rem',
                     position: 'relative',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -293,13 +293,14 @@ export default function InvestorHome() {
                 {/* Quick Actions */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gridTemplateColumns: 'repeat(5, 1fr)',
                     gap: '0.75rem',
                     marginBottom: '1.5rem',
                 }}>
                     {[
                         { icon: BarChart3, label: 'Market', path: '/market', color: '#0EA5E9' },
                         { icon: Briefcase, label: 'Portfolio', path: '/investor/portfolio', color: '#8B5CF6' },
+                        { icon: Newspaper, label: 'News', path: '/news-feed', color: '#10B981' },
                         { icon: Star, label: 'Watchlist', path: '/investor/watchlist', color: '#F59E0B', badge: portfolioData.watchlistCount },
                         { icon: Bell, label: 'Alerts', path: '/investor/alerts', color: '#EF4444', badge: portfolioData.alertsActive },
                     ].map(action => (
