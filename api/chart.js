@@ -251,3 +251,4 @@ export default async function handler(req, res) {
         error: `Chart data unavailable for ${symbol}`
     });
 }
+// Trigger rebuild: Sat Dec 13 13:33:18 +03 2025
