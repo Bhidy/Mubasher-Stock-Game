@@ -1,6 +1,6 @@
 {
-    "name": "Stocks Hero",
-    "short_name": "Stocks Hero",
+    "name": "Stock Hero",
+    "short_name": "Stock Hero",
     "description": "Master the markets. Level up your skills.",
     "start_url": "/",
     "display": "standalone",
