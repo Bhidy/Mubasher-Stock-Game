@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stocks Hero - Repair Tool</title>
+    <style>
+        body {
+            background-color: #0c0c0c;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify_content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .btn {
+            background: #10B981;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .status {
+            margin: 20px 0;
+            color: #888;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Updating App...</h1>
+    <p>We are clearing old files to fix the layout issues.</p>
+    <div id="log" class="status">Initializing...</div>
+
+    <script>
+        const log = (msg) => document.getElementById('log').innerText += '\n' + msg;
+
+        async function nukeCache() {
+            try {
+                // 1. Unregister Service Workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    log(`Found ${registrations.length} Service Workers`);
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        log('Unregistered SW');
+                    }
+                }
+
+                // 2. Delete Cache Storage
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    log(`Found ${keys.length} Caches`);
+                    for (let key of keys) {
+                        await caches.delete(key);
+                        log('Deleted Cache: ' + key);
+                    }
+                }
+
+                // 3. Clear Local Storage (Optional - maybe keep user session?)
+                // localStorage.clear(); 
+                // Don't clear local storage to keep them logged in, unless necessary.
+
+                log('Cleanup Complete!');
+
+                setTimeout(() => {
+                    // Force reload to home with random param
+                    window.location.href = '/?t=' + Date.now();
+                }, 1500);
+
+            } catch (e) {
+                log('Error: ' + e.message);
+            }
+        }
+
+        nukeCache();
+    </script>
+</body>
+
+</html>

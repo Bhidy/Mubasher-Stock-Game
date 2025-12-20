@@ -66,7 +66,7 @@ export default function ModeSwitcher({ variant = 'default', showLabels = true, o
                 >
                     <span style={{ fontSize: '1.125rem' }}>📈</span>
                 </button>
-            </div>
+            </div >
         );
     }
 
@@ -153,7 +153,7 @@ export default function ModeSwitcher({ variant = 'default', showLabels = true, o
                         fontWeight: mode === 'investor' ? 700 : 500,
                         fontSize: '0.875rem',
                         cursor: 'pointer',
-                        transition: 'all 0.25s ease',
+                        transition: 'all 0.2s ease',
                         boxShadow: mode === 'investor'
                             ? '0 4px 15px rgba(14, 165, 233, 0.4)'
                             : 'none',
@@ -162,57 +162,10 @@ export default function ModeSwitcher({ variant = 'default', showLabels = true, o
                     }}
                 >
                     <span style={{ fontSize: '1.25rem' }}>📈</span>
-                    {showLabels && <span>Investor</span>}
+                    {showLabels && <span>Pro</span>}
                 </button>
             </div>
 
-            {/* Mode Description */}
-            <div style={{
-                marginTop: '0.75rem',
-                padding: '0.625rem 0.75rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-            }}>
-                <div style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '8px',
-                    background: mode === 'player'
-                        ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                        : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                }}>
-                    {mode === 'player'
-                        ? <Gamepad2 size={14} color="white" />
-                        : <TrendingUp size={14} color="white" />
-                    }
-                </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        lineHeight: 1.2,
-                    }}>
-                        {mode === 'player' ? 'Gamified Experience' : 'Professional Trading'}
-                    </div>
-                    <div style={{
-                        color: 'rgba(255,255,255,0.6)',
-                        fontSize: '0.7rem',
-                        lineHeight: 1.3,
-                    }}>
-                        {mode === 'player'
-                            ? 'Learn & earn with fun challenges'
-                            : 'Advanced tools & analytics'}
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }

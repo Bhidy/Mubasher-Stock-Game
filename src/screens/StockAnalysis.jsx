@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Target, Building2, Globe, ChevronRight, RefreshCw } from 'lucide-react';
 import StockMovementCard from '../components/StockMovementCard';
+import { getEndpoint } from '../config/api';
 
 export default function StockAnalysis() {
     const { symbol } = useParams();
@@ -23,6 +24,8 @@ export default function StockAnalysis() {
 
     const fullSymbol = getFullSymbol();
 
+
+
     // Fetch complete stock profile
     const fetchStockProfile = async () => {
         setLoading(true);
@@ -30,7 +33,7 @@ export default function StockAnalysis() {
 
         try {
             console.log(`📊 Fetching stock profile for ${fullSymbol}...`);
-            const response = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(fullSymbol)}`);
+            const response = await fetch(getEndpoint(`/api/stock-profile?symbol=${encodeURIComponent(fullSymbol)}`));
 
             if (!response.ok) {
                 throw new Error(`Failed to fetch stock data (${response.status})`);

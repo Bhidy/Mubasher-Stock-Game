@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { getEndpoint } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import {
     Globe, Clock, TrendingUp, TrendingDown,
@@ -168,7 +169,7 @@ export default function InvestorMarkets() {
         try {
             const promises = INDICES_CONFIG.map(async (idx) => {
                 try {
-                    const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
+                    const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`));
                     const data = await res.json();
 
                     if (!data || data.error) throw new Error('No Data');
@@ -215,7 +216,7 @@ export default function InvestorMarkets() {
     // Fetch News Data
     const fetchNews = async () => {
         try {
-            const res = await fetch('/api/news?market=global&limit=10');
+            const res = await fetch(getEndpoint('/api/news?market=global&limit=10'));
             const data = await res.json();
             if (data && Array.isArray(data.articles)) {
                 setNews(data.articles);

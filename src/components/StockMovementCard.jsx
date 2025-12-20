@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Globe, RefreshCw } from 'lucide-react';
+import { getEndpoint } from '../config/api';
 import Card from './Card';
 
 export default function StockMovementCard({ symbol }) {
@@ -16,7 +17,7 @@ export default function StockMovementCard({ symbol }) {
             setLoading(true);
             try {
                 // Fetch from our new smart endpoint
-                const res = await fetch(`/api/ai-insight?symbol=${symbol}`);
+                const res = await fetch(getEndpoint(`/api/ai-insight?symbol=${symbol}`));
                 if (!res.ok) throw new Error('API Error');
                 const json = await res.json();
 

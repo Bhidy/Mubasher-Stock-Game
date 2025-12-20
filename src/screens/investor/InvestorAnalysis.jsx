@@ -4,10 +4,12 @@ import { Search, Radar, Zap, Target, TrendingUp, BarChart2, Filter, Layers, Arro
 import { useToast } from '../../components/shared/Toast';
 import BurgerMenu from '../../components/BurgerMenu';
 
+
 export default function InvestorAnalysis() {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
+
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -20,7 +22,7 @@ export default function InvestorAnalysis() {
         <div className="screen-container" style={{ paddingBottom: '6rem', background: '#f8fafc', minHeight: '100vh', overflowX: 'hidden' }}>
 
             {/* Header Area */}
-            <div style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem' }}>
+            <div style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem', position: 'relative', zIndex: 50 }}>
                 <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
                     <div className="flex-center" style={{ gap: '0.75rem' }}>
                         <BurgerMenu />
@@ -154,16 +156,18 @@ export default function InvestorAnalysis() {
                                 "Banking sector in KSA showing strong accumulation patterns. Watch for breakouts above 12,600."
                             </p>
                         </div>
-                        <button style={{
-                            width: '100%',
-                            padding: '0.8rem',
-                            borderRadius: '12px',
-                            background: 'rgba(255,255,255,0.1)',
-                            color: 'white',
-                            border: 'none',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                        }}>
+                        <button
+                            onClick={() => navigate('/investor/ai-report')}
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.1)',
+                                color: 'white',
+                                border: 'none',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}>
                             Read Full Report
                         </button>
                     </div>
@@ -246,9 +250,9 @@ export default function InvestorAnalysis() {
                     </div>
                 </div>
 
-
-
             </div>
+
+
         </div>
     );
 }

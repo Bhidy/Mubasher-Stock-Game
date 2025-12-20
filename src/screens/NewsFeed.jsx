@@ -10,6 +10,8 @@ import { useMarket } from '../context/MarketContext';
 
 import { useCMS } from '../context/CMSContext';
 
+import { getEndpoint } from '../config/api';
+
 const timeAgo = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -24,10 +26,6 @@ const timeAgo = (dateString) => {
     if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
 };
-
-const NEWS_API_URL = import.meta.env.PROD
-    ? '/api/news'
-    : 'http://localhost:5001/api/news';
 
 export default function NewsFeed() {
     const navigate = useNavigate();
@@ -72,7 +70,7 @@ export default function NewsFeed() {
     // Fetch scraped news
     const fetchNews = async () => {
         try {
-            const res = await fetch(`${NEWS_API_URL}?market=${market}`);
+            const res = await fetch(getEndpoint(`/api/news?market=${market}`));
             const data = await res.json();
             return Array.isArray(data) ? data : [];
         } catch (e) {
@@ -317,7 +315,7 @@ export default function NewsFeed() {
                                 {news.thumbnail && (
                                     <div style={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative' }}>
                                         <img
-                                            src={news.thumbnail}
+                                            src={news.thumbnail ? `https://images.weserv.nl/?url=${encodeURIComponent(news.thumbnail)}&w=400&fit=cover` : ''}
                                             referrerPolicy="no-referrer"
                                             alt={news.title}
                                             className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"

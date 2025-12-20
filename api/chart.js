@@ -1,7 +1,7 @@
 import YahooFinance from 'yahoo-finance2';
 
-// Version: 3.1.0 - Added historical() API fallback for Egypt/long-term ranges
-// Deployed: 2025-12-13
+// Version: 3.0.0 - Robust chart with multiple fallback strategies
+// Deployed: 2025-12-07
 
 // Initialize Yahoo Finance (v3 requirement)
 const yahooFinance = new YahooFinance();
@@ -159,16 +159,13 @@ export default async function handler(req, res) {
     }
 
     // Check if we got valid data
-    // For long-term ranges, require at least 10 points to be useful
-    const minPointsForLongTerm = ['6M', 'YTD', '1Y', '5Y', 'MAX'].includes(range.toUpperCase()) ? 10 : 1;
-
     if (result && result.quotes && result.quotes.length > 0) {
         const quotes = result.quotes.map(q => ({
             date: q.date,
             price: q.close || q.open
         })).filter(q => q.price);
 
-        if (quotes.length >= minPointsForLongTerm) {
+        if (quotes.length > 0) {
             res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
             return res.status(200).json({
                 symbol: result.meta?.symbol || symbol,
@@ -177,63 +174,10 @@ export default async function handler(req, res) {
                 range: range,
                 quotes
             });
-        } else {
-            console.log(`Chart API returned only ${quotes.length} points for ${symbol} ${range}, need at least ${minPointsForLongTerm}`);
         }
     }
 
-    // --- STRATEGY 2: For long-term ranges, try historical() API as fallback ---
-    // Yahoo Finance historical() API often has better data for indices where chart() fails
-    const longTermRanges = ['6M', 'YTD', '1Y', '5Y', 'MAX'];
-    if (longTermRanges.includes(range.toUpperCase())) {
-        console.log(`Trying historical() API fallback for ${symbol} (${range})`);
-        try {
-            const histResult = await Promise.race([
-                yahooFinance.historical(symbol, {
-                    period1: period1,
-                    period2: today
-                }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Historical Timeout")), 8000))
-            ]);
-
-            if (histResult && histResult.length > 5) {
-                // Historical API returns array of { date, open, high, low, close, volume, adjClose }
-                const quotes = histResult.map(q => ({
-                    date: q.date instanceof Date ? q.date.toISOString() : q.date,
-                    price: q.close || q.adjClose || q.open
-                })).filter(q => q.price);
-
-                if (quotes.length > 5) {
-                    console.log(`Historical fallback succeeded for ${symbol}: ${quotes.length} points`);
-
-                    // Infer currency from symbol suffix
-                    let currency = 'USD';
-                    if (symbol.includes('.CA') || symbol.includes('CASE') || symbol.includes('EGX')) currency = 'EGP';
-                    else if (symbol.includes('.SR') || symbol.includes('TASI')) currency = 'SAR';
-                    else if (symbol.includes('.L')) currency = 'GBP';
-                    else if (symbol.includes('.DE') || symbol.includes('.PA') || symbol.includes('.AS')) currency = 'EUR';
-                    else if (symbol.includes('.T') || symbol.includes('N225')) currency = 'JPY';
-                    else if (symbol.includes('.AX')) currency = 'AUD';
-                    else if (symbol.includes('.TO')) currency = 'CAD';
-                    else if (symbol.includes('.HK') || symbol.includes('HSI')) currency = 'HKD';
-                    else if (symbol.includes('.NS')) currency = 'INR';
-
-                    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
-                    return res.status(200).json({
-                        symbol: symbol,
-                        currency: currency,
-                        granularity: 'daily',
-                        range: range,
-                        quotes
-                    });
-                }
-            }
-        } catch (histError) {
-            console.log(`Historical fallback failed for ${symbol}: ${histError.message}`);
-        }
-    }
-
-    // --- STRATEGY 3: Generate chart from quote data (for indices and failed symbols) ---
+    // --- STRATEGY 2: Generate chart from quote data (for indices and failed symbols) ---
     console.log(`Chart API failed, trying quote-based generation for ${symbol}`);
     const generatedChart = await generateChartFromQuote(symbol, range);
 
@@ -242,7 +186,7 @@ export default async function handler(req, res) {
         return res.status(200).json(generatedChart);
     }
 
-    // --- STRATEGY 4: Return empty with error ---
+    // --- STRATEGY 3: Return empty with error ---
     console.error(`All chart strategies failed for ${symbol}`);
     res.status(200).json({
         symbol: symbol,

@@ -3,7 +3,7 @@ import { UserContext } from '../context/UserContext';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { Trophy, Target, Zap, Lock, ShoppingBag, Star, Award, TrendingUp, Info, X } from 'lucide-react';
-import mubasherInfoPlusLogo from '../assets/mubasher-info-plus-logo.png';
+import stockHeroInfoPlusLogo from '../assets/stock-hero-info-plus-logo.png';
 
 export default function Rewards() {
     const { user } = useContext(UserContext);
@@ -26,7 +26,7 @@ export default function Rewards() {
     ];
 
     const rewards = [
-        { id: 1, name: 'Mubasher Info Plus Subscription', cost: 5000, image: mubasherInfoPlusLogo, type: 'subscription' },
+        { id: 1, name: 'Stock Hero Info Plus Subscription', cost: 5000, image: stockHeroInfoPlusLogo, type: 'subscription' },
         { id: 2, name: 'TradingView Subscription', cost: 2000, image: 'https://logo.clearbit.com/tradingview.com', type: 'feature' },
         { id: 3, name: 'No Ads (1 Month)', cost: 1500, icon: Zap, type: 'feature', color: '#f59e0b' },
         { id: 4, name: 'Exclusive Avatar Frame', cost: 1000, icon: Star, type: 'cosmetic', color: '#06b6d4' }

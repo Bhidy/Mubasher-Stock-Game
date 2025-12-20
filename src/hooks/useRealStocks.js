@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+import { getEndpoint } from '../config/api';
+
 export function useRealStocks() {
     const [stocks, setStocks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -8,7 +10,7 @@ export function useRealStocks() {
     useEffect(() => {
         const fetchStocks = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/stocks');
+                const response = await fetch(getEndpoint('/api/stocks'));
                 if (!response.ok) throw new Error('Failed to fetch stocks');
                 const data = await response.json();
                 setStocks(data);

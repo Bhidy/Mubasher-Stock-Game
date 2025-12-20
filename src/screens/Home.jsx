@@ -578,7 +578,7 @@ export default function Home() {
                     onClick={() => navigate('/rewards')}
                 >
                     <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem' }}>
-                        <TooltipIcon id="points" title="Mubasher Points" icon="🪙" content="Use points to unlock rewards and climb the leaderboard!" />
+                        <TooltipIcon id="points" title="Stock Hero Points" icon="🪙" content="Use points to unlock rewards and climb the leaderboard!" />
                     </div>
                     <span style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🪙</span>
                     <span className="caption" style={{ color: 'white', opacity: 0.9 }}>Points</span>

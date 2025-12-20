@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { getEndpoint } from '../config/api';
 import SafePortal from '../components/shared/SafePortal';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
@@ -737,8 +738,7 @@ export default function XCommunity() {
             if (isRefresh) setRefreshing(true); else setLoading(true);
             setError(null);
 
-            const baseUrl = import.meta.env.DEV ? 'http://localhost:5001/api/x-community' : '/api/x-community';
-            const url = `${baseUrl}?tab=${tab}${isRefresh ? '&refresh=true' : ''}`;
+            const url = getEndpoint(`/api/x-community?tab=${tab}${isRefresh ? '&refresh=true' : ''}`);
             const response = await fetch(url);
             const data = await response.json();
 
@@ -748,7 +748,7 @@ export default function XCommunity() {
                 // ROBUST FALLBACK: If Trending is empty, try fetching Fresh and filtering/sorting locally
                 if (tab === 'trending' && fetchedTweets.length === 0) {
                     console.log('Trending empty, falling back to Fresh sort');
-                    const fallbackUrl = `${baseUrl}?tab=fresh`;
+                    const fallbackUrl = getEndpoint('/api/x-community?tab=fresh');
                     const fallbackResponse = await fetch(fallbackUrl);
                     const fallbackData = await fallbackResponse.json();
                     if (fallbackData.success && fallbackData.tweets?.length > 0) {

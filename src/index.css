@@ -48,6 +48,12 @@
   /* Layout */
   --max-width: 480px;
   --nav-height: 72px;
+
+  /* iOS Safe Area - Apply padding for notch/status bar */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -95,6 +101,8 @@ body {
   /* Enable scrolling on mobile */
   display: flex;
   flex-direction: column;
+  /* iOS Safe Area - Apply to ALL pages globally */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Ensure all screen containers are scrollable */

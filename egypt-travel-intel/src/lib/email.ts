@@ -4,12 +4,14 @@ import { formatPrice } from './utils';
 // --- Interfaces ---
 
 interface EmailStats {
-    totalPosts: number;
-    totalOffers: number;
-    accountsProcessed: number;
-    durationSeconds: number;
+    postsScanned: number;
+    newOffersFound: number;
+    accountsScraped: number;
+    yieldRate: number;
     topDestinations: Array<{ name: string; count: number }>;
-    topAgencies: Array<{ handle: string; count: number }>;
+    activeAgencies: number;
+    // Optional legacy fields for backward compat if needed, but we'll stick to new ones
+    durationSeconds?: number;
 }
 
 interface OfferHighlight {
@@ -25,6 +27,7 @@ interface OfferHighlight {
 interface ReportData {
     runId: string;
     timestamp: Date;
+    type: 'pulse' | 'daily'; // New field
     stats: EmailStats;
     highlights: OfferHighlight[];
     status: 'success' | 'partial' | 'failed';
@@ -32,46 +35,91 @@ interface ReportData {
 
 // --- Email Service ---
 
+// --- Email Service (GOO Mode Robust) ---
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // Start with 2 seconds
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function sendIngestionReport(data: ReportData) {
     // 1. Check Configuration
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.REPORT_EMAIL_TO) {
         console.warn('⚠️ SMTP credentials missing. Skipping email report.');
-        return;
+        return { success: false, error: 'SMTP Configuration Missing' };
     }
 
-    // 2. Create Transporter
+    // 2. Create Robust Transporter
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
+        port: parseInt(process.env.SMTP_PORT || '465'),
+        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
         },
+        // GOO Mode: Network Resilience Settings
+        connectionTimeout: 10000, // 10s
+        greetingTimeout: 5000,    // 5s
+        socketTimeout: 20000,     // 20s
     });
 
-    // 3. Generate HTML
-    const html = generateEmailHtml(data);
-
-    // 4. Send Email
+    // 3. Verify Connection First
     try {
-        const info = await transporter.sendMail({
-            from: `"Atlas Intel" <${process.env.SMTP_USER}>`,
-            to: process.env.REPORT_EMAIL_TO,
-            subject: `⚡ Atlas Intel Pulse | ${data.stats.totalOffers} Opportunities Detected`,
-            html: html,
-        });
-
-        console.log(`📧 Report sent: ${info.messageId}`);
-    } catch (error) {
-        console.error('❌ Failed to send email report:', error);
+        await transporter.verify();
+        console.log('✅ SMTP Connection verified');
+    } catch (verifyError) {
+        console.error('❌ SMTP Connection Failed:', verifyError);
+        // If we can't connect, no point in retrying sending
+        return { success: false, error: `SMTP Connection Failed: ${verifyError instanceof Error ? verifyError.message : String(verifyError)}` };
     }
+
+    // 4. Generate HTML
+    const html = generateEmailHtml(data);
+    const subjectPrefix = data.type === 'daily' ? '📅 Atlas Intel Daily Digest' : '⚡ Atlas Intel Pulse';
+    const subject = `${subjectPrefix} | ${data.stats.newOffersFound} Opportunities Detected`;
+
+    // 5. Send with Retry Logic
+    let attempt = 1;
+    while (attempt <= MAX_RETRIES) {
+        try {
+            console.log(`📧 Sending email (Attempt ${attempt}/${MAX_RETRIES})...`);
+
+            const info = await transporter.sendMail({
+                from: `"Atlas Intel" <${process.env.SMTP_USER}>`,
+                to: process.env.REPORT_EMAIL_TO,
+                subject: subject,
+                html: html,
+            });
+
+            console.log(`✅ Report sent successfully: ${info.messageId}`);
+            return { success: true };
+
+        } catch (error) {
+            console.error(`❌ Email attempt ${attempt} failed:`, error);
+
+            if (attempt === MAX_RETRIES) {
+                console.error('💀 All email retries failed. Report not sent.');
+                return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+            } else {
+                const delay = RETRY_DELAY * attempt;
+                console.log(`⏳ Waiting ${delay}ms before retry...`);
+                await sleep(delay);
+            }
+            attempt++;
+        }
+    }
+    return { success: false, error: 'Retries exhausted' };
 }
 
 // --- "Goo Mode" Atlas Intel Premium Email Template ---
 
 function generateEmailHtml(data: ReportData): string {
-    const { stats, highlights, timestamp, status } = data;
+    const { stats, highlights, timestamp, status, type } = data;
+
+    // Report Type customization
+    const reportTitle = type === 'daily' ? 'Daily Intelligence Digest' : 'Automated Scan Complete';
+    const reportTagline = type === 'daily' ? '📅 24-Hour Market Summary' : '⚡ Market Intelligence Pulse';
 
     // Formatting Helpers
     const dateStr = timestamp.toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
@@ -170,12 +218,12 @@ function generateEmailHtml(data: ReportData): string {
                     
                     <!-- Tagline Badge -->
                     <div style="display: inline-block; padding: 8px 16px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 50px; color: #FFFFFF; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                        ⚡ Market Intelligence Pulse
+                        ${reportTagline}
                     </div>
                     
                     <!-- Main Title -->
                     <h1 style="margin: 0 0 8px 0; color: #FFFFFF; font-size: 32px; font-weight: 900; letter-spacing: -1px; text-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                        Automated Scan Complete
+                        ${reportTitle}
                     </h1>
                     <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 15px; font-weight: 500;">
                         ${dateStr}
@@ -186,7 +234,7 @@ function generateEmailHtml(data: ReportData): string {
                     
                     <!-- Summary Statement -->
                     <p style="margin: 0 0 28px 0; font-size: 17px; color: #334155; line-height: 1.7; text-align: center;">
-                        Your intelligence engine just completed a scan of <strong style="color: #10B981; font-weight: 800;">${stats.accountsProcessed} active sources</strong>.
+                        Your intelligence engine just completed a scan of <strong style="color: #10B981; font-weight: 800;">${stats.accountsScraped} active sources</strong>.
                         <br>Here's what we found.
                     </p>
 
@@ -196,19 +244,19 @@ function generateEmailHtml(data: ReportData): string {
                         <!-- Card 1: New Offers (Emerald) -->
                         <div style="flex: 1; min-width: 150px; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); padding: 24px 20px; border-radius: 20px; text-align: center; border: 1px solid #A7F3D0; box-shadow: 0 4px 12px rgba(16,185,129,0.1);">
                             <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">New Offers</div>
-                            <div style="font-size: 40px; font-weight: 900; color: #059669; letter-spacing: -2px; line-height: 1;">${stats.totalOffers}</div>
+                            <div style="font-size: 40px; font-weight: 900; color: #059669; letter-spacing: -2px; line-height: 1;">${stats.newOffersFound}</div>
                         </div>
 
                         <!-- Card 2: Scanned (Blue) -->
                         <div style="flex: 1; min-width: 150px; background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); padding: 24px 20px; border-radius: 20px; text-align: center; border: 1px solid #93C5FD; box-shadow: 0 4px 12px rgba(59,130,246,0.1);">
                             <div style="font-size: 11px; font-weight: 800; color: #1D4ED8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Scanned</div>
-                            <div style="font-size: 40px; font-weight: 900; color: #2563EB; letter-spacing: -2px; line-height: 1;">${stats.totalPosts}</div>
+                            <div style="font-size: 40px; font-weight: 900; color: #2563EB; letter-spacing: -2px; line-height: 1;">${stats.postsScanned}</div>
                         </div>
 
                         <!-- Card 3: Yield (Amber) -->
                         <div style="flex: 1; min-width: 150px; background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); padding: 24px 20px; border-radius: 20px; text-align: center; border: 1px solid #FCD34D; box-shadow: 0 4px 12px rgba(245,158,11,0.1);">
                             <div style="font-size: 11px; font-weight: 800; color: #B45309; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Yield</div>
-                            <div style="font-size: 40px; font-weight: 900; color: #D97706; letter-spacing: -2px; line-height: 1;">${Math.round((stats.totalOffers / (stats.totalPosts || 1)) * 100)}%</div>
+                            <div style="font-size: 40px; font-weight: 900; color: #D97706; letter-spacing: -2px; line-height: 1;">${Math.round(stats.yieldRate)}%</div>
                         </div>
                     </div>
 
@@ -233,7 +281,7 @@ function generateEmailHtml(data: ReportData): string {
                             <div style="background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border-radius: 16px; padding: 20px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid #F1F5F9;">
                                     <span style="font-size: 14px; color: #64748B; font-weight: 500;">Duration</span>
-                                    <span style="font-size: 15px; font-weight: 800; color: #0F172A;">${Math.round(stats.durationSeconds)} sec</span>
+                                    <span style="font-size: 15px; font-weight: 800; color: #0F172A;">${Math.round(stats.durationSeconds || 0)} sec</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid #F1F5F9;">
                                     <span style="font-size: 14px; color: #64748B; font-weight: 500;">Avg. Conf.</span>

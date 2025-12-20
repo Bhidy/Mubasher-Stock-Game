@@ -4,6 +4,7 @@ import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Save, ExternalLink, Newspaper
 import { useCMS } from '../context/CMSContext';
 import NewsEditor from './NewsEditor';
 import DebugErrorBoundary from '../components/DebugErrorBoundary';
+import { useNotification } from '../context/NotificationContext';
 
 const CATEGORIES = ['Market Analysis', 'Company News', 'Economic Data', 'Commodities', 'Forex', 'Technology', 'Banking'];
 const MARKETS = ['all', 'SA', 'EG', 'US'];
@@ -12,6 +13,7 @@ const SOURCES = ['Stocks Hero', 'Mubasher', 'Argaam', 'Zawya', 'Reuters', 'Bloom
 export default function AdminNews() {
     const [searchParams] = useSearchParams();
     const { news, createNews, updateNews, deleteNews } = useCMS();
+    const { addNotification } = useNotification();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMarket, setFilterMarket] = useState('all');
@@ -34,6 +36,55 @@ export default function AdminNews() {
         const matchesCategory = filterCategory === 'all' || n.category === filterCategory;
         return matchesSearch && matchesMarket && matchesCategory;
     });
+
+    // Bulk Selection State
+    const [selectedIds, setSelectedIds] = useState(new Set());
+
+    // Selection Handlers
+    const handleSelect = (id) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const handleSelectAllDrafts = () => {
+        const drafts = filteredNews.filter(n => !n.isPublished).map(n => n.id);
+        setSelectedIds(new Set(drafts));
+    };
+
+    const handleClearSelection = () => {
+        setSelectedIds(new Set());
+    };
+
+    // Bulk Actions
+    const handleBulkPublish = async () => {
+        if (!confirm(`Publish ${selectedIds.size} articles?`)) return;
+
+        // Process sequentially to be safe
+        for (const id of selectedIds) {
+            const article = news.find(n => n.id === id);
+            if (article && !article.isPublished) {
+                await updateNews(id, { isPublished: true });
+            }
+        }
+        addNotification('success', 'Bulk Publish Complete', `Successfully published ${selectedIds.size} articles.`, { count: selectedIds.size, ids: Array.from(selectedIds) });
+        handleClearSelection();
+    };
+
+    const handleBulkDelete = async () => {
+        if (!confirm(`PERMANENTLY DELETE ${selectedIds.size} articles?`)) return;
+
+        for (const id of selectedIds) {
+            await deleteNews(id);
+        }
+
+        addNotification('warning', 'Bulk Delete Complete', `Deleted ${selectedIds.size} articles from the system.`, { count: selectedIds.size, ids: Array.from(selectedIds) });
+        handleClearSelection();
+    };
 
     const handleEdit = (article) => {
         setEditingNews(article);
@@ -94,6 +145,7 @@ export default function AdminNews() {
         return (
             <DebugErrorBoundary>
                 <NewsEditor
+                    key={editingNews ? editingNews.id : 'new'} // FORCE REMOUNT on article change
                     initialData={editingNews ? editingNews : null}
                     onClose={() => { setShowModal(false); setEditingNews(null); }}
                     onSave={handleSave}
@@ -104,17 +156,24 @@ export default function AdminNews() {
     }
 
     return (
-        <div>
+        <div style={{ paddingBottom: '80px', position: 'relative' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.25rem' }}>News Management</h1>
                     <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Manage market news across all regions • Changes sync instantly</p>
                 </div>
-                <button onClick={() => { setEditingNews(null); setShowModal(true); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
-                    <Plus size={18} /> Post News
-                </button>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    {/* Bulk Select Helper */}
+                    <button onClick={handleSelectAllDrafts}
+                        style={{ padding: '0.75rem 1rem', background: 'white', border: '1px solid #E2E8F0', borderRadius: '10px', fontWeight: 600, color: '#64748B', cursor: 'pointer', fontSize: '0.85rem' }}>
+                        Select All Drafts
+                    </button>
+                    <button onClick={() => { setEditingNews(null); setShowModal(true); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
+                        <Plus size={18} /> Post News
+                    </button>
+                </div>
             </div>
 
             {/* Stats */}
@@ -208,6 +267,9 @@ export default function AdminNews() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                            <th style={{ padding: '1rem', width: '40px' }}>
+                                {/* Checkbox Header */}
+                            </th>
                             <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Article</th>
                             <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Market</th>
                             <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', fontWeight: 600, color: '#64748B' }}>Category</th>
@@ -217,7 +279,15 @@ export default function AdminNews() {
                     </thead>
                     <tbody>
                         {regularArticles.map(article => (
-                            <tr key={article.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                            <tr key={article.id} style={{ borderBottom: '1px solid #F1F5F9', background: selectedIds.has(article.id) ? '#F0F9FF' : 'white' }}>
+                                <td style={{ padding: '1rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIds.has(article.id)}
+                                        onChange={() => handleSelect(article.id)}
+                                        style={{ width: '16px', height: '16px', accentColor: '#0EA5E9', cursor: 'pointer' }}
+                                    />
+                                </td>
                                 <td style={{ padding: '1rem', maxWidth: '400px' }}>
                                     <div style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.25rem' }}>{article.title}</div>
                                     <div style={{ fontSize: '0.8rem', color: '#94A3B8', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.summary}</div>
@@ -268,7 +338,42 @@ export default function AdminNews() {
                 )}
             </div>
 
-            {/* Modal Remove */}
+            {/* Bulk Action Floating Bar */}
+            {selectedIds.size > 0 && (
+                <div style={{
+                    position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+                    background: '#1E293B', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '100px',
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                    zIndex: 1000
+                }}>
+                    <div style={{ fontWeight: 600 }}>
+                        <span style={{ color: '#0EA5E9' }}>{selectedIds.size}</span> Selected
+                    </div>
+                    <div style={{ width: '1px', height: '20px', background: '#334155' }}></div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={handleBulkPublish} style={{
+                            padding: '0.5rem 1rem', background: '#10B981', color: 'white', border: 'none',
+                            borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.5rem'
+                        }}>
+                            <Eye size={16} /> Publish All
+                        </button>
+                        <button onClick={handleBulkDelete} style={{
+                            padding: '0.5rem 1rem', background: '#DC2626', color: 'white', border: 'none',
+                            borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.5rem'
+                        }}>
+                            <Trash2 size={16} /> Delete
+                        </button>
+                        <button onClick={handleClearSelection} style={{
+                            padding: '0.5rem', background: 'transparent', color: '#94A3B8', border: 'none',
+                            cursor: 'pointer', fontSize: '0.85rem', textDecoration: 'underline'
+                        }}>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

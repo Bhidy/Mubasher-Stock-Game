@@ -3,7 +3,7 @@
 # Enterprise-Grade Setup for Stocks Hero
 # ============================================
 
-name = "stockshero"
+name = "bhidy-app"
 compatibility_date = "2024-12-01"
 
 
@@ -52,7 +52,7 @@ ENVIRONMENT = "production"
 # CUSTOM DOMAIN SETUP (Instructions)
 # ============================================
 # 1. Go to Cloudflare Pages Dashboard
-# 2. Select "mubasher-stock-game" project
+# 2. Select "bhidy-app" project
 # 3. Go to "Custom domains" tab
 # 4. Click "Set up a custom domain"
 # 5. Enter your domain (e.g., app.yourdomain.com)
@@ -64,3 +64,10 @@ ENVIRONMENT = "production"
 # Set via: npx wrangler pages secret put SECRET_NAME
 # Required secrets:
 # - GROQ_API_KEY (for AI chatbot)
+
+# ============================================
+# DATA PERSISTENCE (KV)
+# ============================================
+[[kv_namespaces]]
+binding = "CMS_DATA"
+id = "ce259db984db4f29bdd658414be140d6"

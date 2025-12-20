@@ -13,6 +13,7 @@ import { usePrices } from '../context/PriceContext';
 import IndexChart from '../components/IndexChart';
 import { StockLogo, SAUDI_STOCKS } from '../components/StockCard';
 import BurgerMenu from '../components/BurgerMenu';
+import { getEndpoint } from '../config/api';
 
 // ... (other imports)
 
@@ -476,7 +477,7 @@ export default function MarketSummary() {
         const fetchNews = async () => {
             setNewsLoading(true);
             try {
-                const response = await fetch(`/api/news?market=${activeMarket}`);
+                const response = await fetch(getEndpoint(`/api/news?market=${activeMarket}`));
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     setNewsItems(data);

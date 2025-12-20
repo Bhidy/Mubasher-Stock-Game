@@ -16,27 +16,43 @@ export const MARKETS = [
 export const SOURCES = ['Stocks Hero', 'Mubasher', 'Argaam', 'Zawya', 'Reuters', 'Bloomberg', 'Yahoo Finance', 'CNBC', 'Enterprise', 'Daily News Egypt', 'Saudi Gazette'];
 
 export default function NewsEditor({ initialData, onClose, onSave, isSaving }) {
-    const [formData, setFormData] = useState({
-        title: '',
-        summary: '',
-        content: '',
-        source: '',
-        category: 'Market Analysis',
-        market: 'all',
-        imageUrl: '',
-        isPublished: false,
-        isFeatured: false,
-        publishedAt: new Date().toISOString(),
-        tickers: [],
-        slug: ''
+    // Lazy Initialization: Compute initial state immediately on mount
+    const [formData, setFormData] = useState(() => {
+        if (initialData) {
+            return {
+                id: initialData.id,
+                title: initialData.title || '',
+                summary: initialData.summary || '',
+                content: initialData.content || '',
+                source: initialData.source || '',
+                category: initialData.category || 'Market Analysis',
+                market: initialData.market || 'all',
+                imageUrl: initialData.imageUrl || '',
+                isPublished: initialData.isPublished || false,
+                isFeatured: initialData.isFeatured || false,
+                publishedAt: initialData.publishedAt || new Date().toISOString(),
+                tickers: initialData.tickers || [],
+                slug: initialData.slug || ''
+            };
+        }
+        return {
+            title: '', summary: '', content: '', source: '', category: 'Market Analysis',
+            market: 'all', imageUrl: '', isPublished: false, isFeatured: false,
+            publishedAt: new Date().toISOString(), tickers: [], slug: ''
+        };
     });
 
-    const [isCustomSource, setIsCustomSource] = useState(false);
+    const [isCustomSource, setIsCustomSource] = useState(() => {
+        return initialData ? (!SOURCES.includes(initialData.source) && !!initialData.source) : false;
+    });
+
     const [tickerInput, setTickerInput] = useState('');
 
+    // Keep useEffect for updates if parent passes new props without remounting (fallback)
     useEffect(() => {
-        if (initialData) {
+        if (initialData && initialData.id !== formData.id) {
             setFormData({
+                id: initialData.id,
                 title: initialData.title || '',
                 summary: initialData.summary || '',
                 content: initialData.content || '',

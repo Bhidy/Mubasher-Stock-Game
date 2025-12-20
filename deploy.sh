@@ -5,7 +5,7 @@
 
 MAX_RETRIES=3
 RETRY_COUNT=0
-PROJECT_NAME="mubasher-stock-game"
+PROJECT_NAME="bhidy-app"
 BRANCH="main"
 
 echo "🚀 Starting Enterprise Deployment for $PROJECT_NAME..."

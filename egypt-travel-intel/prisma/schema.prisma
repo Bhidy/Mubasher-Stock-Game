@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tracked Instagram Accounts (configurable without code changes)
+model Account {
+  id          String    @id @default(cuid())
+  handle      String    @unique // e.g., "travistaegypt"
+  displayName String?
+  profileUrl  String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  posts       RawPost[]
+}
+
+// Raw Instagram Posts (ALL posts, unfiltered)
+model RawPost {
+  id            String    @id @default(cuid())
+  platform      String    @default("instagram")
+  accountHandle String
+  postId        String    @unique // Instagram's post ID
+  postUrl       String
+  postTimestamp DateTime?
+  captionText   String?
+  mediaType     String?   // image, video, carousel
+  mediaUrls     String    @default("[]") // JSON array of URLs
+  hashtags      String    @default("[]") // JSON array
+  mentions      String    @default("[]") // JSON array
+  likesCount    Int?
+  commentsCount Int?
+  scrapedAt     DateTime  @default(now())
+
+  account Account @relation(fields: [accountHandle], references: [handle])
+  offer   Offer?
+
+  @@unique([accountHandle, postId])
+  @@index([accountHandle])
+  @@index([scrapedAt])
+  @@index([postTimestamp])
+}
+
+// Derived Offers (Intelligence Layer)
+model Offer {
+  id                  String   @id @default(cuid())
+  rawPostId           String   @unique
+  isOffer             Boolean  @default(true)
+  offerType           String?  // hotel, flight, package, nile_cruise, day_trip, visa, transport, hajj_umrah, honeymoon, etc.
+  destinationDetected String?
+  destinationType     String?  // 'inbound' (to Egypt) or 'outbound' (from Egypt)
+  priceDetected       Float?
+  currencyDetected    String?  // EGP, USD, EUR, SAR, AED
+  durationDetected    String?  // e.g., "3N/4D"
+  hotelDetected       String?  // Hotel chain name (e.g., "Marriott", "Hilton")
+  starRating          String?  // e.g., "5-star", "4-star"
+  boardType           String?  // e.g., "All Inclusive", "Half Board"
+  bookingContact      String?
+  keywordsDetected    String   @default("[]") // JSON array
+  flightIncluded      Boolean  @default(false)
+  confidenceScore     Float    @default(0.5)
+  createdAt           DateTime @default(now())
+
+  rawPost RawPost @relation(fields: [rawPostId], references: [id], onDelete: Cascade)
+
+  @@index([offerType])
+  @@index([destinationDetected])
+  @@index([destinationType])
+  @@index([hotelDetected])
+  @@index([confidenceScore])
+  @@index([createdAt])
+}
+
+// Ingestion Run Logs
+model IngestionLog {
+  id                String   @id @default(cuid())
+  runAt             DateTime @default(now())
+  accountsProcessed Int
+  postsCollected    Int
+  offersDetected    Int
+  errors            String   @default("[]") // JSON array of error messages
+  duration          Int      // milliseconds
+  status            String   // success, partial, failed
+  emailStatus       String?  @default("pending") // sent, failed, skipped, pending
+  emailSentAt       DateTime?
+
+  @@index([runAt])
+}

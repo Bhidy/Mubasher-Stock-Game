@@ -5,11 +5,12 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { getEndpoint } from '../config/api';
 
 const CMSContext = createContext(null);
 
-// API base URL - uses relative path for same-origin requests
-const API_BASE = '/api/cms';
+// API base URL - uses helper for relative (web) or absolute (mobile)
+const API_BASE = getEndpoint('/api/cms');
 
 export function CMSProvider({ children }) {
     // State for all CMS entities
@@ -115,6 +116,7 @@ export function CMSProvider({ children }) {
                     apiCall('announcements'),
                     apiCall('contests'),
                     apiCall('notifications'),
+                    apiCall('users'), // Fetch real users
                 ]);
 
                 // Helper to extract value or fallback
@@ -129,7 +131,7 @@ export function CMSProvider({ children }) {
                 setAnnouncements(getValue(results[5], FALLBACK_DATA.announcements));
                 setContests(getValue(results[6], FALLBACK_DATA.contests));
                 setNotifications(getValue(results[7], FALLBACK_DATA.notifications));
-                setUsers(FALLBACK_DATA.users); // Mock users for Phase 2
+                setUsers(getValue(results[8], FALLBACK_DATA.users)); // Use real users if available
                 setError(null);
             } catch (err) {
                 console.warn('API unavailable, using fallback data:', err.message);
@@ -295,32 +297,20 @@ export function CMSProvider({ children }) {
     // NEWS CRUD
     // ============================================
     const createNews = useCallback(async (newsData) => {
-        try {
-            const newNews = await apiCall('news', 'POST', null, newsData);
-            setNews(prev => [...prev, newNews]);
-            return newNews;
-        } catch (err) {
-            const localNews = { id: generateId('news'), ...newsData, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() };
-            setNews(prev => [...prev, localNews]);
-            return localNews;
-        }
+        // Remove local fallback - data must be persisted to backend
+        const newNews = await apiCall('news', 'POST', null, newsData);
+        setNews(prev => [...prev, newNews]);
+        return newNews;
     }, [apiCall]);
 
     const updateNews = useCallback(async (id, updates) => {
-        try {
-            const updated = await apiCall('news', 'PUT', id, updates);
-            setNews(prev => prev.map(n => n.id === id ? updated : n));
-            return updated;
-        } catch (err) {
-            setNews(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
-            return { id, ...updates };
-        }
+        const updated = await apiCall('news', 'PUT', id, updates);
+        setNews(prev => prev.map(n => n.id === id ? updated : n));
+        return updated;
     }, [apiCall]);
 
     const deleteNews = useCallback(async (id) => {
-        try {
-            await apiCall('news', 'DELETE', id);
-        } catch (err) { }
+        await apiCall('news', 'DELETE', id);
         setNews(prev => prev.filter(n => n.id !== id));
     }, [apiCall]);
 

@@ -163,7 +163,7 @@ export function ModeProvider({ children }) {
         if (saved && MODES[saved]) {
             return saved;
         }
-        return 'player'; // Default to player mode for new users
+        return 'investor'; // Default to investor mode for new users
     });
 
     const [isTransitioning, setIsTransitioning] = useState(false);

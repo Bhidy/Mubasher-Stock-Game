@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is accessing their own data
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection - users can only read/write their own document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) 
+        // Prevent users from modifying protected fields
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt', 'uid']));
+      allow delete: if isOwner(userId);
+    }
+
+    // User activity logs - users can create their own logs
+    match /userActivity/{activityId} {
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Activity logs are immutable
+    }
+
+    // Leaderboard - public read, only Cloud Functions can write
+    match /leaderboard/{entry} {
+      allow read: if true;
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // Contests - authenticated users can read, only Cloud Functions can write
+    match /contests/{contestId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // User picks - users can create and read their own picks
+    match /picks/{pickId} {
+      allow read: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Picks are final once submitted
+    }
+
+    // App configuration - read only for all authenticated users
+    match /config/{configDoc} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only
+    }
+  }
+}

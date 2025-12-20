@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { getEndpoint } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import {
     ChevronRight, TrendingUp, TrendingDown, BarChart3, Briefcase,
@@ -36,11 +37,11 @@ const HOLDINGS = [
     { symbol: 'SABIC', name: 'SABIC', shares: 75, price: 98.40, change: 1.5, value: 7380, sector: 'Materials' },
 ];
 
-// Watchlist Mock
+// Watchlist Mock - Include market suffix for proper routing
 const WATCHLIST = [
     { symbol: 'AAPL', name: 'Apple Inc', price: 195.89, change: 1.45, alert: true },
     { symbol: 'MSFT', name: 'Microsoft', price: 378.91, change: 0.82, alert: false },
-    { symbol: 'COMI', name: 'Commercial Intl Bank', price: 65.20, change: -1.2, alert: true },
+    { symbol: 'COMI.CA', name: 'Commercial Intl Bank', price: 65.20, change: -1.2, alert: true },
 ];
 
 // Economic Events Mock
@@ -91,7 +92,7 @@ export default function InvestorHome() {
     // Fetch News
     const fetchNews = async () => {
         try {
-            const res = await fetch('/api/news?market=global&limit=5');
+            const res = await fetch(getEndpoint('/api/news?market=global&limit=5'));
             const data = await res.json();
             if (data && Array.isArray(data.articles)) {
                 setNews(data.articles);
@@ -133,7 +134,7 @@ export default function InvestorHome() {
                 const marketStatus = isOpen ? 'open' : 'closed';
 
                 try {
-                    const res = await fetch(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`);
+                    const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`));
                     const data = await res.json();
 
                     if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: marketStatus };
@@ -579,9 +580,9 @@ export default function InvestorHome() {
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <StockLogo ticker={stock.symbol} size={40} />
+                                    <StockLogo ticker={stock.symbol.split('.')[0]} size={40} />
                                     <div>
-                                        <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.9rem' }}>{stock.symbol}</div>
+                                        <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.9rem' }}>{stock.symbol.split('.')[0]}</div>
                                         <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{stock.name}</div>
                                     </div>
                                 </div>

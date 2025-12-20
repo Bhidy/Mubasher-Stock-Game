@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { getEndpoint } from '../config/api';
 
 const allRanges = ['1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'Max'];
 
-export default function IndexChart({ symbol, color = '#10b981', visibleRanges = allRanges }) {
+export default function IndexChart({ symbol, color = '#10b981', visibleRanges = allRanges, height = 220 }) {
     const [data, setData] = useState([]);
     const [range, setRange] = useState('1D');
     // Ensure range is valid for the current set
@@ -24,7 +25,7 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
             try {
                 // Ensure we use the correct encoded symbol
                 // Use relative URL for API call to work in both Dev (via proxy) and Prod (Vercel functions)
-                const res = await fetch(`/api/chart?symbol=${encodeURIComponent(symbol)}&range=${range}`);
+                const res = await fetch(getEndpoint(`/api/chart?symbol=${encodeURIComponent(symbol)}&range=${range}`));
                 if (!res.ok) throw new Error('API Error');
                 const json = await res.json();
 
@@ -115,7 +116,7 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
     return (
         <div style={{ width: '100%', marginTop: '0.5rem' }}>
             {/* Chart Area */}
-            <div style={{ height: '220px', width: '100%', position: 'relative' }}>
+            <div style={{ height: `${height}px`, width: '100%', position: 'relative' }}>
                 {loading && (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 10, backdropFilter: 'blur(1px)' }}>
                         <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 600 }}>Loading Data...</span>
@@ -140,9 +141,7 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
                                 }}
                             />
                             <YAxis
-                                hide={false} // Valid: Show axis? User implied "Missing price level on Left". Let's show it or rely on grid? User said "lowest visible y-axis label... add next lower". Usually this implies visible axis.
-                                // But design guidelines often hide axis. Let's assume text meant they SAW the axis.
-                                // Actually user request: "Add the Missing Price Level on the Left (Y-Axis)" implies visible axis.
+                                hide={false}
                                 axisLine={false}
                                 tickLine={false}
                                 width={40}
@@ -167,7 +166,7 @@ export default function IndexChart({ symbol, color = '#10b981', visibleRanges = 
                                 strokeWidth={2.5}
                                 fill={`url(#gradient-${symbol}-${range})`}
                                 animationDuration={1000}
-                                connectNulls={false} // Important: Do NOT connect to the future null points
+                                connectNulls={false}
                             />
                         </AreaChart>
                     </ResponsiveContainer>

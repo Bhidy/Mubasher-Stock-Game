@@ -1,21 +1,49 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { Home, Radio, BookOpen, Users, BarChart3, Briefcase, LineChart, Star, Target } from 'lucide-react';
 import Chatbot from './Chatbot';
 import { useMode } from '../context/ModeContext';
+import { useUser } from '../context/UserContext';
 
 export default function Layout({ children }) {
+    const { user, loading } = useUser();
     const location = useLocation();
     const navigate = useNavigate();
     const mainRef = useRef(null);
     const { isPlayerMode, isInvestorMode, switchMode } = useMode();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    // DEBUG WATERMARK - REMOVE BEFORE FINAL PROD
+    const isProd = false;
+
+    // Fail-safe Auth Check - Allow authenticated users OR guests
+    const publicPaths = ['/auth', '/onboarding'];
+    const isPublic = publicPaths.some(path => location.pathname.startsWith(path));
+
+    if (!loading && !user?.isAuthenticated && !user?.isGuestMode && !isPublic) {
+        console.log("Layout Auth Guard: Redirecting to /auth");
+        return <Navigate to="/auth" replace />;
+    }
+
     useEffect(() => {
         const handleSidebarChange = (e) => setSidebarOpen(e.detail?.isOpen || false);
         window.addEventListener('sidebarStateChange', handleSidebarChange);
         return () => window.removeEventListener('sidebarStateChange', handleSidebarChange);
     }, []);
+
+    // iOS PWA FIX: Safety cleanup - reset body styles on EVERY route change
+    // This prevents the freeze issue caused by orphaned scroll lock state
+    useEffect(() => {
+        // Reset any scroll lock that might be stuck
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.classList.remove('sidebar-open');
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.touchAction = '';
+
+        // Also reset sidebar state to closed on navigation
+        setSidebarOpen(false);
+    }, [location.pathname]);
 
     const navItems = useMemo(() => {
         if (isPlayerMode) {
@@ -63,7 +91,7 @@ export default function Layout({ children }) {
                     overflow: 'auto',
                     overflowX: 'hidden',
                     WebkitOverflowScrolling: 'touch',
-                    paddingBottom: 'calc(var(--nav-height) + 1rem)',
+                    paddingBottom: sidebarOpen ? '0' : 'calc(var(--nav-height) + 1rem)',
                     position: 'relative',
                     zIndex: 1,
                     background: 'var(--background)',
@@ -74,7 +102,7 @@ export default function Layout({ children }) {
 
             <Chatbot />
 
-            <nav style={{
+            <nav className="bottom-nav-container" style={{
                 position: 'fixed',
                 bottom: '1rem',
                 left: '50%',
@@ -84,16 +112,14 @@ export default function Layout({ children }) {
                 height: '68px',
                 backgroundColor: 'white',
                 borderRadius: '2rem',
-                border: `2px solid ${navBorder}`,
-                display: 'flex',
+                border: `2px solid ${navBorder} `,
+                display: sidebarOpen ? 'none' : 'flex',
                 justifyContent: 'space-around',
                 alignItems: 'center',
                 zIndex: 1000,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                pointerEvents: sidebarOpen ? 'none' : 'auto',
+                pointerEvents: 'auto',
                 padding: '0 1rem',
-                opacity: sidebarOpen ? 0 : 1,
-                transition: 'opacity 0.3s ease',
                 overflow: 'hidden'
             }}>
                 {navItems.map((item) => {
@@ -103,7 +129,7 @@ export default function Layout({ children }) {
                             key={item.id}
                             onClick={() => navigate(item.path)}
                             style={{
-                                background: isActive ? `${item.color}15` : 'transparent',
+                                background: isActive ? `${item.color} 15` : 'transparent',
                                 border: 'none',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -136,7 +162,7 @@ export default function Layout({ children }) {
                                 size={22}
                                 strokeWidth={isActive ? 2.5 : 2}
                                 style={{
-                                    filter: isActive ? `drop-shadow(0 2px 4px ${item.color}40)` : 'none',
+                                    filter: isActive ? `drop - shadow(0 2px 4px ${item.color}40)` : 'none',
                                     transition: 'all 0.3s'
                                 }}
                             />
@@ -153,42 +179,43 @@ export default function Layout({ children }) {
                 })}
             </nav>
 
-            <div
-                onClick={() => {
-                    const newMode = isPlayerMode ? 'investor' : 'player';
-                    switchMode(newMode);
-                    navigate(isPlayerMode ? '/investor/home' : '/player/home');
-                }}
-                style={{
-                    position: 'fixed',
-                    bottom: 'calc(68px + 2rem)',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: isPlayerMode
-                        ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                        : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
-                    color: 'white',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '999px',
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.05em',
-                    textTransform: 'uppercase',
-                    boxShadow: isPlayerMode
-                        ? '0 4px 12px rgba(139, 92, 246, 0.3)'
-                        : '0 4px 12px rgba(14, 165, 233, 0.3)',
-                    zIndex: 1001,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.375rem',
-                    cursor: 'pointer',
-                    opacity: sidebarOpen ? 0 : 1,
-                    pointerEvents: sidebarOpen ? 'none' : 'auto',
-                    transition: 'opacity 0.3s ease'
-                }}>
-                <span>{isPlayerMode ? '🎮' : '📈'}</span>
-                <span>{isPlayerMode ? 'Player' : 'Investor'}</span>
-            </div>
+            {!sidebarOpen && (
+                <div
+                    className="bottom-nav-container"
+                    onClick={() => {
+                        const newMode = isPlayerMode ? 'investor' : 'player';
+                        switchMode(newMode);
+                        navigate(isPlayerMode ? '/investor/home' : '/player/home');
+                    }}
+                    style={{
+                        position: 'fixed',
+                        bottom: 'calc(68px + 2rem)',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: isPlayerMode
+                            ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
+                            : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
+                        color: 'white',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '999px',
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        boxShadow: isPlayerMode
+                            ? '0 4px 12px rgba(139, 92, 246, 0.3)'
+                            : '0 4px 12px rgba(14, 165, 233, 0.3)',
+                        zIndex: 1001,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        cursor: 'pointer',
+                    }}>
+                    <span>{isPlayerMode ? '🎮' : '📈'}</span>
+                    <span>{isPlayerMode ? 'Player' : 'Investor'}</span>
+                </div>
+            )}
+
         </>
     );
 }

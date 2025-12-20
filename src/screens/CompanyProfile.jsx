@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getEndpoint } from '../config/api';
 import SafePortal from '../components/shared/SafePortal';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -12,6 +13,7 @@ import ProgressBar from '../components/ProgressBar';
 import StockMovementCard from '../components/StockMovementCard';
 import { useToast } from '../components/shared/Toast';
 import Tooltip from '../components/shared/Tooltip';
+import StockChart from '../components/StockChart';
 
 // Static content (news, posts) - these would come from a content API in production
 const STATIC_CONTENT = {
@@ -165,7 +167,7 @@ export default function CompanyProfile() {
         const fetchProfile = async () => {
             try {
                 // Use fullSymbol (with market suffix) for API call
-                const res = await fetch(`/api/stock-profile?symbol=${fullSymbol}`);
+                const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${fullSymbol}`));
                 if (res.ok) {
                     const data = await res.json();
                     if (isMounted) setDetailedStock(data);
@@ -365,230 +367,211 @@ export default function CompanyProfile() {
 
     return (
         <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
-            {/* Premium Header with Gradient */}
+            {/* Ultra Clean White Premium Header */}
             <div style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #0891b2 50%, #6366f1 100%)',
-                padding: '1.5rem',
-                paddingTop: '2rem',
-                paddingBottom: '3rem',
-                position: 'relative',
-                overflow: 'hidden'
+                background: 'white',
+                padding: '1rem',
+                paddingTop: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid #e2e8f0'
             }}>
-                {/* Background Pattern */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-                    opacity: 0.5
-                }} />
-
-                {/* Navigation Header */}
+                {/* Navigation Row */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '1.5rem',
-                    position: 'relative',
-                    zIndex: 1
+                    marginBottom: '1.25rem'
                 }}>
                     <button
                         onClick={() => navigate(-1)}
                         style={{
-                            background: 'rgba(255,255,255,0.2)',
-                            backdropFilter: 'blur(10px)',
+                            background: '#f1f5f9',
                             border: 'none',
                             borderRadius: '12px',
-                            padding: '0.75rem',
+                            padding: '0.65rem',
                             cursor: 'pointer',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            color: 'white',
-                            fontWeight: 600
+                            alignItems: 'center'
                         }}
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={20} color="#475569" />
                     </button>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <Tooltip text={isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <Tooltip text={isWatchlisted ? 'Remove' : 'Add to watchlist'}>
                             <button
                                 onClick={handleToggleWatchlist}
                                 style={{
-                                    background: isWatchlisted ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)',
+                                    background: isWatchlisted ? '#fef3c7' : '#f1f5f9',
                                     border: 'none',
                                     borderRadius: '12px',
-                                    padding: '0.75rem',
+                                    padding: '0.65rem',
                                     cursor: 'pointer'
                                 }}
                             >
-                                <Star size={20} color="white" fill={isWatchlisted ? 'white' : 'none'} />
+                                <Star size={18} color={isWatchlisted ? '#f59e0b' : '#64748b'} fill={isWatchlisted ? '#f59e0b' : 'none'} />
                             </button>
                         </Tooltip>
-                        <Tooltip text="Share this stock">
+                        <Tooltip text="Share">
                             <button
                                 onClick={handleShare}
                                 style={{
-                                    background: 'rgba(255,255,255,0.2)',
+                                    background: '#f1f5f9',
                                     border: 'none',
                                     borderRadius: '12px',
-                                    padding: '0.75rem',
+                                    padding: '0.65rem',
                                     cursor: 'pointer'
                                 }}
                             >
-                                <Share2 size={20} color="white" />
+                                <Share2 size={18} color="#64748b" />
                             </button>
                         </Tooltip>
                     </div>
                 </div>
 
-                {/* Company Info */}
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{
-                            width: '60px', height: '60px',
-                            background: 'white',
-                            borderRadius: '16px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                            overflow: 'hidden'
-                        }}>
-                            <StockLogo ticker={symbol.split('.')[0]} logoUrl={stock.logo} size={52} />
-                        </div>
-                        <div>
-                            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', fontWeight: 600 }}>
-                                {stock.symbol || symbol}
-                            </div>
-                            <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>
-                                {stockMeta.name || stock.name || stock.longName || symbol}
-                            </h1>
-                        </div>
+                {/* Company Identity Card */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                }}>
+                    <div style={{
+                        width: '56px', height: '56px',
+                        background: 'white',
+                        borderRadius: '16px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                        border: '1px solid #e2e8f0',
+                        overflow: 'hidden'
+                    }}>
+                        <StockLogo ticker={symbol.split('.')[0]} logoUrl={stock.logo} size={44} />
                     </div>
-
-                    {/* Price Section */}
-                    <div style={{ marginTop: '1.5rem' }}>
-                        <div style={{ fontSize: '3rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                            {formatPrice(stock.price)} <span style={{ fontSize: '1.25rem', opacity: 0.8 }}>{currency}</span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600 }}>
+                                {stock.symbol || symbol}
+                            </span>
+                            {/* Exchange Pill */}
+                            <span style={{
+                                background: '#f1f5f9',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                color: '#475569'
+                            }}>
+                                {stock.exchange === 'NMS' || stock.exchange === 'NGM' ? 'NASDAQ' :
+                                    stock.exchange === 'NYQ' ? 'NYSE' :
+                                        stock.exchange === 'SAU' || isSaudi ? 'Tadawul' :
+                                            stock.exchange === 'CAI' || isEgypt ? 'EGX' : stock.exchange || 'Exchange'}
+                            </span>
                         </div>
+                        <h1 style={{ color: '#0f172a', fontSize: '1.35rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                            {stockMeta.name || stock.name || stock.longName || symbol}
+                        </h1>
+                    </div>
+                </div>
 
-                        {/* Change + Exchange Badge Row */}
-                        <div style={{
+                {/* Price & Change Row */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: '12px',
+                    marginBottom: '1.25rem'
+                }}>
+                    <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                        {formatPrice(stock.price)}
+                    </span>
+                    <span style={{ fontSize: '1rem', color: '#64748b', fontWeight: 600 }}>
+                        {currency}
+                    </span>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '6px 12px',
+                        background: isPositive ? '#dcfce7' : '#fee2e2',
+                        borderRadius: '8px',
+                        marginLeft: 'auto'
+                    }}>
+                        {isPositive ? <TrendingUp size={16} color="#16a34a" /> : <TrendingDown size={16} color="#dc2626" />}
+                        <span style={{
+                            color: isPositive ? '#16a34a' : '#dc2626',
+                            fontWeight: 700,
+                            fontSize: '0.9rem'
+                        }}>
+                            {isPositive ? '+' : ''}{formatPrice(stock.changePercent)}%
+                        </span>
+                    </div>
+                </div>
+
+                <div style={{
+                    background: '#f8fafc',
+                    borderRadius: '20px',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    border: '1px solid #e2e8f0'
+                }}>
+                    <StockChart symbol={fullSymbol} embedded={true} height={315} />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{
+                    display: 'flex',
+                    gap: '12px',
+                    marginBottom: '0.5rem'
+                }}>
+                    <button
+                        onClick={() => navigate('/pick')}
+                        style={{
+                            flex: 1,
+                            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.9rem',
+                            borderRadius: '14px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '0.75rem',
-                            marginTop: '0.75rem',
-                            flexWrap: 'wrap'
-                        }}>
-                            {/* Change Badge */}
-                            <div style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.5rem 1rem',
-                                background: isPositive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-                                borderRadius: '8px',
-                                color: 'white',
-                                fontWeight: 700
-                            }}>
-                                {isPositive ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                                {isPositive ? '+' : ''}{formatPrice(stock.change)} ({isPositive ? '+' : ''}{formatPrice(stock.changePercent)}%)
-                            </div>
-
-                            {/* Exchange Badge - Right side with glassmorphism */}
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.5rem 0.875rem',
-                                background: 'rgba(255, 255, 255, 0.15)',
-                                backdropFilter: 'blur(10px)',
-                                borderRadius: '10px',
-                                border: '1px solid rgba(255, 255, 255, 0.25)'
-                            }}>
-                                <span style={{ fontSize: '1.25rem' }}>
-                                    {stock.exchange === 'NMS' || stock.exchange === 'NGM' || stock.exchange === 'NYQ' ? '🇺🇸' :
-                                        stock.exchange === 'SAU' || isSaudi ? '🇸🇦' :
-                                            stock.exchange === 'CAI' || isEgypt ? '🇪🇬' :
-                                                stock.exchange === 'LSE' ? '🇬🇧' :
-                                                    stock.exchange === 'FRA' || stock.exchange === 'GER' ? '🇩🇪' :
-                                                        stock.exchange === 'TYO' ? '🇯🇵' :
-                                                            stock.exchange === 'NSI' ? '🇮🇳' :
-                                                                stock.exchange === 'TOR' ? '🇨🇦' :
-                                                                    stock.exchange === 'ASX' ? '🇦🇺' :
-                                                                        stock.exchange === 'HKG' ? '🇭🇰' : '🌐'}
-                                </span>
-                                <div>
-                                    <div style={{ color: 'white', fontSize: '0.75rem', fontWeight: 700 }}>
-                                        {stock.exchange === 'NMS' || stock.exchange === 'NGM' || stock.exchange === 'NCM' ? 'NASDAQ' :
-                                            stock.exchange === 'NYQ' ? 'NYSE' :
-                                                stock.exchange === 'SAU' || isSaudi ? 'Tadawul' :
-                                                    stock.exchange === 'CAI' || isEgypt ? 'EGX' :
-                                                        stock.exchange === 'LSE' ? 'London' :
-                                                            stock.exchange || 'Exchange'}
-                                    </div>
-                                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.65rem' }}>
-                                        Trading in {currency}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '0.75rem',
-                        marginTop: '1.5rem'
-                    }}>
-                        <button
-                            onClick={() => navigate('/pick')}
-                            style={{
-                                background: 'white',
-                                color: '#10b981',
-                                border: 'none',
-                                padding: '0.875rem',
-                                borderRadius: '12px',
-                                fontSize: '0.875rem',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem'
-                            }}
-                        >
-                            <Plus size={18} />
-                            Pick Stock
-                        </button>
-                        <button
-                            onClick={handleSetAlert}
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                color: 'white',
-                                border: '2px solid white',
-                                padding: '0.875rem',
-                                borderRadius: '12px',
-                                fontSize: '0.875rem',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem'
-                            }}
-                        >
-                            <Bell size={18} />
-                            Set Alert
-                        </button>
-                    </div>
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >
+                        <Plus size={18} />
+                        Pick Stock
+                    </button>
+                    <button
+                        onClick={handleSetAlert}
+                        style={{
+                            flex: 1,
+                            background: 'white',
+                            color: '#475569',
+                            border: '2px solid #e2e8f0',
+                            padding: '0.9rem',
+                            borderRadius: '14px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >
+                        <Bell size={18} />
+                        Set Alert
+                    </button>
                 </div>
             </div>
 
             {/* Modern Pill Tabs */}
             <div style={{
-                margin: '-1.5rem 1rem 0',
+                margin: '0.75rem 1rem 0',
                 background: 'white',
                 borderRadius: '16px',
                 padding: '0.5rem',
@@ -597,7 +580,7 @@ export default function CompanyProfile() {
                 overflowX: 'auto',
                 position: 'relative',
                 zIndex: 10,
-                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
                 border: '1px solid #e2e8f0'
             }}>
                 <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>

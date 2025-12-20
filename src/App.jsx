@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { PriceProvider } from './context/PriceContext';
@@ -6,6 +6,7 @@ import { MarketProvider } from './context/MarketContext';
 import { ModeProvider, useMode } from './context/ModeContext';
 import { CMSProvider } from './context/CMSContext';
 import { ToastProvider } from './components/shared/Toast';
+import { UserProvider } from './context/UserContext';
 
 // Import mode-specific styles
 import './styles/mode-themes.css';
@@ -19,6 +20,9 @@ import XCommunity from './screens/XCommunity';
 import MarketSummary from './screens/MarketSummary';
 import Leaderboard from './screens/Leaderboard';
 import MainSwipeWrapper from './components/Layout/MainSwipeWrapper';
+
+// Auth Screen
+import Auth from './screens/Auth';
 
 // Legacy screens (will be migrated)
 import Home from './screens/Home';
@@ -46,6 +50,7 @@ import InvestorPortfolio from './screens/investor/InvestorPortfolio';
 import InvestorWatchlist from './screens/investor/InvestorWatchlist';
 import InvestorScreener from './screens/investor/InvestorScreener';
 import InvestorAnalysis from './screens/investor/InvestorAnalysis';
+import AIReportPage from './screens/investor/AIReportPage';
 import InvestorMarkets from './screens/investor/InvestorMarkets';
 import InvestorCalendar from './screens/investor/InvestorCalendar';
 import InvestorAlerts from './screens/investor/InvestorAlerts';
@@ -69,10 +74,16 @@ import AdminContests from './cms/AdminContests';
 import UserManagement from './cms/UserManagement';
 import AdminSettings from './cms/AdminSettings';
 import AdminNotifications from './cms/AdminNotifications';
+import AdminNewsFeed from './cms/AdminNewsFeed';
+import AdminCompanyProfile from './cms/AdminCompanyProfile';
+import AdminMarketProfile from './cms/AdminMarketProfile';
+import AdminGlobalMarkets from './cms/AdminGlobalMarkets';
+import AdminXCommunity from './cms/AdminXCommunity';
+import AdminAIDashboard from './cms/AdminAIDashboard';
 
-import profileImg from './assets/profile.jpg';
 
-import { UserContext } from './context/UserContext';
+// Import RequireAuth component
+import RequireAuth from './components/shared/RequireAuth';
 
 // Mode-aware route component
 function ModeAwareRoutes() {
@@ -98,178 +109,103 @@ function ModeAwareRoutes() {
 
   return (
     <Routes>
-      {/* Default Route - Navigates to appropriate home based on mode */}
-      <Route path="/" element={<Navigate to="/home" replace />} />
+      {/* Public Routes */}
+      <Route path="/auth" element={<Auth />} />
       <Route path="/onboarding" element={<Onboarding />} />
 
-      {/* Smart redirect for /home based on mode */}
-      <Route path="/home" element={
-        <Navigate to={isPlayerMode ? '/player/home' : '/investor/home'} replace />
-      } />
+      {/* Protected Routes - All main app routes require login */}
+      <Route element={<RequireAuth />}>
+        {/* Default Route - Navigates to appropriate home based on mode */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
 
-      {/* ============================================
-                PLAYER MODE ROUTES
-                ============================================ */}
-      <Route path="/player">
-        <Route path="home" element={<MainSwipeWrapper />} />
-        <Route path="pick" element={<MainSwipeWrapper />} />
-        <Route path="live" element={<MainSwipeWrapper />} />
-        <Route path="learn" element={<MainSwipeWrapper />} />
-        <Route path="challenges" element={<PlayerChallenges />} />
-        <Route path="achievements" element={<PlayerAchievements />} />
-        <Route path="shop" element={<PlayerShop />} />
+        {/* Smart redirect for /home based on mode */}
+        <Route path="/home" element={
+          <Navigate to={isPlayerMode ? '/player/home' : '/investor/home'} replace />
+        } />
+
+        {/* PLAYER MODE ROUTES */}
+        <Route path="/player">
+          <Route path="home" element={<MainSwipeWrapper />} />
+          <Route path="pick" element={<MainSwipeWrapper />} />
+          <Route path="live" element={<MainSwipeWrapper />} />
+          <Route path="learn" element={<MainSwipeWrapper />} />
+          <Route path="challenges" element={<PlayerChallenges />} />
+          <Route path="achievements" element={<PlayerAchievements />} />
+          <Route path="shop" element={<PlayerShop />} />
+        </Route>
+
+        {/* INVESTOR MODE ROUTES */}
+        <Route path="/investor">
+          <Route path="home" element={<MainSwipeWrapper />} />
+          <Route path="portfolio" element={<MainSwipeWrapper />} />
+          <Route path="watchlist" element={<MainSwipeWrapper />} />
+          <Route path="screener" element={<InvestorScreener />} />
+          <Route path="analysis" element={<MainSwipeWrapper />} />
+          <Route path="ai-report" element={<AIReportPage />} />
+          <Route path="markets" element={<InvestorMarkets />} />
+          <Route path="calendar" element={<InvestorCalendar />} />
+          <Route path="alerts" element={<InvestorAlerts />} />
+          <Route path="notes" element={<InvestorNotes />} />
+        </Route>
+
+        {/* SHARED ROUTES */}
+        <Route path="/market" element={<MainSwipeWrapper />} />
+        <Route path="/company/:symbol" element={<CompanyProfile />} />
+        <Route path="/analysis/:symbol" element={<Navigate to="/company/:symbol" replace />} />
+        <Route path="/news" element={<NewsArticle />} />
+        <Route path="/news-feed" element={<NewsFeed />} />
+        <Route path="/x-community" element={<XCommunity />} />
+        <Route path="/community" element={<MainSwipeWrapper />} />
+        <Route path="/community/discussion/:id" element={<DiscussionDetail />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/pick" element={<Pick />} />
+        <Route path="/live" element={<Live />} />
+        <Route path="/rewards" element={<Rewards />} />
+        <Route path="/spin" element={<DailySpin />} />
+        <Route path="/invite" element={<Invite />} />
+        <Route path="/clans" element={<Clans />} />
+        <Route path="/clans/:id" element={<ClanDetail />} />
+        <Route path="/academy" element={<Academy />} />
+        <Route path="/academy/lesson/:lessonId" element={<LessonDetail />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
 
-      {/* ============================================
-                INVESTOR MODE ROUTES
-                ============================================ */}
-      <Route path="/investor">
-        <Route path="home" element={<MainSwipeWrapper />} />
-        <Route path="portfolio" element={<MainSwipeWrapper />} />
-        <Route path="watchlist" element={<MainSwipeWrapper />} />
-        <Route path="screener" element={<InvestorScreener />} />
-        <Route path="analysis" element={<MainSwipeWrapper />} />
-        <Route path="markets" element={<InvestorMarkets />} />
-        <Route path="calendar" element={<InvestorCalendar />} />
-        <Route path="alerts" element={<InvestorAlerts />} />
-        <Route path="notes" element={<InvestorNotes />} />
-      </Route>
-
-      {/* ============================================
-                SHARED ROUTES (Both Modes)
-                ============================================ */}
-      {/* Market & Data */}
-      <Route path="/market" element={<MainSwipeWrapper />} />
-      <Route path="/company/:symbol" element={<CompanyProfile />} />
-      <Route path="/analysis/:symbol" element={<Navigate to="/company/:symbol" replace />} />
-
-      {/* News */}
-      <Route path="/news" element={<NewsArticle />} />
-      <Route path="/news-feed" element={<NewsFeed />} />
-
-      {/* Social */}
-      <Route path="/x-community" element={<XCommunity />} />
-      <Route path="/community" element={<MainSwipeWrapper />} />
-      <Route path="/community/discussion/:id" element={<DiscussionDetail />} />
-
-      {/* Competition */}
-      <Route path="/leaderboard" element={<Leaderboard />} />
-      <Route path="/pick" element={<Pick />} />
-      <Route path="/live" element={<Live />} />
-
-      {/* Engagement */}
-      <Route path="/rewards" element={<Rewards />} />
-      <Route path="/spin" element={<DailySpin />} />
-      <Route path="/invite" element={<Invite />} />
-
-      {/* Clans */}
-      <Route path="/clans" element={<Clans />} />
-      <Route path="/clans/:id" element={<ClanDetail />} />
-
-      {/* Education */}
-      <Route path="/academy" element={<Academy />} />
-      <Route path="/academy/lesson/:lessonId" element={<LessonDetail />} />
-
-      {/* User */}
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/notifications" element={<Notifications />} />
-
-      {/* Catch-all redirect */}
+      {/* Catch-all - redirect to home (which will redirect to auth if needed) */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes >
   );
 }
 
+import { NotificationProvider } from './context/NotificationContext';
+
 export default function App() {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('appUser');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Merge with default/current structure to ensure new fields are present
-        // and restore avatar import
-        return {
-          name: 'BHIDY',
-          coins: 1250,
-          level: 7,
-          levelTitle: 'Market Rookie',
-          streak: 3,
-          rank: 1247,
-          gain: 2.45,
-          picks: [],
-          isLocked: false,
-          hasSeenDailySpin: false,
-          xp: 750,
-          xpToNextLevel: 1000,
-          achievements: [],
-          portfolioValue: 125000,
-          portfolioChange: 2.35,
-          watchlistCount: 12,
-          alertsCount: 3,
-          ...parsed,
-          swipeEnabled: parsed.swipeEnabled ?? false,
-          avatar: profileImg // Ensure local import is used
-        };
-      } catch (e) {
-        console.error('Failed to load user from storage', e);
-      }
-    }
-    return {
-      name: 'BHIDY',
-      avatar: profileImg,
-      coins: 1250,
-      level: 7,
-      levelTitle: 'Market Rookie',
-      streak: 3,
-      rank: 1247,
-      gain: 2.45,
-      picks: [], // { ticker, price, change, name }
-      isLocked: false,
-      hasSeenDailySpin: false, // Track if user has seen daily spin this session
-      // New fields for dual-mode
-      xp: 750,
-      xpToNextLevel: 1000,
-      achievements: [],
-      // Investor mode fields
-      portfolioValue: 125000,
-      portfolioChange: 2.35,
-      watchlistCount: 12,
-      alertsCount: 3,
-      swipeEnabled: false,
-    };
-  });
-
-  // Persist user state
-  useEffect(() => {
-    localStorage.setItem('appUser', JSON.stringify(user));
-  }, [user]);
-
-  const [showChat, setShowChat] = useState(false);
-
   return (
-    <UserContext.Provider value={{ user, setUser, showChat, setShowChat }}>
+    <UserProvider>
       <ToastProvider>
         <CMSProvider>
-          <ModeProvider>
-            <MarketProvider>
-              <PriceProvider>
-                <BrowserRouter>
-                  <AppRoutes />
-                </BrowserRouter>
-              </PriceProvider>
-            </MarketProvider>
-          </ModeProvider>
+          <NotificationProvider>
+            <ModeProvider>
+              <MarketProvider>
+                <PriceProvider>
+                  <BrowserRouter>
+                    <AppRoutes />
+                  </BrowserRouter>
+                </PriceProvider>
+              </MarketProvider>
+            </ModeProvider>
+          </NotificationProvider>
         </CMSProvider>
       </ToastProvider>
-    </UserContext.Provider>
+    </UserProvider>
   );
 }
 
 // Separate component to handle routing logic - determines if we show Layout or AdminLayout
-// Separate component to handle routing logic - determines if we show Layout or AdminLayout
 function AppRoutes() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAuthRoute = location.pathname === '/auth';
 
   // Toggle admin mode class on #root to disable phone frame styling
   useEffect(() => {
@@ -292,9 +228,14 @@ function AppRoutes() {
     <Routes>
       <Route path="/admin/*" element={<AdminRoutes />} />
       <Route path="*" element={
-        <Layout>
+        // Don't show Layout on Auth page
+        isAuthRoute ? (
           <ModeAwareRoutes />
-        </Layout>
+        ) : (
+          <Layout>
+            <ModeAwareRoutes />
+          </Layout>
+        )
       } />
     </Routes>
   );
@@ -313,6 +254,12 @@ function AdminRoutes() {
       <Route path="news" element={<AdminLayout><AdminNews /></AdminLayout>} />
       <Route path="announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
       <Route path="notifications" element={<AdminLayout><AdminNotifications /></AdminLayout>} />
+      <Route path="newsfeed" element={<AdminLayout><AdminNewsFeed /></AdminLayout>} />
+      <Route path="global-markets" element={<AdminLayout><AdminGlobalMarkets /></AdminLayout>} />
+      <Route path="x-community" element={<AdminLayout><AdminXCommunity /></AdminLayout>} />
+      <Route path="ai-dashboard" element={<AdminLayout><AdminAIDashboard /></AdminLayout>} />
+      <Route path="companyprofile" element={<AdminLayout><AdminCompanyProfile /></AdminLayout>} />
+      <Route path="marketprofile" element={<AdminLayout><AdminMarketProfile /></AdminLayout>} />
       <Route path="contests" element={<AdminLayout><AdminContests /></AdminLayout>} />
       <Route path="users" element={<AdminLayout><UserManagement /></AdminLayout>} />
       <Route path="settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />

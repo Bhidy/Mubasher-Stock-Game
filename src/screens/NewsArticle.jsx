@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { getEndpoint } from '../config/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Share2, ExternalLink, Globe, Tag, Languages } from 'lucide-react';
 import Card from '../components/Card';
@@ -21,6 +22,8 @@ export default function NewsArticle() {
     const [translatedTitle, setTranslatedTitle] = React.useState(null);
     const [translating, setTranslating] = React.useState(false);
 
+
+
     // Translate content in-app
     const handleTranslate = async () => {
         if (isTranslated) {
@@ -32,7 +35,7 @@ export default function NewsArticle() {
         setTranslating(true);
         try {
             // Translate title
-            const titleRes = await fetch('/api/translate', {
+            const titleRes = await fetch(getEndpoint('/api/translate'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: article.title, targetLang: 'ar' })
@@ -69,7 +72,7 @@ export default function NewsArticle() {
             }).join('\n\n');
 
             if (textToTranslate) {
-                const contentRes = await fetch('/api/translate', {
+                const contentRes = await fetch(getEndpoint('/api/translate'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: textToTranslate, targetLang: 'ar' })
@@ -95,22 +98,52 @@ export default function NewsArticle() {
         }
     };
 
+    // Helper to remove duplicate hero image from content
+    const removeDuplicateImage = (html, heroUrl) => {
+        if (!html || !heroUrl) return html;
+        try {
+            // Match the first image tag
+            const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/i;
+            const match = html.match(imgRegex);
+
+            if (match && match.index < 2000) { // Only check start of article
+                const contentImgSrc = match[1];
+                // Normalize URLs for comparison (decode, remove params)
+                const normHero = decodeURIComponent(heroUrl).split('?')[0];
+                const normContent = decodeURIComponent(contentImgSrc).split('?')[0];
+
+                // Check for loose match (filename or inclusion)
+                if (normHero.includes(normContent) || normContent.includes(normHero) ||
+                    (normHero.split('/').pop() === normContent.split('/').pop() && normHero.split('/').pop().length > 3)) {
+                    // Remove the entire img tag and potential wrapper figure
+                    return html.replace(/<figure[^>]*>[\s\S]*?<img[^>]+>[\s\S]*?<\/figure>/i, '') // Try removing figure first
+                        .replace(match[0], ''); // Fallback to just img
+                }
+            }
+        } catch (e) {
+            console.error('Error cleaning image:', e);
+        }
+        return html;
+    };
+
     useEffect(() => {
         // Scroll top on mount
         window.scrollTo(0, 0);
 
+        const heroUrl = article?.imageUrl || article?.thumbnail;
+
         // If the article has direct content (CMS), use it.
         if (article?.content) {
-            setFullContent(article.content);
+            setFullContent(removeDuplicateImage(article.content, heroUrl));
         }
         // Otherwise, if it has an external link, try to fetch/scrape it.
         else if (article?.link) {
             setFullContentLoading(true);
-            fetch(`/api/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
+            fetch(getEndpoint(`/api/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`))
                 .then(res => res.json())
                 .then(data => {
                     if (data.content) {
-                        setFullContent(data.content);
+                        setFullContent(removeDuplicateImage(data.content, heroUrl));
                     }
                 })
                 .catch(e => console.error("Content fetch failed:", e))
@@ -123,9 +156,7 @@ export default function NewsArticle() {
     const imageSrc = displayImage
         ? (displayImage.startsWith('data:') || displayImage.startsWith('blob:') || displayImage.startsWith('/')
             ? displayImage
-            : displayImage.startsWith('http')
-                ? displayImage // Use directly, most images work without proxy
-                : displayImage)
+            : `https://images.weserv.nl/?url=${encodeURIComponent(displayImage)}&w=800&fit=cover`)
         : null;
 
     if (!article) {

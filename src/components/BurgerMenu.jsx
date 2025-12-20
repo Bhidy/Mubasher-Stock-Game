@@ -18,7 +18,7 @@ export default function BurgerMenu({ variant = 'default' }) {
     const [marketDropdownOpen, setMarketDropdownOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { setShowChat, userProfile, user } = useContext(UserContext);
+    const { setShowChat, userProfile, user, logout } = useContext(UserContext);
     const { market, selectMarket } = useMarket();
     const { mode, isPlayerMode, isInvestorMode, currentMode } = useMode();
     const dropdownRef = useRef(null);
@@ -31,20 +31,60 @@ export default function BurgerMenu({ variant = 'default' }) {
     }, []);
 
     // Prevent body scroll when menu is open + notify Layout to hide nav bar
+    // iOS PWA-safe scroll locking - avoid position:fixed which causes issues
     useEffect(() => {
         // Dispatch event to Layout to hide/show nav bar
         window.dispatchEvent(new CustomEvent('sidebarStateChange', { detail: { isOpen } }));
 
-        if (document.body) {
-            if (isOpen) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'unset';
-            }
+        if (isOpen) {
+            // Save current scroll position
+            const scrollY = window.scrollY;
+            const scrollX = window.scrollX;
+
+            // iOS PWA-safe scroll lock - using overflow instead of position:fixed
+            // position:fixed on body causes issues in iOS PWA (freezing, layout shifts)
+            document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none';
+            document.body.dataset.scrollY = scrollY;
+            document.body.dataset.scrollX = scrollX;
+            document.body.classList.add('sidebar-open');
+
+            // Lock html element for iOS Safari
+            document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.touchAction = 'none';
+        } else {
+            // Restore scroll position
+            const scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+            const scrollX = parseInt(document.body.dataset.scrollX || '0', 10);
+
+            // Unlock body scroll - iOS PWA safe cleanup
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            document.body.classList.remove('sidebar-open');
+
+            // Unlock html element
+            document.documentElement.style.overflow = '';
+            document.documentElement.style.touchAction = '';
+
+            // Restore scroll position after a small delay for iOS
+            requestAnimationFrame(() => {
+                window.scrollTo(scrollX, scrollY);
+            });
         }
+
         return () => {
-            if (document.body) {
-                document.body.style.overflow = 'unset';
+            // cleanup: notify layout that sidebar is closed (in case of navigation/unmount)
+            window.dispatchEvent(new CustomEvent('sidebarStateChange', { detail: { isOpen: false } }));
+
+            // iOS PWA safe cleanup on unmount
+            const scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            document.documentElement.style.overflow = '';
+            document.documentElement.style.touchAction = '';
+            document.body.classList.remove('sidebar-open');
+            if (scrollY) {
+                requestAnimationFrame(() => window.scrollTo(0, scrollY));
             }
         };
     }, [isOpen]);
@@ -139,37 +179,45 @@ export default function BurgerMenu({ variant = 'default' }) {
 
     const menuContent = isOpen && (
         <>
-            {/* Backdrop */}
+            {/* Backdrop - blocks all touch events */}
             <div
                 onClick={() => setIsOpen(false)}
+                onTouchMove={(e) => e.preventDefault()}
                 style={{
                     position: 'fixed',
                     inset: 0,
                     background: 'rgba(0, 0, 0, 0.5)',
                     zIndex: 999998,
                     backdropFilter: 'blur(4px)',
+                    WebkitBackdropFilter: 'blur(4px)',
+                    touchAction: 'none',
+                    overscrollBehavior: 'none',
+                    WebkitOverflowScrolling: 'touch',
                 }}
                 className="animate-fade-in"
             />
 
-            {/* Drawer */}
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                bottom: 0,
-                width: '320px',
-                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-                zIndex: 999999,
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '4px 0 30px rgba(0,0,0,0.12)',
-            }} className="animate-slide-in-left">
+            {/* Drawer - contains scrollable menu */}
+            <div
+                onTouchMove={(e) => e.stopPropagation()}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    width: '320px',
+                    background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                    zIndex: 999999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: '4px 0 30px rgba(0,0,0,0.12)',
+                    overscrollBehavior: 'contain',
+                    WebkitOverflowScrolling: 'touch',
+                }} className="animate-slide-in-left">
 
                 {/* Header - Mode-aware gradient */}
                 <div style={{
-                    padding: '1.5rem',
-                    paddingBottom: '1rem',
+                    padding: 'calc(1.5rem + env(safe-area-inset-top, 0px)) 1.5rem 1rem 1.5rem',
                     background: getHeaderGradient(),
                     position: 'relative',
                     zIndex: 20
@@ -453,9 +501,20 @@ export default function BurgerMenu({ variant = 'default' }) {
                     background: '#f8fafc'
                 }}>
                     <button
-                        onClick={() => {
-                            navigate('/');
+                        onClick={async () => {
                             setIsOpen(false);
+                            try {
+                                await logout();
+                                // Small delay to ensure state is updated before navigation
+                                setTimeout(() => {
+                                    // Force navigation - use replace to prevent back button issues
+                                    navigate('/auth', { replace: true });
+                                }, 100);
+                            } catch (e) {
+                                console.error("Logout failed", e);
+                                // Force reload to auth page on failure
+                                window.location.href = '/auth';
+                            }
                         }}
                         style={{
                             width: '100%',
@@ -485,7 +544,7 @@ export default function BurgerMenu({ variant = 'default' }) {
                     </button>
                     <div style={{ textAlign: 'center', marginTop: '0.625rem' }}>
                         <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
-                            v3.1.1 • {isPlayerMode ? '🎮 Player' : '📈 Investor'} Mode
+                            v3.1.1 • {isPlayerMode ? '🎮 Player' : '📈 Pro'} Mode
                         </span>
                     </div>
                 </div>
@@ -515,16 +574,46 @@ export default function BurgerMenu({ variant = 'default' }) {
 
     const currentStyle = buttonStyles[variant] || buttonStyles.default;
 
+    // Reference to track if touch event was handled (prevents double-trigger on iOS)
+    const touchHandledRef = useRef(false);
+
+    // iOS PWA-safe click handler - prevents double-triggering
+    const handleMenuClick = (e) => {
+        // If touch already handled this, skip click
+        if (touchHandledRef.current) {
+            touchHandledRef.current = false;
+            return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        setIsOpen(true);
+    };
+
+    // Touch handler for iOS PWA - more reliable than click
+    const handleMenuTouch = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        touchHandledRef.current = true;
+        setIsOpen(true);
+        // Reset touch handled flag after a short delay
+        setTimeout(() => { touchHandledRef.current = false; }, 300);
+    };
+
     return (
         <>
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={handleMenuClick}
+                onTouchEnd={handleMenuTouch}
                 style={{
                     ...currentStyle,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitTouchCallout: 'none',
+                    userSelect: 'none',
+                    touchAction: 'manipulation',
                 }}
             >
                 <Menu size={24} color={currentStyle.color} />

@@ -163,13 +163,21 @@ export default function SwipeablePages({
                 api.start({ x: newX, immediate: true });
             } else {
                 // On release: determine if we should navigate
+                // iOS PWA FIX: Increase thresholds to prevent ghost swipes
                 const swipeThreshold = containerWidth * threshold;
-                const velocityThreshold = 0.5;
+                const velocityThreshold = 0.8; // Increased from 0.5 for iOS stability
+                const minSwipeDistance = 50; // Minimum pixels to consider a swipe
 
                 let newIndex = activeIndex;
 
+                // iOS PWA FIX: Require BOTH minimum distance AND (threshold OR velocity)
+                // This prevents ghost swipes from accidental touches
+                const hasMinDistance = Math.abs(mx) > minSwipeDistance;
+                const hasEnoughSwipe = Math.abs(mx) > swipeThreshold;
+                const hasEnoughVelocity = Math.abs(vx) > velocityThreshold;
+
                 // Check if swipe was strong enough to trigger navigation
-                if (Math.abs(mx) > swipeThreshold || Math.abs(vx) > velocityThreshold) {
+                if (hasMinDistance && (hasEnoughSwipe || hasEnoughVelocity)) {
                     if (mx > 0 && activeIndex > 0) {
                         // Swipe right - go to previous page
                         newIndex = activeIndex - 1;
@@ -197,6 +205,8 @@ export default function SwipeablePages({
                 left: -(totalPages - 1) * containerWidth,
                 right: 0,
             },
+            // iOS PWA FIX: Increase the threshold before gesture is recognized
+            threshold: 10, // Require at least 10px movement before gesture starts
         }
     );
 
@@ -212,13 +222,13 @@ export default function SwipeablePages({
             }}
         >
             <animated.div
-                {...bind()}
+                {...(!disabled ? bind() : {})}
                 style={{
                     display: 'flex',
                     height: '100%',
                     x,
-                    touchAction: 'none',
-                    cursor: isDragging ? 'grabbing' : 'grab',
+                    touchAction: 'pan-y',
+                    cursor: disabled ? 'default' : (isDragging ? 'grabbing' : 'grab'),
                 }}
             >
                 {React.Children.map(children, (child, index) => (

@@ -3,22 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, User, Settings, Bell, Shield, HelpCircle, LogOut,
     Moon, Sun, ChevronRight, Edit3, Camera, Mail, Phone, Globe,
-    Lock, Eye, EyeOff, Award, Star, Zap, Coins, TrendingUp
+    Lock, Eye, EyeOff, Award, Star, Zap, Coins, TrendingUp,
+    LogIn, Trash2, CheckCircle, AlertTriangle, Key, RefreshCw
 } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useMode } from '../../context/ModeContext';
 import { useToast } from '../../components/shared/Toast';
 import ConfirmModal from '../../components/shared/ConfirmModal';
 import Tooltip from '../../components/shared/Tooltip';
+import {
+    sendPasswordReset,
+    sendVerificationEmail,
+    deleteAccount,
+    hasPasswordAuth,
+    getLinkedProviders
+} from '../../services/authService';
 
 export default function Profile() {
     const navigate = useNavigate();
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser, logout } = useContext(UserContext);
     const { mode, isPlayerMode, toggleMode } = useMode();
     const { showToast } = useToast();
 
     const [isEditing, setIsEditing] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
     const [notifications, setNotifications] = useState({
@@ -30,7 +40,7 @@ export default function Profile() {
 
     const [formData, setFormData] = useState({
         name: user.name || 'Stock Trader',
-        email: 'trader@example.com',
+        email: user.email || 'trader@example.com',
         phone: '+966 5X XXX XXXX',
     });
 
@@ -45,9 +55,53 @@ export default function Profile() {
         showToast(darkMode ? 'Light mode enabled' : 'Dark mode enabled', 'info');
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         showToast('Logging out...', 'info');
-        setTimeout(() => navigate('/'), 500);
+        if (logout) await logout();
+        setTimeout(() => navigate('/auth'), 500);
+    };
+
+    // Password reset handler
+    const handlePasswordReset = async () => {
+        if (!user.email) {
+            showToast('No email associated with account', 'error');
+            return;
+        }
+        setIsProcessing(true);
+        const result = await sendPasswordReset(user.email);
+        setIsProcessing(false);
+        showToast(result.message, result.success ? 'success' : 'error');
+    };
+
+    // Email verification handler
+    const handleVerifyEmail = async () => {
+        setIsProcessing(true);
+        const result = await sendVerificationEmail();
+        setIsProcessing(false);
+        showToast(result.message, result.success ? 'success' : 'error');
+    };
+
+    // Account deletion handler
+    const handleDeleteAccount = async () => {
+        setIsProcessing(true);
+        const result = await deleteAccount();
+        setIsProcessing(false);
+
+        if (result.success) {
+            showToast(result.message, 'success');
+            setTimeout(() => navigate('/auth'), 1000);
+        } else {
+            showToast(result.message, 'error');
+        }
+        setShowDeleteConfirm(false);
+    };
+
+    // Get linked providers for display
+    const linkedProviders = user.isAuthenticated ? getLinkedProviders() : [];
+    const providerNames = {
+        'google.com': 'Google',
+        'facebook.com': 'Facebook',
+        'password': 'Email/Password'
     };
 
     const stats = isPlayerMode ? [
@@ -67,7 +121,19 @@ export default function Profile() {
             title: 'Account',
             items: [
                 { icon: User, label: 'Edit Profile', action: () => setIsEditing(true) },
-                { icon: Lock, label: 'Change Password', action: () => { } },
+                {
+                    icon: Key,
+                    label: 'Reset Password',
+                    action: handlePasswordReset,
+                    disabled: isProcessing || !user.email
+                },
+                {
+                    icon: Mail,
+                    label: user.emailVerified ? 'Email Verified' : 'Verify Email',
+                    value: user.emailVerified ? '✓' : 'Pending',
+                    action: user.emailVerified ? () => { } : handleVerifyEmail,
+                    disabled: isProcessing || user.emailVerified
+                },
                 { icon: Shield, label: 'Privacy Settings', action: () => { } },
             ]
         },
@@ -102,7 +168,18 @@ export default function Profile() {
                 { icon: HelpCircle, label: 'Help Center', action: () => { } },
                 { icon: Mail, label: 'Contact Us', action: () => { } },
             ]
-        }
+        },
+        ...(user.isAuthenticated ? [{
+            title: 'Danger Zone',
+            items: [
+                {
+                    icon: Trash2,
+                    label: 'Delete Account',
+                    action: () => setShowDeleteConfirm(true),
+                    danger: true
+                },
+            ]
+        }] : [])
     ];
 
     const gradientColor = isPlayerMode
@@ -177,23 +254,25 @@ export default function Profile() {
                                 '👤'
                             )}
                         </div>
-                        <button style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            right: 0,
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: 'white',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                        }}>
-                            <Camera size={14} color="#6B7280" />
-                        </button>
+                        {user.isAuthenticated && (
+                            <button style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                right: 0,
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                background: 'white',
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            }}>
+                                <Camera size={14} color="#6B7280" />
+                            </button>
+                        )}
                     </div>
                     <div>
                         <h2 style={{ color: 'white', fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
@@ -202,9 +281,27 @@ export default function Profile() {
                         <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', margin: 0 }}>
                             {isPlayerMode ? `Level ${user.level || 5} Player` : 'Pro Investor'}
                         </p>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', margin: '0.25rem 0 0' }}>
-                            Member since Dec 2024
-                        </p>
+                        {!user.isAuthenticated && (
+                            <button
+                                onClick={() => navigate('/auth')}
+                                style={{
+                                    marginTop: '0.5rem',
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: 'rgba(255,255,255,0.2)',
+                                    color: 'white',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem'
+                                }}
+                            >
+                                <LogIn size={14} /> Sign In
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -317,28 +414,30 @@ export default function Profile() {
                     </div>
                 ))}
 
-                {/* Logout Button */}
-                <button
-                    onClick={() => setShowLogoutConfirm(true)}
-                    style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        padding: '1rem',
-                        background: '#FEE2E2',
-                        color: '#DC2626',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontWeight: 600,
-                        fontSize: '0.95rem',
-                        cursor: 'pointer',
-                    }}
-                >
-                    <LogOut size={18} />
-                    Log Out
-                </button>
+                {/* Logout Button - Show only if authenticated */}
+                {user.isAuthenticated && (
+                    <button
+                        onClick={() => setShowLogoutConfirm(true)}
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            padding: '1rem',
+                            background: '#FEE2E2',
+                            color: '#DC2626',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontWeight: 600,
+                            fontSize: '0.95rem',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <LogOut size={18} />
+                        Log Out
+                    </button>
+                )}
             </div>
 
             {/* Edit Profile Modal */}
@@ -384,6 +483,7 @@ export default function Profile() {
                                     borderRadius: '10px',
                                     border: '1px solid #E5E7EB',
                                     fontSize: '0.95rem',
+                                    fontWeight: 600,
                                 }}
                             />
                         </div>
@@ -402,6 +502,7 @@ export default function Profile() {
                                     borderRadius: '10px',
                                     border: '1px solid #E5E7EB',
                                     fontSize: '0.95rem',
+                                    fontWeight: 600,
                                 }}
                             />
                         </div>
@@ -450,6 +551,17 @@ export default function Profile() {
                 confirmType="danger"
                 onConfirm={handleLogout}
                 onCancel={() => setShowLogoutConfirm(false)}
+            />
+
+            {/* Delete Account Confirmation Modal */}
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                title="Delete Account?"
+                message="This action cannot be undone. All your data, including coins, achievements, and picks will be permanently deleted."
+                confirmText={isProcessing ? "Deleting..." : "Delete Forever"}
+                confirmType="danger"
+                onConfirm={handleDeleteAccount}
+                onCancel={() => setShowDeleteConfirm(false)}
             />
         </div>
     );

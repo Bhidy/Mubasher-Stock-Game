@@ -12,8 +12,10 @@ export default function UserManagement() {
     const [filterStatus, setFilterStatus] = useState('all');
 
     const filteredUsers = users.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const name = user.name || '';
+        const email = user.email || '';
+        const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            email.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
@@ -102,14 +104,14 @@ export default function UserManagement() {
                                     </div>
                                 </td>
                                 <td style={{ padding: '1rem 1.5rem', fontSize: '0.9rem', color: '#475569' }}>
-                                    {new Date(user.joinDate).toLocaleDateString()}
+                                    {new Date(user.joinDate || user.createdAt || Date.now()).toLocaleDateString()}
                                 </td>
                                 <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: '#10B981' }}>
-                                    ${user.netWorth.toLocaleString()}
+                                    ${(user.netWorth || user.coins || 0).toLocaleString()}
                                 </td>
                                 <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
                                     <span style={{ padding: '0.25rem 0.75rem', background: '#F1F5F9', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>
-                                        {user.level}
+                                        {user.level || 1}
                                     </span>
                                 </td>
                                 <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
@@ -121,11 +123,11 @@ export default function UserManagement() {
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: '0.35rem',
-                                        background: user.status === 'active' ? '#DCFCE7' : '#FEE2E2',
-                                        color: user.status === 'active' ? '#16A34A' : '#DC2626'
+                                        background: (user.status || 'active') === 'active' ? '#DCFCE7' : '#FEE2E2',
+                                        color: (user.status || 'active') === 'active' ? '#16A34A' : '#DC2626'
                                     }}>
-                                        {user.status === 'active' ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                                        {user.status.toUpperCase()}
+                                        {(user.status || 'active') === 'active' ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                                        {(user.status || 'active').toUpperCase()}
                                     </span>
                                 </td>
                                 <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>

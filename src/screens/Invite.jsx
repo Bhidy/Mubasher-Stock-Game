@@ -30,8 +30,8 @@ export default function Invite() {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: 'Join Mubasher Stock Game!',
-                    text: 'Join me on Mubasher Stock Game and get 500 free coins! 🚀',
+                    title: 'Join Stock Hero!',
+                    text: 'Join me on Stock Hero and get 500 free coins! 🚀',
                     url: referralLink,
                 });
             } catch (error) {

@@ -64,8 +64,20 @@ export default function MainSwipeWrapper() {
         }
     };
 
-    // If we are on a route that is NOT in the tabs (but this component is mounted), we default to 0?
-    // This component should only be used for the routes defined in tabs.
+    // EMERGENCY iOS PWA FIX: Completely disable swipe navigation
+    // The gesture library is causing ghost swipes on iOS PWA
+    // Just render the active page directly without any swipe functionality
+    const FORCE_DISABLE_SWIPE = true;
+
+    if (FORCE_DISABLE_SWIPE) {
+        // Direct rendering - no swipe, no gestures, no problems
+        const activePage = tabs[activeIndex];
+        return (
+            <div style={{ height: '100%', width: '100%' }}>
+                {activePage?.component || tabs[0]?.component}
+            </div>
+        );
+    }
 
     return (
         <div style={{ height: '100%', width: '100%' }}>

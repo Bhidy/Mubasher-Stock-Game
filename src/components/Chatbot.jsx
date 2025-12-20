@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, TrendingUp, TrendingDown, HelpCircle, BarChart2, Brain } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
+import { getEndpoint } from '../config/api';
 
 // Typing indicator component
 const TypingIndicator = () => (
@@ -28,7 +29,7 @@ const StockWidget = ({ symbol }) => {
     useEffect(() => {
         const fetchStock = async () => {
             try {
-                const res = await fetch(`/api/stock-profile?symbol=${symbol}`);
+                const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${symbol}`));
                 if (res.ok) setData(await res.json());
             } catch (e) { console.error(e); }
         };
@@ -146,7 +147,7 @@ const MessageBubble = ({ message }) => {
                     </div>
                 )}
                 <span style={{ fontSize: '0.625rem', color: '#94a3b8' }}>
-                    {isUser ? 'You' : 'Mubasher AI'} • {message.time || 'Just now'}
+                    {isUser ? 'You' : 'Hero Ai'} • {message.time || 'Just now'}
                 </span>
             </div>
         </div>
@@ -212,8 +213,7 @@ export default function Chatbot() {
             }));
 
             // Call AI API
-            const baseUrl = import.meta.env.DEV ? 'http://localhost:5001' : '';
-            const response = await fetch(`${baseUrl}/api/chatbot`, {
+            const response = await fetch(getEndpoint('/api/chatbot'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -293,7 +293,7 @@ export default function Chatbot() {
                     pointerEvents: sidebarOpen ? 'none' : 'auto'
                 }}
             >
-                <Brain size={20} color="white" />
+                <Bot size={24} color="white" />
             </button>
 
             {/* Chat Window - Only render when visible to prevent click interference */}
@@ -337,7 +337,7 @@ export default function Chatbot() {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                             }}>
-                                <Brain size={22} color="white" />
+                                <Bot size={22} color="white" />
                             </div>
                             <div>
                                 <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '2px' }}>Hero Ai</h3>
