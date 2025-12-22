@@ -297,12 +297,12 @@ export default function AdminWatchlist() {
     }, []);
 
     const fetchStockDetails = async (symbols) => {
-        // Fetch detailed data for up to 10 symbols at a time
+        // Fetch detailed data for ALL symbols in batches
         const batchSize = 5;
-        const details = {};
 
-        for (let i = 0; i < Math.min(symbols.length, 30); i += batchSize) {
+        for (let i = 0; i < symbols.length; i += batchSize) {
             const batch = symbols.slice(i, i + batchSize);
+            const batchDetails = {};
 
             await Promise.all(batch.map(async (symbol) => {
                 try {
@@ -310,15 +310,23 @@ export default function AdminWatchlist() {
                     const response = await fetch(url);
                     if (response.ok) {
                         const data = await response.json();
-                        details[symbol] = data;
+                        batchDetails[symbol] = data;
                     }
                 } catch (err) {
                     console.error(`Error fetching details for ${symbol}:`, err);
                 }
             }));
-        }
 
-        setStockDetails(prev => ({ ...prev, ...details }));
+            // Update state after each batch for progressive loading
+            if (Object.keys(batchDetails).length > 0) {
+                setStockDetails(prev => ({ ...prev, ...batchDetails }));
+            }
+
+            // Small delay between batches to avoid rate limiting
+            if (i + batchSize < symbols.length) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+        }
     };
 
     const handleRefresh = () => {
