@@ -352,12 +352,36 @@ export default function AdminWatchlist() {
     // DATA PROCESSING
     // ========================================================================
 
-    // Merge stock data with detailed profiles
+    // Smart merge: only use profile values if they are valid (not null/N/A/0)
+    const smartMerge = (stockData, profileData) => {
+        if (!profileData) return stockData;
+
+        const merged = { ...stockData };
+
+        for (const [key, profileValue] of Object.entries(profileData)) {
+            const stockValue = stockData[key];
+
+            // Skip if profile value is invalid
+            if (profileValue === null || profileValue === undefined) continue;
+            if (profileValue === 'N/A' || profileValue === '') continue;
+            if (typeof profileValue === 'number' && profileValue === 0 && stockValue && stockValue !== 0) continue;
+
+            // Use profile value if stock doesn't have it or profile has better data
+            if (stockValue === null || stockValue === undefined || stockValue === 'N/A' || stockValue === '') {
+                merged[key] = profileValue;
+            } else if (key !== 'sector' && key !== 'volume' && key !== 'name') {
+                // For non-critical fields, prefer profile data
+                merged[key] = profileValue;
+            }
+            // For sector, volume, name - keep the original stock data if it exists
+        }
+
+        return merged;
+    };
+
+    // Merge stock data with detailed profiles (preserving valid data)
     const enrichedStocks = useMemo(() => {
-        return stocks.map(stock => ({
-            ...stock,
-            ...(stockDetails[stock.symbol] || {}),
-        }));
+        return stocks.map(stock => smartMerge(stock, stockDetails[stock.symbol]));
     }, [stocks, stockDetails]);
 
     // Get unique sectors for filter
