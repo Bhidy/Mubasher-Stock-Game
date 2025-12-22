@@ -1071,6 +1071,10 @@ function renderCell(stock, col, currency = 'USD') {
 
         case 'change':
         case 'changePercent':
+            // Handle null/undefined values
+            if (value === null || value === undefined || typeof value !== 'number') {
+                return '—';
+            }
             const isPositive = value >= 0;
             return (
                 <span style={{
