@@ -92,28 +92,29 @@ const SECTOR_COLORS = {
 
 // ============================================================================
 // CURRENCY CONFIGURATION - Local currency symbols for all 23 markets
+// Use English locales to avoid Arabic numerals in display
 // ============================================================================
 
 const CURRENCY_CONFIG = {
-    'USD': { symbol: '$', locale: 'en-US' },
-    'SAR': { symbol: 'ر.س', locale: 'ar-SA' },
-    'EGP': { symbol: 'E£', locale: 'ar-EG' },
-    'GBP': { symbol: '£', locale: 'en-GB' },
-    'EUR': { symbol: '€', locale: 'de-DE' },
-    'INR': { symbol: '₹', locale: 'en-IN' },
-    'JPY': { symbol: '¥', locale: 'ja-JP' },
-    'CAD': { symbol: 'C$', locale: 'en-CA' },
-    'AUD': { symbol: 'A$', locale: 'en-AU' },
-    'HKD': { symbol: 'HK$', locale: 'zh-HK' },
-    'CHF': { symbol: 'Fr', locale: 'de-CH' },
-    'AED': { symbol: 'د.إ', locale: 'ar-AE' },
-    'ZAR': { symbol: 'R', locale: 'en-ZA' },
-    'QAR': { symbol: 'ر.ق', locale: 'ar-QA' },
-    'BRL': { symbol: 'R$', locale: 'pt-BR' },
-    'MXN': { symbol: 'MX$', locale: 'es-MX' },
-    'KRW': { symbol: '₩', locale: 'ko-KR' },
-    'TWD': { symbol: 'NT$', locale: 'zh-TW' },
-    'SGD': { symbol: 'S$', locale: 'en-SG' },
+    'USD': { symbol: '$', code: 'USD' },
+    'SAR': { symbol: 'SR', code: 'SAR' },      // Saudi Riyal
+    'EGP': { symbol: 'E£', code: 'EGP' },      // Egyptian Pound
+    'GBP': { symbol: '£', code: 'GBP' },       // British Pound
+    'EUR': { symbol: '€', code: 'EUR' },       // Euro
+    'INR': { symbol: '₹', code: 'INR' },       // Indian Rupee
+    'JPY': { symbol: '¥', code: 'JPY' },       // Japanese Yen
+    'CAD': { symbol: 'C$', code: 'CAD' },      // Canadian Dollar
+    'AUD': { symbol: 'A$', code: 'AUD' },      // Australian Dollar
+    'HKD': { symbol: 'HK$', code: 'HKD' },     // Hong Kong Dollar
+    'CHF': { symbol: 'CHF', code: 'CHF' },     // Swiss Franc
+    'AED': { symbol: 'AED', code: 'AED' },     // UAE Dirham
+    'ZAR': { symbol: 'R', code: 'ZAR' },       // South African Rand
+    'QAR': { symbol: 'QR', code: 'QAR' },      // Qatari Riyal
+    'BRL': { symbol: 'R$', code: 'BRL' },      // Brazilian Real
+    'MXN': { symbol: 'MX$', code: 'MXN' },     // Mexican Peso
+    'KRW': { symbol: '₩', code: 'KRW' },       // Korean Won
+    'TWD': { symbol: 'NT$', code: 'TWD' },     // Taiwan Dollar
+    'SGD': { symbol: 'S$', code: 'SGD' },      // Singapore Dollar
 };
 
 // Market ID to Currency mapping
@@ -126,54 +127,53 @@ const MARKET_CURRENCY = {
 };
 
 // ============================================================================
-// FORMAT HELPERS - With Local Currency Support
+// FORMAT HELPERS - With Local Currency Support (English numerals only)
 // ============================================================================
 
 const formatValue = (value, format, currency = 'USD') => {
     if (value === null || value === undefined || value === '') return '—';
+
+    // Handle zero values for certain formats
+    if (value === 0 && (format === 'currency' || format === 'compact')) {
+        return '—';
+    }
 
     const currencyConfig = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG['USD'];
     const symbol = currencyConfig.symbol;
 
     switch (format) {
         case 'currency':
-            try {
-                // Try native Intl formatting first
-                return new Intl.NumberFormat(currencyConfig.locale, {
-                    style: 'currency',
-                    currency: currency,
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }).format(value);
-            } catch (e) {
-                // Fallback to manual formatting
-                return `${symbol}${value.toFixed(2)}`;
-            }
+            // Plain number format without currency symbol
+            if (typeof value !== 'number' || isNaN(value)) return '—';
+            return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         case 'compact':
-            // Use local currency symbol for compact numbers
-            if (Math.abs(value) >= 1e12) return `${symbol}${(value / 1e12).toFixed(2)}T`;
-            if (Math.abs(value) >= 1e9) return `${symbol}${(value / 1e9).toFixed(2)}B`;
-            if (Math.abs(value) >= 1e6) return `${symbol}${(value / 1e6).toFixed(2)}M`;
-            if (Math.abs(value) >= 1e3) return `${symbol}${(value / 1e3).toFixed(1)}K`;
-            return `${symbol}${value.toLocaleString()}`;
+            // Compact numbers without currency symbol
+            if (typeof value !== 'number' || isNaN(value)) return '—';
+            if (Math.abs(value) >= 1e12) return `${(value / 1e12).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}T`;
+            if (Math.abs(value) >= 1e9) return `${(value / 1e9).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+            if (Math.abs(value) >= 1e6) return `${(value / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+            if (Math.abs(value) >= 1e3) return `${(value / 1e3).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}K`;
+            return value.toLocaleString('en-US');
 
         case 'change':
+            if (typeof value !== 'number' || isNaN(value)) return '—';
             const sign = value >= 0 ? '+' : '';
             return `${sign}${value.toFixed(2)}`;
 
         case 'changePercent':
+            if (typeof value !== 'number' || isNaN(value)) return '—';
             const pSign = value >= 0 ? '+' : '';
             return `${pSign}${value.toFixed(2)}%`;
 
         case 'percent':
-            if (typeof value === 'number') {
+            if (typeof value === 'number' && !isNaN(value)) {
                 return `${(value * 100).toFixed(2)}%`;
             }
             return '—';
 
         case 'decimal':
-            return typeof value === 'number' ? value.toFixed(2) : '—';
+            return typeof value === 'number' && !isNaN(value) ? value.toFixed(2) : '—';
 
         case 'number':
             return typeof value === 'number' ? value.toLocaleString() : '—';
