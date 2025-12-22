@@ -91,27 +91,72 @@ const SECTOR_COLORS = {
 };
 
 // ============================================================================
-// FORMAT HELPERS
+// CURRENCY CONFIGURATION - Local currency symbols for all 23 markets
+// ============================================================================
+
+const CURRENCY_CONFIG = {
+    'USD': { symbol: '$', locale: 'en-US' },
+    'SAR': { symbol: 'ر.س', locale: 'ar-SA' },
+    'EGP': { symbol: 'E£', locale: 'ar-EG' },
+    'GBP': { symbol: '£', locale: 'en-GB' },
+    'EUR': { symbol: '€', locale: 'de-DE' },
+    'INR': { symbol: '₹', locale: 'en-IN' },
+    'JPY': { symbol: '¥', locale: 'ja-JP' },
+    'CAD': { symbol: 'C$', locale: 'en-CA' },
+    'AUD': { symbol: 'A$', locale: 'en-AU' },
+    'HKD': { symbol: 'HK$', locale: 'zh-HK' },
+    'CHF': { symbol: 'Fr', locale: 'de-CH' },
+    'AED': { symbol: 'د.إ', locale: 'ar-AE' },
+    'ZAR': { symbol: 'R', locale: 'en-ZA' },
+    'QAR': { symbol: 'ر.ق', locale: 'ar-QA' },
+    'BRL': { symbol: 'R$', locale: 'pt-BR' },
+    'MXN': { symbol: 'MX$', locale: 'es-MX' },
+    'KRW': { symbol: '₩', locale: 'ko-KR' },
+    'TWD': { symbol: 'NT$', locale: 'zh-TW' },
+    'SGD': { symbol: 'S$', locale: 'en-SG' },
+};
+
+// Market ID to Currency mapping
+const MARKET_CURRENCY = {
+    'US': 'USD', 'SA': 'SAR', 'EG': 'EGP', 'UK': 'GBP', 'DE': 'EUR',
+    'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR', 'NL': 'EUR', 'IN': 'INR',
+    'JP': 'JPY', 'CA': 'CAD', 'AU': 'AUD', 'HK': 'HKD', 'CH': 'CHF',
+    'AE': 'AED', 'ZA': 'ZAR', 'QA': 'QAR', 'BR': 'BRL', 'MX': 'MXN',
+    'KR': 'KRW', 'TW': 'TWD', 'SG': 'SGD',
+};
+
+// ============================================================================
+// FORMAT HELPERS - With Local Currency Support
 // ============================================================================
 
 const formatValue = (value, format, currency = 'USD') => {
     if (value === null || value === undefined || value === '') return '—';
 
+    const currencyConfig = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG['USD'];
+    const symbol = currencyConfig.symbol;
+
     switch (format) {
         case 'currency':
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: currency,
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(value);
+            try {
+                // Try native Intl formatting first
+                return new Intl.NumberFormat(currencyConfig.locale, {
+                    style: 'currency',
+                    currency: currency,
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(value);
+            } catch (e) {
+                // Fallback to manual formatting
+                return `${symbol}${value.toFixed(2)}`;
+            }
 
         case 'compact':
-            if (Math.abs(value) >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
-            if (Math.abs(value) >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
-            if (Math.abs(value) >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
-            if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-            return value.toLocaleString();
+            // Use local currency symbol for compact numbers
+            if (Math.abs(value) >= 1e12) return `${symbol}${(value / 1e12).toFixed(2)}T`;
+            if (Math.abs(value) >= 1e9) return `${symbol}${(value / 1e9).toFixed(2)}B`;
+            if (Math.abs(value) >= 1e6) return `${symbol}${(value / 1e6).toFixed(2)}M`;
+            if (Math.abs(value) >= 1e3) return `${symbol}${(value / 1e3).toFixed(1)}K`;
+            return `${symbol}${value.toLocaleString()}`;
 
         case 'change':
             const sign = value >= 0 ? '+' : '';
@@ -908,7 +953,7 @@ export default function AdminWatchlist() {
                                                     whiteSpace: 'nowrap',
                                                 }}
                                             >
-                                                {renderCell(stock, col)}
+                                                {renderCell(stock, col, MARKET_CURRENCY[selectedMarket] || 'USD')}
                                             </td>
                                         ))}
                                     </tr>
@@ -925,7 +970,7 @@ export default function AdminWatchlist() {
                         padding: '1.5rem',
                     }}>
                         {filteredStocks.map((stock, index) => (
-                            <StockCard key={stock.symbol} stock={stock} />
+                            <StockCard key={stock.symbol} stock={stock} currency={MARKET_CURRENCY[selectedMarket] || 'USD'} />
                         ))}
                     </div>
                 )}
@@ -950,7 +995,7 @@ export default function AdminWatchlist() {
 // CELL RENDERER
 // ============================================================================
 
-function renderCell(stock, col) {
+function renderCell(stock, col, currency = 'USD') {
     const value = stock[col.key];
 
     switch (col.format) {
@@ -1032,7 +1077,7 @@ function renderCell(stock, col) {
                     fontWeight: 600,
                 }}>
                     {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                    {formatValue(value, col.format)}
+                    {formatValue(value, col.format, currency)}
                 </span>
             );
 
@@ -1054,7 +1099,7 @@ function renderCell(stock, col) {
             );
 
         default:
-            return formatValue(value, col.format);
+            return formatValue(value, col.format, currency);
     }
 }
 
@@ -1062,7 +1107,7 @@ function renderCell(stock, col) {
 // STOCK CARD (Grid View)
 // ============================================================================
 
-function StockCard({ stock }) {
+function StockCard({ stock, currency = 'USD' }) {
     const isPositive = (stock.changePercent || 0) >= 0;
 
     return (
@@ -1135,10 +1180,10 @@ function StockCard({ stock }) {
             {/* Price */}
             <div style={{ marginBottom: '1rem' }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1E293B' }}>
-                    {formatValue(stock.price, 'currency')}
+                    {formatValue(stock.price, 'currency', currency)}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
-                    Vol: {formatValue(stock.volume, 'compact')}
+                    Vol: {formatValue(stock.volume, 'compact', currency)}
                 </div>
             </div>
 
@@ -1155,7 +1200,7 @@ function StockCard({ stock }) {
                         Mkt Cap
                     </div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>
-                        {formatValue(stock.marketCap, 'compact')}
+                        {formatValue(stock.marketCap, 'compact', currency)}
                     </div>
                 </div>
                 <div>
