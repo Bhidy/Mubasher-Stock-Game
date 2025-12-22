@@ -4,7 +4,7 @@ import {
     LayoutDashboard, BookOpen, Trophy, Award, ShoppingBag, Calendar,
     Users, Settings, ChevronRight, TrendingUp, Activity, LogOut,
     Menu, X, Bell, Search, Plus, Newspaper, Megaphone, Smartphone, Monitor,
-    Building2, Rss, Globe, Twitter
+    Building2, Rss, Globe, Twitter, Star
 } from 'lucide-react';
 import { isAuthenticated, logout, getAuthUser } from './AdminLogin';
 
@@ -90,6 +90,7 @@ const SIDEBAR_ITEMS = [
     { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/admin/announcements' },
     { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
     { divider: true, label: 'Live Preview' },
+    { id: 'watchlist', label: 'Watchlist', icon: Star, path: '/admin/watchlist' },
     { id: 'newsfeed', label: 'News Feed', icon: Rss, path: '/admin/newsfeed' },
     { id: 'xcommunity', label: 'X Community', icon: Twitter, path: '/admin/x-community' },
     { id: 'globalmarkets', label: 'Global Markets', icon: Globe, path: '/admin/global-markets' },

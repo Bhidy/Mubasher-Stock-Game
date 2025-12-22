@@ -80,6 +80,7 @@ import AdminMarketProfile from './cms/AdminMarketProfile';
 import AdminGlobalMarkets from './cms/AdminGlobalMarkets';
 import AdminXCommunity from './cms/AdminXCommunity';
 import AdminAIDashboard from './cms/AdminAIDashboard';
+import AdminWatchlist from './cms/AdminWatchlist';
 
 
 // Import RequireAuth component
@@ -255,6 +256,7 @@ function AdminRoutes() {
       <Route path="announcements" element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
       <Route path="notifications" element={<AdminLayout><AdminNotifications /></AdminLayout>} />
       <Route path="newsfeed" element={<AdminLayout><AdminNewsFeed /></AdminLayout>} />
+      <Route path="watchlist" element={<AdminLayout><AdminWatchlist /></AdminLayout>} />
       <Route path="global-markets" element={<AdminLayout><AdminGlobalMarkets /></AdminLayout>} />
       <Route path="x-community" element={<AdminLayout><AdminXCommunity /></AdminLayout>} />
       <Route path="ai-dashboard" element={<AdminLayout><AdminAIDashboard /></AdminLayout>} />
