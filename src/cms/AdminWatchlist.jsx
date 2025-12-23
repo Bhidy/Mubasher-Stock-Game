@@ -640,7 +640,7 @@ export default function AdminWatchlist() {
                                 minWidth: '180px',
                             }}
                         >
-                            <span style={{ fontSize: '1.25rem' }}>{currentMarket.flag}</span>
+                            <span style={{ fontSize: '1.25rem', fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif' }}>{currentMarket.flag}</span>
                             <span>{currentMarket.name}</span>
                             <ChevronDown size={16} style={{ marginLeft: 'auto' }} />
                         </button>
@@ -687,7 +687,7 @@ export default function AdminWatchlist() {
                                             transition: 'all 0.15s ease',
                                         }}
                                     >
-                                        <span style={{ fontSize: '1.25rem' }}>{market.flag}</span>
+                                        <span style={{ fontSize: '1.25rem', fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif' }}>{market.flag}</span>
                                         <span style={{ flex: 1 }}>{market.name}</span>
                                         {selectedMarket === market.id && (
                                             <Check size={16} color="#10B981" />
