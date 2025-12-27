@@ -21,15 +21,45 @@ export function formatRelativeTime(date: Date | string): string {
     return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// Valid ISO 4217 currency codes mapping for common abbreviations
+const CURRENCY_FIXES: Record<string, string> = {
+    'KD': 'KWD',    // Kuwait Dinar
+    'AED': 'AED',   // Valid
+    'SAR': 'SAR',   // Valid
+    'EGP': 'EGP',   // Valid
+    'USD': 'USD',   // Valid
+    'EUR': 'EUR',   // Valid
+    'GBP': 'GBP',   // Valid
+};
+
 export function formatPrice(price: number | null, currency: string | null): string {
     if (price === null) return 'N/A';
-    const cur = currency || 'EGP';
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: cur === 'EGP' ? 'EGP' : cur,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(price);
+
+    // Normalize and fix common currency code issues
+    let cur = (currency || 'EGP').toUpperCase().trim();
+
+    // Fix known invalid codes
+    if (CURRENCY_FIXES[cur]) {
+        cur = CURRENCY_FIXES[cur];
+    }
+
+    try {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: cur,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(price);
+    } catch (error) {
+        // Fallback for invalid currency codes - format as EGP
+        console.warn(`Invalid currency code "${currency}", falling back to EGP`);
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'EGP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(price);
+    }
 }
 
 export function truncateText(text: string, maxLength: number): string {
