@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Shell from "@/components/Shell";
+import GooErrorBoundary from "@/components/GooErrorBoundary";
 
 // Initialize scheduler on server start
 import '@/lib/startup';
@@ -43,9 +44,11 @@ export default function RootLayout({
         `}} />
       </head>
       <body suppressHydrationWarning className="antialiased min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-indigo-50/20 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-        <Shell>
-          {children}
-        </Shell>
+        <GooErrorBoundary>
+          <Shell>
+            {children}
+          </Shell>
+        </GooErrorBoundary>
       </body>
     </html>
   );
