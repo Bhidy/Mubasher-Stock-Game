@@ -4,8 +4,8 @@ import "./globals.css";
 import Shell from "@/components/Shell";
 import GooErrorBoundary from "@/components/GooErrorBoundary";
 
-// Initialize scheduler on server start
-import '@/lib/startup';
+// NOTE: Scheduler is now initialized via Vercel Cron Jobs (vercel.json)
+// NOT via layout import, as that would crash client-side (node-cron is server-only)
 
 const inter = Inter({
   subsets: ["latin"],
