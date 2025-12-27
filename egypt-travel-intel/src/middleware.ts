@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
     '/api/cron',        // Allow cron jobs
     '/api/admin',       // Allow admin operations
     '/api/test',
+    '/api/image-proxy', // Allow image proxy for post thumbnails
     '/favicon.ico',
     '/_next',
     '/static',
