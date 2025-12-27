@@ -284,11 +284,11 @@ export default function Dashboard() {
   // Define Dashboard Stats for new generic component
   const dashboardCards: StatCardItem[] = [
     {
-      title: "Total Posts",
-      value: stats?.overview.totalPosts || 0,
-      icon: Package,
+      title: "Active Agencies",
+      value: stats?.overview.activeAccounts || 0,
+      icon: Users,
       colorClass: "text-blue-600",
-      subValue: `${stats?.overview.recentPostsWeek || 0} recent uploads`
+      subValue: "Monitored Sources"
     },
     {
       title: "Offers",
@@ -299,7 +299,7 @@ export default function Dashboard() {
     },
     {
       title: "Avg. Price",
-      value: stats?.pricing.avgPrice ? formatPrice(stats.pricing.avgPrice, 'EGP') : 'N/A',
+      value: stats?.pricing.avgPrice ? formatPrice(stats.pricing.avgPrice, 'KWD') : 'N/A',
       icon: TrendingUp,
       colorClass: "text-amber-500",
       subValue: "Market Average"
