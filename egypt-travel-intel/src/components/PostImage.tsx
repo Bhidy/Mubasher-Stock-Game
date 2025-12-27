@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, ImageOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PostImageProps {
@@ -12,32 +12,39 @@ interface PostImageProps {
     fill?: boolean;
 }
 
+// Check if URL is from Instagram CDN (which blocks direct browser requests)
+function isInstagramCdn(url: string): boolean {
+    return url.includes('cdninstagram.com') ||
+        url.includes('instagram.com') ||
+        url.includes('fbcdn.net') ||
+        url.includes('scontent');
+}
+
 export function PostImage({ src, alt, className, fill = false }: PostImageProps) {
-    const [imageSrc, setImageSrc] = useState<string | null>(src);
-    const [usingProxy, setUsingProxy] = useState(false);
+    // Use proxy immediately for Instagram URLs
+    const getInitialSrc = (url: string | null) => {
+        if (!url) return null;
+        // Always use proxy for Instagram CDN images
+        if (isInstagramCdn(url)) {
+            return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+        }
+        return url;
+    };
+
+    const [imageSrc, setImageSrc] = useState<string | null>(() => getInitialSrc(src));
     const [error, setError] = useState(false);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        setImageSrc(src);
-        setUsingProxy(false);
+        setImageSrc(getInitialSrc(src));
         setError(false);
         setLoaded(false);
     }, [src]);
 
     const handleError = () => {
-        if (!usingProxy && src) {
-            // Try proxy
-            console.log('Image load failed, retrying via proxy:', src);
-            setUsingProxy(true);
-            setImageSrc(`/api/image-proxy?url=${encodeURIComponent(src)}`);
-            // Reset loaded state to show loading pulse again if desired, or keep it 
-            // setLoaded(false); 
-        } else {
-            // Proxy also failed
-            console.error('Image load failed even with proxy');
-            setError(true);
-        }
+        // Proxy already used (or direct URL failed), show error state
+        console.error('Image load failed:', src);
+        setError(true);
     };
 
     if (!src || error) {
