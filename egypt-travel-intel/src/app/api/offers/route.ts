@@ -32,7 +32,10 @@ export async function GET(request: Request) {
         };
 
         if (agency) {
-            where.rawPost = { accountHandle: agency };
+            where.rawPost = {
+                accountHandle: agency,
+                account: { isActive: true }
+            };
         }
         if (destination) {
             where.destinationDetected = { contains: destination, mode: 'insensitive' };

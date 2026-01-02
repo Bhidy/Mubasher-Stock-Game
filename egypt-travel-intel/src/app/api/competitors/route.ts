@@ -11,6 +11,7 @@ export async function GET() {
     try {
         // Get all accounts with their stats
         const accounts = await prisma.account.findMany({
+            where: { isActive: true },
             include: {
                 posts: {
                     include: {

@@ -15,7 +15,10 @@ export async function GET(request: Request) {
         // Fetch all data
         const [offers, accounts, posts] = await Promise.all([
             prisma.offer.findMany({
-                where: { isOffer: true },
+                where: {
+                    isOffer: true,
+                    rawPost: { account: { isActive: true } },
+                },
                 include: {
                     rawPost: {
                         select: {
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
                 },
             }),
             prisma.account.findMany({ where: { isActive: true } }),
-            prisma.rawPost.count(),
+            prisma.rawPost.count({ where: { account: { isActive: true } } }),
         ]);
 
         const generatedAt = new Date().toISOString();

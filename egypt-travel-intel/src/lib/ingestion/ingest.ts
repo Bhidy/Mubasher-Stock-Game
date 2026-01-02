@@ -142,7 +142,9 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
                 }
 
                 // Scrape posts from Instagram directly
-                const scrapeResult = await scrapeInstagramProfile(account.handle, options.postsPerAccount || 20);
+                // Ensure handle is clean (remove URL parts if present)
+                const cleanHandle = account.handle.split('/').pop()?.replace(/\?.*$/, '') || account.handle;
+                const scrapeResult = await scrapeInstagramProfile(cleanHandle, options.postsPerAccount || 20);
 
                 if (!scrapeResult.success || !scrapeResult.profile) {
                     const errorMsg = scrapeResult.error || 'Failed to scrape';
@@ -323,6 +325,7 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
                 const newOffers = await prisma.offer.findMany({
                     where: {
                         createdAt: { gt: timeThreshold },
+                        rawPost: { account: { isActive: true } },
                     },
                     include: {
                         rawPost: true,

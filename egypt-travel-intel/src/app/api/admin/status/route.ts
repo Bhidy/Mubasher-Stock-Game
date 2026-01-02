@@ -25,32 +25,44 @@ export async function GET() {
 
         // Get total counts
         const [totalPosts, totalOffers, totalAccounts, activeAccounts] = await Promise.all([
-            prisma.rawPost.count(),
-            prisma.offer.count(),
+            prisma.rawPost.count({ where: { account: { isActive: true } } }),
+            prisma.offer.count({ where: { rawPost: { account: { isActive: true } } } }),
             prisma.account.count(),
             prisma.account.count({ where: { isActive: true } }),
         ]);
 
         // Get offers with prices
         const offersWithPrice = await prisma.offer.count({
-            where: { priceDetected: { not: null } }
+            where: {
+                priceDetected: { not: null },
+                rawPost: { account: { isActive: true } }
+            }
         });
 
         // Get recent posts (last 8 hours)
         const recentPosts = await prisma.rawPost.count({
-            where: { scrapedAt: { gte: eightHoursAgo } }
+            where: {
+                scrapedAt: { gte: eightHoursAgo },
+                account: { isActive: true }
+            }
         });
 
         // Get recent offers (last 8 hours)
         const recentOffers = await prisma.offer.count({
-            where: { createdAt: { gte: eightHoursAgo } }
+            where: {
+                createdAt: { gte: eightHoursAgo },
+                rawPost: { account: { isActive: true } }
+            }
         });
 
         // Get top destinations
         const destinations = await prisma.offer.groupBy({
             by: ['destinationDetected'],
             _count: { id: true },
-            where: { destinationDetected: { not: null } },
+            where: {
+                destinationDetected: { not: null },
+                rawPost: { account: { isActive: true } }
+            },
             orderBy: { _count: { id: 'desc' } },
             take: 10,
         });

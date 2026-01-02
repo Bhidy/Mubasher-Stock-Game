@@ -10,7 +10,10 @@ import prisma from '@/lib/db';
 export async function GET() {
     try {
         const offers = await prisma.offer.findMany({
-            where: { isOffer: true },
+            where: {
+                isOffer: true,
+                rawPost: { account: { isActive: true } }
+            },
             include: {
                 rawPost: {
                     select: {

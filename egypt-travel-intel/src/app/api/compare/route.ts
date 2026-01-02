@@ -27,6 +27,7 @@ export async function POST(request: Request) {
             where: {
                 isOffer: true,
                 priceDetected: { not: null },
+                rawPost: { account: { isActive: true } },
             },
             select: {
                 destinationDetected: true,

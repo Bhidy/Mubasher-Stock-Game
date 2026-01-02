@@ -16,6 +16,7 @@ export async function GET() {
             where: {
                 isOffer: true,
                 priceDetected: { not: null },
+                rawPost: { account: { isActive: true } },
             },
             include: {
                 rawPost: {
