@@ -30,8 +30,12 @@ export async function onRequest(context) {
 
     } catch (error) {
         console.error('Stocks Proxy Error:', error);
-        return new Response(JSON.stringify([]), {
-            status: 200,
+        return new Response(JSON.stringify({
+            error: 'Failed to fetch stock data',
+            details: error.message,
+            stack: error.stack
+        }), {
+            status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
     }

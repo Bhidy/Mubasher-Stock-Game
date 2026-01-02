@@ -586,7 +586,7 @@ export default async function handler(req, res) {
 
         if (data.length === 0) {
             console.error('No stock data fetched - all requests failed');
-            return res.status(200).json([]);
+            return res.status(500).json({ error: 'No stock data fetched', details: 'All Yahoo Finance batches failed or timed out.' });
         }
 
         res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=10');
