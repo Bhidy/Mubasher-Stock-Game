@@ -1,10 +1,13 @@
 // Cloudflare Pages Function - Enterprise Stock Sync
-// Fully Synchronized with Backend "Golden Source"
+// Fully Synchronized with Frontend "23 Markets" Requirement
 import yahooFinance from 'yahoo-finance2';
 
-// Version: CF-ENTERPRISE-1.0
-// FULL MARKET CATALOG (Ported from backend/jobs/updateStockPrices.js)
+// Version: CF-GLOBAL-23-MARKETS
+// Full Market Catalog matching src/context/MarketContext.jsx
 
+// --- MARKET CATALOG DEFINITIONS ---
+
+// 1. SAUDI ARABIA (SA)
 const SAUDI_STOCKS = [
     '2222.SR', '1120.SR', '2010.SR', '7010.SR', '2082.SR', '1180.SR',
     '2380.SR', '4030.SR', '2350.SR', '4200.SR', '1211.SR', '4001.SR',
@@ -13,6 +16,7 @@ const SAUDI_STOCKS = [
     '1060.SR', '7200.SR', '4220.SR', '4090.SR', '4040.SR', '^TASI.SR'
 ];
 
+// 2. EGYPT (EG)
 const EGYPT_STOCKS = [
     'COMI.CA', 'EAST.CA', 'HRHO.CA', 'TMGH.CA', 'SWDY.CA', 'ETEL.CA',
     'AMOC.CA', 'EKHO.CA', 'HELI.CA', 'ORAS.CA', 'ESRS.CA', 'ABUK.CA',
@@ -20,131 +24,187 @@ const EGYPT_STOCKS = [
     'ADIB.CA', '^CASE30'
 ];
 
-const GLOBAL_TICKERS = [
-    '^GSPC', '^DJI', '^IXIC', // US Indices
-    '^FTSE', // UK (FTSE 100)
-    '^GDAXI', // Germany (DAX)
-    '^N225', // Japan (Nikkei)
-    'BZ=F', // Brent Crude Oil
-    'GC=F', // Gold
-    // Tech Giants
+// 3. USA (US)
+const US_STOCKS = [
+    '^GSPC', '^DJI', '^IXIC',
     'AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC',
-    // Finance & Retail
-    'JPM', 'V', 'MA', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'DIS', 'NKE'
+    'JPM', 'V', 'MA', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'DIS', 'NKE', 'BRK-B', 'LLY'
 ];
 
-// METADATA MAPPING (Ported from backend)
-const GLOBAL_META = {
-    // Indices & Commodities
-    '^GSPC': { name: 'S&P 500', country: '🇺🇸', sector: 'Index' },
-    '^DJI': { name: 'Dow Jones', country: '🇺🇸', sector: 'Index' },
-    '^IXIC': { name: 'Nasdaq', country: '🇺🇸', sector: 'Index' },
-    '^FTSE': { name: 'FTSE 100', country: '🇬🇧', sector: 'Index' },
-    '^GDAXI': { name: 'DAX', country: '🇩🇪', sector: 'Index' },
-    '^N225': { name: 'Nikkei 225', country: '🇯🇵', sector: 'Index' },
-    'BZ=F': { name: 'Oil (Brent)', country: '🛢️', sector: 'Commodity' },
-    'GC=F': { name: 'Gold', country: '🥇', sector: 'Commodity' },
-    '^CASE30': { name: 'EGX 30', country: '🇪🇬', sector: 'Index' },
-    '^TASI.SR': { name: 'TASI', country: '🇸🇦', sector: 'Index' },
+// 4. INDIA (IN)
+const INDIA_STOCKS = [
+    '^NSEI', 'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
+    'HINDUNILVR.NS', 'ITC.NS', 'SBIN.NS', 'BHARTIARTL.NS', 'LICI.NS'
+];
 
-    // US Stocks
-    'AAPL': { name: 'Apple', country: '🇺🇸', sector: 'Technology' },
-    'MSFT': { name: 'Microsoft', country: '🇺🇸', sector: 'Technology' },
-    'GOOG': { name: 'Alphabet', country: '🇺🇸', sector: 'Technology' },
-    'AMZN': { name: 'Amazon', country: '🇺🇸', sector: 'Consumer' },
-    'TSLA': { name: 'Tesla', country: '🇺🇸', sector: 'Automotive' },
-    'NVDA': { name: 'Nvidia', country: '🇺🇸', sector: 'Technology' },
-    'META': { name: 'Meta', country: '🇺🇸', sector: 'Technology' },
-    'NFLX': { name: 'Netflix', country: '🇺🇸', sector: 'Media' },
-    'AMD': { name: 'AMD', country: '🇺🇸', sector: 'Technology' },
-    'INTC': { name: 'Intel', country: '🇺🇸', sector: 'Technology' },
-    'JPM': { name: 'JPMorgan', country: '🇺🇸', sector: 'Financial' },
-    'V': { name: 'Visa', country: '🇺🇸', sector: 'Financial' },
-    'MA': { name: 'Mastercard', country: '🇺🇸', sector: 'Financial' },
-    'WMT': { name: 'Walmart', country: '🇺🇸', sector: 'Retail' },
-    'HD': { name: 'Home Depot', country: '🇺🇸', sector: 'Retail' },
-    'PG': { name: 'P&G', country: '🇺🇸', sector: 'Consumer' },
-    'KO': { name: 'Coca-Cola', country: '🇺🇸', sector: 'Consumer' },
-    'PEP': { name: 'PepsiCo', country: '🇺🇸', sector: 'Consumer' },
-    'DIS': { name: 'Disney', country: '🇺🇸', sector: 'Media' },
-    'NKE': { name: 'Nike', country: '🇺🇸', sector: 'Consumer' },
+// 5. UNITED KINGDOM (UK)
+const UK_STOCKS = [
+    '^FTSE', 'AZN.L', 'SHEL.L', 'HSBA.L', 'ULVR.L', 'BP.L', 'DGE.L', 'RIO.L', 'GSK.L', 'GLEN.L'
+];
 
-    // Saudi Metadata
-    '2222.SR': { name: 'Saudi Aramco', country: '🇸🇦', sector: 'Energy' },
-    '1120.SR': { name: 'Al Rajhi Bank', country: '🇸🇦', sector: 'Financial' },
-    '2010.SR': { name: 'SABIC', country: '🇸🇦', sector: 'Materials' },
-    '7010.SR': { name: 'STC', country: '🇸🇦', sector: 'Telecom' },
-    '2082.SR': { name: 'ACWA Power', country: '🇸🇦', sector: 'Utilities' },
-    '1180.SR': { name: 'SNB', country: '🇸🇦', sector: 'Financial' },
-    '1211.SR': { name: "Ma'aden", country: '🇸🇦', sector: 'Materials' },
-    '1150.SR': { name: 'Alinma', country: '🇸🇦', sector: 'Financial' },
-    '2020.SR': { name: 'SABIC Agri', country: '🇸🇦', sector: 'Materials' },
-    '2280.SR': { name: 'Almarai', country: '🇸🇦', sector: 'Consumer' },
-    '5110.SR': { name: 'Saudi Elec', country: '🇸🇦', sector: 'Utilities' },
-    '1140.SR': { name: 'Albilad', country: '🇸🇦', sector: 'Financial' },
-    '1060.SR': { name: 'SAB الأول', country: '🇸🇦', sector: 'Financial' },
+// 6. GERMANY (DE)
+const GERMANY_STOCKS = [
+    '^GDAXI', 'SAP.DE', 'SIE.DE', 'ALV.DE', 'DTE.DE', 'AIR.DE', 'BMW.DE', 'VOW3.DE', 'BAS.DE', 'ADS.DE'
+];
 
-    // Egypt Metadata
-    'COMI.CA': { name: 'CIB Bank', country: '🇪🇬', sector: 'Financial' },
-    'HRHO.CA': { name: 'EFG Hermes', country: '🇪🇬', sector: 'Financial' },
-    'TMGH.CA': { name: 'TMG Holding', country: '🇪🇬', sector: 'Real Estate' },
-    'SWDY.CA': { name: 'Elsewedy', country: '🇪🇬', sector: 'Industrial' },
-};
+// 7. FRANCE (FR)
+const FRANCE_STOCKS = [
+    '^FCHI', 'MC.PA', 'OR.PA', 'TTE.PA', 'SAN.PA', 'AIR.PA', 'RMS.PA', 'SU.PA', 'EL.PA', 'KER.PA'
+];
 
+// 8. JAPAN (JP)
+const JAPAN_STOCKS = [
+    '^N225', '7203.T', '6758.T', '9984.T', '6861.T', '8306.T', '9432.T', '7974.T', '6098.T', '4063.T'
+];
+
+// 9. CANADA (CA)
+const CANADA_STOCKS = [
+    '^GSPTSE', 'RY.TO', 'TD.TO', 'SHOP.TO', 'ENB.TO', 'CNR.TO', 'CP.TO', 'BMO.TO', 'BNS.TO', 'TRP.TO'
+];
+
+// 10. AUSTRALIA (AU)
+const AUSTRALIA_STOCKS = [
+    '^AXJO', 'BHP.AX', 'CBA.AX', 'CSL.AX', 'NAB.AX', 'WBC.AX', 'ANZ.AX', 'FMG.AX', 'WDS.AX', 'TLS.AX'
+];
+
+// 11. HONG KONG (HK)
+const HK_STOCKS = [
+    '^HSI', '0700.HK', '09988.HK', '0939.HK', '01299.HK', '0941.HK', '03690.HK', '00005.HK', '00388.HK'
+];
+
+// 12. SWITZERLAND (CH)
+const SWISS_STOCKS = [
+    '^SSMI', 'NESN.SW', 'ROG.SW', 'NOVN.SW', 'UBSG.SW', 'ABBN.SW', 'CFR.SW', 'ZURN.SW', 'LONN.SW'
+];
+
+// 13. NETHERLANDS (NL)
+const NETHERLANDS_STOCKS = [
+    '^AEX', 'ASML.AS', 'UNA.AS', 'SHELL.AS', 'HEIA.AS', 'INGA.AS', 'PHIA.AS', 'ADYEN.AS', 'DSM.AS'
+];
+
+// 14. SPAIN (ES)
+const SPAIN_STOCKS = [
+    '^IBEX', 'ITX.MC', 'IBE.MC', 'BBVA.MC', 'SAN.MC', 'AMS.MC', 'TEF.MC', 'REP.MC', 'CLNX.MC'
+];
+
+// 15. ITALY (IT)
+const ITALY_STOCKS = [
+    'FTSEMIB.MI', 'ENEL.MI', 'ISP.MI', 'STLAM.MI', 'ENI.MI', 'UCG.MI', 'RACE.MI', 'G.MI', 'MB.MI' // RACE is Ferrari
+];
+
+// 16. BRAZIL (BR)
+const BRAZIL_STOCKS = [
+    '^BVSP', 'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBDC4.SA', 'PETR3.SA', 'ABEV3.SA', 'WEGE3.SA', 'BBAS3.SA'
+];
+
+// 17. MEXICO (MX)
+const MEXICO_STOCKS = [
+    '^MXX', 'WALMEX.MX', 'AMXL.MX', 'FEMSAUBD.MX', 'GMEXICOB.MX', 'BIMBOA.MX', 'CEMEXCPO.MX', 'TLEVISACPO.MX'
+];
+
+// 18. SOUTH KOREA (KR)
+const KOREA_STOCKS = [
+    '^KS11', '005930.KS', '000660.KS', '005380.KS', '207940.KS', '051910.KS', '005490.KS' // Note: Yahoo might need suffix adjustments
+];
+
+// 19. TAIWAN (TW)
+const TAIWAN_STOCKS = [
+    '^TWII', '2330.TW', '2317.TW', '2454.TW', '2308.TW', '2382.TW', '2881.TW'
+];
+
+// 20. SINGAPORE (SG)
+const SINGAPORE_STOCKS = [
+    '^STI', 'D05.SI', 'O39.SI', 'U11.SI', 'Z74.SI', 'C52.SI'
+];
+
+// 21. UAE (AE)
+const UAE_STOCKS = [
+    'EMAAR.AE', 'FAB.AD', 'ETISALAT.AD', 'ALDAR.AD', 'DIB.AE', 'ENBD.AE', 'TAQA.AD'
+];
+
+// 22. SOUTH AFRICA (ZA)
+const SOUTH_AFRICA_STOCKS = [
+    'JSE.JO', 'NPN.JO', 'FSR.JO', 'SBK.JO', 'ABG.JO', 'SOL.JO', 'MTN.JO'
+];
+
+// 23. QATAR (QA)
+const QATAR_STOCKS = [
+    'QNBK.QA', 'IQCD.QA', 'QIBK.QA', 'CBQK.QA', 'MARK.QA'
+];
+
+// Map Market Codes to Stock Lists
 const MARKET_STOCKS = {
     'SA': SAUDI_STOCKS,
     'EG': EGYPT_STOCKS,
-    'Global': GLOBAL_TICKERS,
-    'US': GLOBAL_TICKERS // Fallback alias
+    'US': US_STOCKS,
+    'Global': US_STOCKS,
+    'IN': INDIA_STOCKS,
+    'UK': UK_STOCKS,
+    'DE': GERMANY_STOCKS,
+    'FR': FRANCE_STOCKS,
+    'JP': JAPAN_STOCKS,
+    'CA': CANADA_STOCKS,
+    'AU': AUSTRALIA_STOCKS,
+    'HK': HK_STOCKS,
+    'CH': SWISS_STOCKS,
+    'NL': NETHERLANDS_STOCKS,
+    'ES': SPAIN_STOCKS,
+    'IT': ITALY_STOCKS,
+    'BR': BRAZIL_STOCKS,
+    'MX': MEXICO_STOCKS,
+    'KR': KOREA_STOCKS,
+    'TW': TAIWAN_STOCKS,
+    'SG': SINGAPORE_STOCKS,
+    'AE': UAE_STOCKS,
+    'ZA': SOUTH_AFRICA_STOCKS,
+    'QA': QATAR_STOCKS
 };
 
-// ROBUST MAPPING LOGIC (Ported from Backend)
-const mapStockData = (quote) => {
+// Flags for fallback
+const COUNTRY_FLAGS = {
+    'SA': '🇸🇦', 'EG': '🇪🇬', 'US': '🇺🇸', 'IN': '🇮🇳', 'UK': '🇬🇧',
+    'DE': '🇩🇪', 'FR': '🇫🇷', 'JP': '🇯🇵', 'CA': '🇨🇦', 'AU': '🇦🇺',
+    'HK': '🇭🇰', 'CH': '🇨🇭', 'NL': '🇳🇱', 'ES': '🇪🇸', 'IT': '🇮🇹',
+    'BR': '🇧🇷', 'MX': '🇲🇽', 'KR': '🇰🇷', 'TW': '🇹🇼', 'SG': '🇸🇬',
+    'AE': '🇦🇪', 'ZA': '🇿🇦', 'QA': '🇶🇦'
+};
+
+// ROBUST MAPPING LOGIC
+const mapStockData = (quote, marketCode) => {
     if (!quote || !quote.symbol) return null;
 
     let symbol = quote.symbol;
-    // Map CASE30.CA to ^CASE30 for frontend
+    // Map special cases
     if (symbol === 'CASE30.CA') symbol = '^CASE30';
 
-    const meta = GLOBAL_META[symbol] || {};
+    const flag = COUNTRY_FLAGS[marketCode] || '🌍';
 
-    // Classification
-    const isGlobal = GLOBAL_TICKERS.includes(symbol) || symbol.startsWith('^G') || symbol.startsWith('^D') || symbol.startsWith('^F') || symbol.startsWith('^N') || symbol.includes('=F');
-    const isEgypt = EGYPT_STOCKS.includes(symbol) || symbol.includes('.CA') || symbol.includes('CASE30');
-    const isSaudi = SAUDI_STOCKS.includes(symbol) || symbol.includes('.SR');
-
-    const category = isGlobal ? 'Global' : (isEgypt ? 'EG' : 'SA');
-    const country = meta.country || (isEgypt ? '🇪🇬' : (isSaudi ? '🇸🇦' : '🇺🇸'));
-
-    // --- DATA NORMALIZATION & ZERO FIX ---
-    // Price: Try regular price, then previous close, then Open/High/Low as fallbacks
+    // Pricing & Normalization
     let price = quote.regularMarketPrice || quote.regularMarketPreviousClose || quote.regularMarketOpen || quote.regularMarketDayHigh || 0;
     let prevClose = quote.regularMarketPreviousClose || quote.regularMarketOpen || price;
 
-    // Change: API often returns 0/undefined when market is closed. Recalculate if possible.
     let change = quote.regularMarketChange;
     let changePercent = quote.regularMarketChangePercent;
 
+    // Zero-Fix Logic
     if ((change === undefined || change === 0) && prevClose > 0 && price > 0) {
         change = price - prevClose;
         changePercent = (change / prevClose) * 100;
     }
-    // If still zero/undefined, default to 0
     if (!change) change = 0;
     if (!changePercent) changePercent = 0;
 
     // Volume Fallbacks
-    let volume = quote.regularMarketVolume || quote.averageDailyVolume3Month || quote.averageDailyVolume10Day || 0;
+    let volume = quote.regularMarketVolume || quote.averageDailyVolume3Month || 0;
 
     return {
         symbol: symbol,
-        name: meta.name || quote.shortName || quote.longName || symbol,
-        category: category,
-        country: country,
-        sector: meta.sector || quote.sector || null,
+        name: quote.shortName || quote.longName || symbol,
+        category: marketCode,
+        country: flag,
+        sector: quote.sector || (symbol.startsWith('^') ? 'Index' : 'General'),
         logo: `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${symbol.split('.')[0].toLowerCase()}.com&size=128`,
 
-        // Unified fields
         price: price,
         change: change,
         changePercent: changePercent,
@@ -153,12 +213,7 @@ const mapStockData = (quote) => {
         low: quote.regularMarketDayLow || price,
         open: quote.regularMarketOpen || price,
         volume: volume,
-
-        // Fundamentals
         marketCap: quote.marketCap,
-        peRatio: quote.trailingPE,
-        eps: quote.epsTrailingTwelveMonths,
-        dividendYield: quote.trailingAnnualDividendYield,
 
         lastUpdated: new Date().toISOString()
     };
@@ -170,7 +225,7 @@ export async function onRequest(context) {
     const market = url.searchParams.get('market') || 'US';
 
     try {
-        // Init config safely (Lazy Load)
+        // 1. Init Config
         try {
             yahooFinance.setGlobalConfig({
                 reqOptions: {
@@ -183,33 +238,32 @@ export async function onRequest(context) {
             if (typeof yahooFinance.suppressNotices === 'function') yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
         } catch (confErr) { console.log("Config Warning:", confErr); }
 
-        // Select Tickers
-        let allTickers = MARKET_STOCKS[market] || GLOBAL_TICKERS;
+        // 2. Select Tickers for Market
+        let allTickers = MARKET_STOCKS[market];
 
-        // Fallback for 'US' to 'Global' if not explicitly defined
-        if (market === 'US' && !MARKET_STOCKS['US']) allTickers = GLOBAL_TICKERS;
+        // Fallback checks
+        if (!allTickers) {
+            console.log(`Market ${market} not found, defaulting to Global/US`);
+            allTickers = US_STOCKS;
+        }
 
-        console.log(`CF Functions: Fetching ${market} - ${allTickers.length} tickers`);
+        console.log(`CF Functions: Fetching ${market} (${allTickers.length} tickers)`);
 
-        // Batch Fetch
+        // 3. Batch Fetch
         let quoteResult;
         try {
             quoteResult = await yahooFinance.quote(allTickers, { validateResult: false });
         } catch (e) {
             console.error("Batch fetch failed:", e.message);
-            // Fallback: If partial failure isn't handled by lib, we might return error.
-            // But yahoo-finance2 quote(array) usually returns what it can or throws.
             return new Response(JSON.stringify({ error: "Batch fetch failed", details: e.message }), {
                 status: 500, headers: { 'Content-Type': 'application/json' }
             });
         }
 
+        // 4. Map Data
         const data = (Array.isArray(quoteResult) ? quoteResult : [quoteResult])
-            .map(mapStockData)
+            .map(q => mapStockData(q, market))
             .filter(item => item !== null);
-
-        // Sort: Indices first? (Optional)
-        // Only for global usually indices come first in list.
 
         if (data.length === 0) {
             return new Response(JSON.stringify({ error: "No data returned" }), {
@@ -217,6 +271,7 @@ export async function onRequest(context) {
             });
         }
 
+        // 5. Response
         return new Response(JSON.stringify(data), {
             status: 200,
             headers: {
