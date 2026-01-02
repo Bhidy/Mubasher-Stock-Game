@@ -30,48 +30,41 @@ export async function onRequest(context) {
             'defaultKeyStatistics', 'recommendationTrend'
         ];
 
-        const [quoteSummary, quote] = await Promise.all([
-            yahooFinance.quoteSummary(symbol, { modules }).catch(e => null),
-            yahooFinance.quote(symbol).catch(e => null)
-        ]);
+        // Fetch basic data only (quoteSummary causes 1101 CPU limit/crash on Workers)
+        const quote = await yahooFinance.quote(symbol).catch(e => null);
 
-        if (!quoteSummary && !quote) {
+        if (!quote) {
             return new Response(JSON.stringify({ error: 'Stock not found', symbol }), { status: 404 });
         }
 
-        // Extract and map data (Simplified robust mapping)
-        const price = quoteSummary?.price || {};
-        const summaryDetail = quoteSummary?.summaryDetail || {};
-        const summaryProfile = quoteSummary?.summaryProfile || {};
-        const financialData = quoteSummary?.financialData || {};
-        const keyStats = quoteSummary?.defaultKeyStatistics || {};
-        const recommendation = quoteSummary?.recommendationTrend?.trend || [];
+        // Extract and map data (Simplified from quote only)
+        // Note: quote() contains price, volume, marketCap, and basic ranges
 
         const stockData = {
             symbol,
-            shortName: quote?.shortName || price?.shortName || symbol,
-            longName: quote?.longName || price?.longName || symbol,
-            exchange: quote?.exchange || price?.exchange || 'Unknown',
-            currency: quote?.currency || price?.currency || 'SAR',
-            price: quote?.regularMarketPrice || price?.regularMarketPrice || 0,
-            change: quote?.regularMarketChange || price?.regularMarketChange || 0,
-            changePercent: quote?.regularMarketChangePercent || price?.regularMarketChangePercent || 0,
-            prevClose: quote?.regularMarketPreviousClose || summaryDetail?.previousClose || 0,
-            open: quote?.regularMarketOpen || summaryDetail?.open || 0,
-            high: quote?.regularMarketDayHigh || summaryDetail?.dayHigh || 0,
-            low: quote?.regularMarketDayLow || summaryDetail?.dayLow || 0,
-            volume: quote?.regularMarketVolume || summaryDetail?.volume || 0,
-            marketCap: quote?.marketCap || summaryDetail?.marketCap || 0,
-            // Add key stats as requested
-            peRatio: summaryDetail?.trailingPE || keyStats?.trailingPE || 0,
-            dividendYield: summaryDetail?.trailingAnnualDividendYield || 0,
-            fiftyTwoWeekHigh: summaryDetail?.fiftyTwoWeekHigh || 0,
-            fiftyTwoWeekLow: summaryDetail?.fiftyTwoWeekLow || 0,
-            description: summaryProfile?.longBusinessSummary || 'No description available.',
-            sector: summaryProfile?.sector || 'Unknown',
-            industry: summaryProfile?.industry || 'Unknown',
-            website: summaryProfile?.website || '',
-            employees: summaryProfile?.fullTimeEmployees || 0,
+            shortName: quote.shortName || quote.longName || symbol,
+            longName: quote.longName || quote.shortName || symbol,
+            exchange: quote.exchange || 'Unknown',
+            currency: quote.currency || 'SAR',
+            price: quote.regularMarketPrice || 0,
+            change: quote.regularMarketChange || 0,
+            changePercent: quote.regularMarketChangePercent || 0,
+            prevClose: quote.regularMarketPreviousClose || 0,
+            open: quote.regularMarketOpen || 0,
+            high: quote.regularMarketDayHigh || 0,
+            low: quote.regularMarketDayLow || 0,
+            volume: quote.regularMarketVolume || 0,
+            marketCap: quote.marketCap || 0,
+            // Fields unavailable in simple quote:
+            peRatio: quote.trailingPE || 0,
+            dividendYield: quote.trailingAnnualDividendYield || 0,
+            fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh || 0,
+            fiftyTwoWeekLow: quote.fiftyTwoWeekLow || 0,
+            description: `Real-time data for ${symbol}. Detailed profile temporarily limited for performance.`,
+            sector: 'N/A', // quote() doesn't always have sector
+            industry: 'N/A',
+            website: '',
+            employees: 0,
             lastUpdated: new Date().toISOString()
         };
 
