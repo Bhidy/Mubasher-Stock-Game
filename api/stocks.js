@@ -1,10 +1,17 @@
-import YahooFinance from 'yahoo-finance2';
+import yahooFinance from 'yahoo-finance2';
 
-// Version: 4.0.0 - Added 10 new global markets
-// Deployed: 2025-12-08
+// Version: 4.0.1 - Fixed 403 Errors
+// Deployed: 2026-01-02
 
-// Initialize Yahoo Finance (v3 requirement)
-const yahooFinance = new YahooFinance();
+// Configure for avoiding blocks
+yahooFinance.setGlobalConfig({
+    reqOptions: {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+        }
+    }
+});
 
 // === ALL MARKET STOCK LISTS ===
 

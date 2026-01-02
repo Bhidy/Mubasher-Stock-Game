@@ -1,9 +1,19 @@
-// Stock Profile API - Full Company Data from Yahoo Finance
-// Version: 2.0.1 - ES Module Format
+import yahooFinance from 'yahoo-finance2';
 
-import YahooFinance from 'yahoo-finance2';
+// Version: 2.0.2 - Fixed 403 Errors with User-Agent & Import
+// Deployed: 2026-01-02
 
-const yahooFinance = new YahooFinance();
+// Global Config for Vercel/Cloudflare to avoid 403 blocks
+yahooFinance.setGlobalConfig({
+    reqOptions: {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Upgrade-Insecure-Requests': '1'
+        }
+    }
+});
 
 // Robust Vercel Cache
 const cache = new Map();
