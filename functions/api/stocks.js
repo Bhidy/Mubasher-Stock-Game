@@ -1,17 +1,9 @@
+
 // Cloudflare Pages Function - Direct Stocks Fetching
 // Eliminates Vercel dependency which is failing deployment
 import yahooFinance from 'yahoo-finance2';
 
-// Version: CF-DIRECT-1.0
-yahooFinance.setGlobalConfig({
-    reqOptions: {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
-    }
-});
-
+// Version: CF-DIRECT-1.1 - Safety Fix
 // Reuse the robust mapping logic from the previous iteration
 // Metadata mapping for all markets
 const STOCK_META = {
@@ -122,8 +114,19 @@ export async function onRequest(context) {
     const market = url.searchParams.get('market') || 'US';
 
     try {
-        if (typeof yahooFinance.suppressNotices === 'function') {
-            yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
+        // Init config safely inside handler
+        try {
+            yahooFinance.setGlobalConfig({
+                reqOptions: {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                    }
+                }
+            });
+            if (typeof yahooFinance.suppressNotices === 'function') yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
+        } catch (confErr) {
+            console.log("Config Warning:", confErr);
         }
 
         let allTickers = MARKET_STOCKS[market] || US_STOCKS;

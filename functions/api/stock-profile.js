@@ -1,15 +1,7 @@
 // Cloudflare Pages Function - Direct Stock Profile
 import yahooFinance from 'yahoo-finance2';
 
-// Version: CF-DIRECT-PROFILE-1.0
-yahooFinance.setGlobalConfig({
-    reqOptions: {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
-        }
-    }
-});
-
+// Version: CF-DIRECT-PROFILE-1.1 - Safety Fix
 export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
@@ -18,7 +10,19 @@ export async function onRequest(context) {
     if (!symbol) return new Response(JSON.stringify({ error: 'Symbol required' }), { status: 400 });
 
     try {
-        if (typeof yahooFinance.suppressNotices === 'function') yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
+        // Init config safely inside handler
+        try {
+            yahooFinance.setGlobalConfig({
+                reqOptions: {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+                    }
+                }
+            });
+            if (typeof yahooFinance.suppressNotices === 'function') yahooFinance.suppressNotices(['yahooSurvey', 'nonsensical', 'deprecated']);
+        } catch (confErr) {
+            console.log("Config Warning:", confErr);
+        }
 
         // Fetch comprehensive data
         const modules = [
