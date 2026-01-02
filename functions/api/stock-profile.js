@@ -25,46 +25,90 @@ export async function onRequest(context) {
         }
 
         // Fetch comprehensive data
+        // Fetch comprehensive data with validation disabled for performance
+        // This avoids the Cloudflare 1101 CPU limit
         const modules = [
-            'price', 'summaryDetail', 'summaryProfile', 'financialData',
-            'defaultKeyStatistics', 'recommendationTrend'
+            'price',
+            'summaryDetail',
+            'summaryProfile',
+            'financialData',
+            'defaultKeyStatistics',
+            'earnings'
         ];
 
-        // Fetch basic data only (quoteSummary causes 1101 CPU limit/crash on Workers)
-        const quote = await yahooFinance.quote(symbol).catch(e => null);
+        const [quoteSummary, quote] = await Promise.all([
+            yahooFinance.quoteSummary(symbol, { modules, validateResult: false }).catch(e => {
+                console.error("QuoteSummary Error:", e.name, e.message);
+                return null;
+            }),
+            yahooFinance.quote(symbol, { validateResult: false }).catch(e => null)
+        ]);
 
-        if (!quote) {
+        if (!quoteSummary && !quote) {
             return new Response(JSON.stringify({ error: 'Stock not found', symbol }), { status: 404 });
         }
 
-        // Extract and map data (Simplified from quote only)
-        // Note: quote() contains price, volume, marketCap, and basic ranges
+        // Extract and map data with fallbacks
+        const price = quoteSummary?.price || {};
+        const summaryDetail = quoteSummary?.summaryDetail || {};
+        const summaryProfile = quoteSummary?.summaryProfile || {};
+        const financialData = quoteSummary?.financialData || {};
+        const keyStats = quoteSummary?.defaultKeyStatistics || {};
+        const earnings = quoteSummary?.earnings || {};
 
         const stockData = {
             symbol,
-            shortName: quote.shortName || quote.longName || symbol,
-            longName: quote.longName || quote.shortName || symbol,
-            exchange: quote.exchange || 'Unknown',
-            currency: quote.currency || 'SAR',
-            price: quote.regularMarketPrice || 0,
-            change: quote.regularMarketChange || 0,
-            changePercent: quote.regularMarketChangePercent || 0,
-            prevClose: quote.regularMarketPreviousClose || 0,
-            open: quote.regularMarketOpen || 0,
-            high: quote.regularMarketDayHigh || 0,
-            low: quote.regularMarketDayLow || 0,
-            volume: quote.regularMarketVolume || 0,
-            marketCap: quote.marketCap || 0,
-            // Fields unavailable in simple quote:
-            peRatio: quote.trailingPE || 0,
-            dividendYield: quote.trailingAnnualDividendYield || 0,
-            fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh || 0,
-            fiftyTwoWeekLow: quote.fiftyTwoWeekLow || 0,
-            description: `Real-time data for ${symbol}. Detailed profile temporarily limited for performance.`,
-            sector: 'N/A', // quote() doesn't always have sector
-            industry: 'N/A',
-            website: '',
-            employees: 0,
+            shortName: quote?.shortName || price?.shortName || symbol,
+            longName: quote?.longName || price?.longName || symbol,
+            exchange: quote?.exchange || price?.exchange || 'Unknown',
+            currency: quote?.currency || price?.currency || 'SAR',
+            price: quote?.regularMarketPrice || price?.regularMarketPrice || 0,
+            change: quote?.regularMarketChange || price?.regularMarketChange || 0,
+            changePercent: quote?.regularMarketChangePercent || price?.regularMarketChangePercent || 0,
+            prevClose: quote?.regularMarketPreviousClose || summaryDetail?.previousClose || 0,
+            open: quote?.regularMarketOpen || summaryDetail?.open || 0,
+            high: quote?.regularMarketDayHigh || summaryDetail?.dayHigh || 0,
+            low: quote?.regularMarketDayLow || summaryDetail?.dayLow || 0,
+            volume: quote?.regularMarketVolume || summaryDetail?.volume || 0,
+            marketCap: quote?.marketCap || summaryDetail?.marketCap || 0,
+
+            // Profile Data (Restored)
+            description: summaryProfile?.longBusinessSummary || 'No description available for this market.',
+            sector: summaryProfile?.sector || 'N/A',
+            industry: summaryProfile?.industry || 'N/A',
+            website: summaryProfile?.website || '',
+            employees: summaryProfile?.fullTimeEmployees || 0,
+            city: summaryProfile?.city || null,
+            country: summaryProfile?.country || null,
+
+            // Key Statistics & Ratios (Restored)
+            peRatio: summaryDetail?.trailingPE || keyStats?.trailingPE || 0,
+            forwardPE: summaryDetail?.forwardPE || keyStats?.forwardPE || 0,
+            dividendYield: summaryDetail?.trailingAnnualDividendYield || 0,
+            dividendRate: summaryDetail?.trailingAnnualDividendRate || 0,
+            fiftyTwoWeekHigh: summaryDetail?.fiftyTwoWeekHigh || quote?.fiftyTwoWeekHigh || 0,
+            fiftyTwoWeekLow: summaryDetail?.fiftyTwoWeekLow || quote?.fiftyTwoWeekLow || 0,
+            beta: summaryDetail?.beta || keyStats?.beta || 0,
+            trailingEps: keyStats?.trailingEps || 0,
+            forwardEps: keyStats?.forwardEps || 0,
+            bookValue: keyStats?.bookValue || 0,
+            priceToBook: keyStats?.priceToBook || 0,
+
+            // Financial Data (Restored)
+            totalRevenue: financialData?.totalRevenue || 0,
+            revenueGrowth: financialData?.revenueGrowth || 0,
+            grossProfits: financialData?.grossProfits || 0,
+            ebitda: financialData?.ebitda || 0,
+            netIncomeToCommon: keyStats?.netIncomeToCommon || 0,
+            operatingMargins: financialData?.operatingMargins || 0,
+            grossMargins: financialData?.grossMargins || 0,
+            profitMargins: financialData?.profitMargins || 0,
+            totalCash: financialData?.totalCash || 0,
+            totalDebt: financialData?.totalDebt || 0,
+
+            // Earnings (Restored)
+            earnings: earnings,
+
             lastUpdated: new Date().toISOString()
         };
 
