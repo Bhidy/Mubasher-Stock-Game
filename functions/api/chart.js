@@ -1,27 +1,20 @@
-// Cloudflare Pages Function - Chart Proxy
-// Proxies requests to Vercel backend
+// Cloudflare Pages Function - Proxy to Vercel (Chart)
+// Forwarding to Vercel to handle data fetching and avoid Edge runtime issues
 
 export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
-
     const symbol = url.searchParams.get('symbol');
     const range = url.searchParams.get('range') || '1d';
     const interval = url.searchParams.get('interval') || '5m';
 
-    if (!symbol) {
-        return new Response(JSON.stringify({ error: 'Symbol required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
+    // Target Robust Backend (Hetzner)
+    const BACKEND_API_URL = context.env.BACKEND_URL || 'https://stock-hero-backend.hetzner.app/api/chart';
 
     try {
-        const vercelUrl = `https://bhidy.vercel.app/api/chart?symbol=${encodeURIComponent(symbol)}&range=${range}&interval=${interval}`;
-
-        const response = await fetch(vercelUrl, {
+        const response = await fetch(`${BACKEND_API_URL}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`, {
             headers: {
-                'User-Agent': 'StocksHero-Cloudflare/1.0',
+                'User-Agent': 'Cloudflare-Worker-Proxy/1.0',
                 'Accept': 'application/json'
             }
         });
@@ -29,7 +22,7 @@ export async function onRequest(context) {
         const data = await response.json();
 
         return new Response(JSON.stringify(data), {
-            status: 200,
+            status: response.ok ? 200 : response.status,
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
@@ -38,9 +31,9 @@ export async function onRequest(context) {
         });
 
     } catch (error) {
-        console.error('Chart Proxy Error:', error);
-        return new Response(JSON.stringify([]), {
-            status: 200,
+        console.error('[Proxy-Chart] Check failed:', error);
+        return new Response(JSON.stringify({ error: error.message, location: 'Cloudflare Proxy' }), {
+            status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
     }

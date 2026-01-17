@@ -1,50 +1,88 @@
 const express = require('express');
 const router = express.Router();
-const https = require('https');
+const { pool } = require('../db');
 
-// Production Backend URL
-const PROD_API_URL = 'https://bhidy.vercel.app/api/stocks';
+// Version: DB-FIRST-V1
+// Serves data strictly from the 'stocks' table populated by the ingestion worker.
 
-// Proxy all requests to production
+// CACHE HEADERS
+const CACHE_CONTROL = 'public, max-age=60, stale-while-revalidate=120';
+
+// ROUTE: GET /api/stocks?market=US
 router.get('/', async (req, res) => {
-    const market = req.query.market || 'SA';
+    const market = req.query.market || 'US';
 
     try {
-        const response = await fetch(`${PROD_API_URL}?market=${encodeURIComponent(market)}`, {
-            headers: {
-                'User-Agent': 'StockHero-LocalProxy/1.0',
-                'Accept': 'application/json'
-            }
-        });
+        console.log(`[API] Serving stocks for market: ${market}`);
 
-        if (!response.ok) {
-            throw new Error(`Production API responded with ${response.status}`);
+        // 1. Query DB
+        const result = await pool.query(
+            `SELECT 
+                ticker as symbol, 
+                name, 
+                current_price as price, 
+                change_percent, 
+                previous_close as "prevClose",
+                volume, 
+                market_cap as "marketCap",
+                category, 
+                currency,
+                last_updated_ts as "lastUpdated"
+             FROM stocks 
+             WHERE category = $1
+             ORDER BY market_cap DESC`,
+            [market]
+        );
+
+        let data = result.rows;
+
+        // 2. Fallback if empty (e.g. if worker hasn't run yet for this market)
+        if (data.length === 0) {
+            console.warn(`[API] No data found for ${market}. Returning empty list.`);
+            // Optional: Trigger background refresh here if we had a queue system
         }
 
-        const data = await response.json();
+        // 3. Format/Transform if necessary to match frontend expectations
+        // The frontend expects keys like 'change' (absolute change).
+        // We only stored change_percent. Let's calculate 'change' if missing.
+        data = data.map(stock => {
+            const price = parseFloat(stock.price || 0);
+            const prev = parseFloat(stock.prevClose || price); // fallback to price ensures 0 change
+
+            // Re-calculate absolute change if feasible, or rely on stored?
+            // If we didn't store absolute change, we can derive it.
+            const change = price - prev;
+
+            // Country Flags Map
+            const COUNTRY_FLAGS = {
+                'SA': '🇸🇦', 'EG': '🇪🇬', 'US': '🇺🇸', 'IN': '🇮🇳', 'UK': '🇬🇧',
+                'DE': '🇩🇪', 'FR': '🇫🇷', 'JP': '🇯🇵', 'CA': '🇨🇦', 'AU': '🇦🇺',
+                'HK': '🇭🇰', 'CH': '🇨🇭', 'NL': '🇳🇱', 'ES': '🇪🇸', 'IT': '🇮🇹',
+                'BR': '🇧🇷', 'MX': '🇲🇽', 'KR': '🇰🇷', 'TW': '🇹🇼', 'SG': '🇸🇬',
+                'AE': '🇦🇪', 'ZA': '🇿🇦', 'QA': '🇶🇦'
+            };
+
+            return {
+                ...stock,
+                change: parseFloat(change.toFixed(2)),
+                country: COUNTRY_FLAGS[market] || '🌍',
+                // Frontend often handles formatting, but let's ensure numbers
+                price: price,
+                changePercent: parseFloat(stock.change_percent || 0),
+                volume: parseInt(stock.volume || 0),
+                marketCap: parseInt(stock.marketCap || 0)
+            };
+        });
+
+        // 4. Response
+        res.setHeader('Cache-Control', CACHE_CONTROL);
+        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(data);
+
     } catch (error) {
-        console.error('Stocks Proxy Error:', error.message);
-        // Fallback to empty array to prevent frontend crash
-        res.json([]);
+        console.error('DB Stocks Error:', error.message);
+        res.status(500).json({ error: 'Failed to retrieve stock data', details: error.message });
     }
-});
-
-// Proxy single stock details if needed (optional, keeping it simple for now)
-router.get('/:ticker', async (req, res) => {
-    // For specific ticker, we might not have a direct proxy endpoint in the list above
-    // But usually frontend calls /api/stocks for the list.
-    // If specific details are needed, we can implement similar proxying.
-    // For now, let's keep the DB fallback or just return 404 if not found in list.
-    // Actually, usually the frontend filters the list. 
-    // Let's implement a simple filter on the proxy result if possible, 
-    // or just forward if there's an endpoint.
-    // Reverting to Database for single ticker might be safer if production doesn't expose it publically same way.
-    // But the user wants "Same as production".
-    // Production likely uses the same /api/stocks endpoint or a specific one.
-    // Let's stick to the plan: Proxy the main list which is the issue (Watchlist).
-
-    res.status(404).json({ error: 'Individual stock proxy not implemented, use main list' });
 });
 
 module.exports = router;

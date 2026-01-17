@@ -1,108 +1,129 @@
 const express = require('express');
 const router = express.Router();
-// Fix: Correct instantiation
+const { pool } = require('../db');
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance();
 
-// Yahoo Finance Chart API Proxy (Using yahoo-finance2 library)
-// Solves 429 Rate Limits by handling Cookies/Crumbs automatically
-// Maps 'range' to 'period1' to satisfy strict library validation
-
+// ROUTE: GET /api/chart?symbol=AAPL&range=1d&interval=5m
 router.get('/', async (req, res) => {
     try {
         const { symbol, range = '1d' } = req.query;
+        let { interval } = req.query;
 
         if (!symbol) {
             return res.status(400).json({ error: 'Symbol is required' });
         }
 
-        // 1. Map Range to Interval AND Period1
-        let interval = '2m';
-        const now = Date.now();
-        let period1 = new Date(now - 86400000); // Default 1d
-
-        const rangeLower = range.toLowerCase();
-
-        // Helper to subtract days
-        const days = (n) => n * 24 * 60 * 60 * 1000;
-
-        switch (rangeLower) {
-            case '1d':
-                interval = '2m';
-                period1 = new Date(now - days(2)); // Go back 2 days to ensure full trading day coverage (Yahoo filters automatically)
-                // Actually 24h is usually enough, but weekend safety suggests 2-3 days or verify trading days.
-                // Let's stick to simple days math first.
-                period1 = new Date(now - days(1));
-                break;
-            case '5d':
-                interval = '15m'; // 15m is good for 5d
-                period1 = new Date(now - days(5));
-                break;
-            case '1m':
-            case '1mo':
-                interval = '60m'; // 60m is standard for 1mo
-                period1 = new Date(now - days(30));
-                break;
-            case '6m':
-            case '6mo':
-                interval = '1d';
-                period1 = new Date(now - days(180));
-                break;
-            case 'ytd':
-                interval = '1d';
-                period1 = new Date(new Date().getFullYear(), 0, 1); // Jan 1st
-                break;
-            case '1y':
-                interval = '1d';
-                period1 = new Date(now - days(365));
-                break;
-            case '5y':
-                interval = '1wk';
-                period1 = new Date(now - days(365 * 5));
-                break;
-            case 'max':
-                interval = '1mo';
-                period1 = new Date(0); // 1970
-                break;
-            default:
-                interval = '1d';
-                period1 = new Date(now - days(1));
+        // Default constraints (matches frontend logic)
+        if (!interval) {
+            if (range === '1d') interval = '2m';
+            else if (range === '5d') interval = '15m';
+            else if (range.includes('mo')) interval = '60m';
+            else interval = '1d';
         }
 
-        console.log(`[Chart] Fetching ${symbol} period1=${period1.toISOString()} interval=${interval} via yahoo-finance2`);
+        console.log(`[Chart] Request for ${symbol} range=${range} interval=${interval}`);
 
-        // 2. Fetch using Library
-        // MUST NOT pass 'range'. MUST pass 'period1'.
-        const queryOptions = {
-            period1: period1,
-            interval: interval,
-            includePrePost: false
-            // period2 defaults to now
-        };
+        // 1. Check DB Cache
+        const cacheKey = [symbol, range, interval];
+        const cacheRes = await pool.query(
+            'SELECT * FROM chart_cache WHERE symbol = $1 AND range = $2 AND interval = $3',
+            cacheKey
+        );
+        const cached = cacheRes.rows[0];
 
-        const result = await yahooFinance.chart(symbol, queryOptions);
+        // Cache Rules
+        // Intraday (1d, 5d): 15 mins cache
+        // History: 24 hours cache
+        const isIntraday = range === '1d' || range === '5d';
+        const TTL = isIntraday ? 15 * 60 * 1000 : 24 * 60 * 60 * 1000;
 
-        if (!result || !result.quotes || result.quotes.length === 0) {
-            console.log(`[Chart] No data found for ${symbol}`);
-            return res.json({ quotes: [] });
+        const isFresh = cached && (new Date() - new Date(cached.updated_at) < TTL);
+        console.log(`[Chart] Cached Row:`, cached ? 'FOUND' : 'NULL');
+        if (cached) console.log(`[Chart] Freshness: ${new Date() - new Date(cached.updated_at)}ms / ${TTL}ms`);
+
+
+        if (isFresh) {
+            console.log(`[Chart] Returning Cached for ${symbol} (${range})`);
+            res.setHeader('X-Cache', 'HIT');
+            return res.json(cached.data);
         }
 
-        // 3. Transform Data
-        const quotes = result.quotes.map(q => ({
-            date: q.date.toISOString(),
-            open: q.open,
-            high: q.high,
-            low: q.low,
-            close: q.close,
-            volume: q.volume,
-            price: q.close
-        }));
+        console.log(`[Chart] Cache miss/stale for ${symbol}. Fetching live...`);
 
-        res.json({
-            symbol: result.meta.symbol,
-            currency: result.meta.currency,
-            quotes: quotes
-        });
+        try {
+            // 2. Map Range to Yahoo Period
+            const now = Date.now();
+            let period1;
+            const days = (n) => n * 86400000;
+
+            switch (range.toLowerCase()) {
+                case '1d': period1 = new Date(now - days(2)); break; // 2 days for safe buffer
+                case '5d': period1 = new Date(now - days(7)); break;
+                case '1m': case '1mo': period1 = new Date(now - days(32)); break;
+                case '6m': case '6mo': period1 = new Date(now - days(185)); break;
+                case 'ytd': period1 = new Date(new Date().getFullYear(), 0, 1); break;
+                case '1y': period1 = new Date(now - days(365)); break;
+                case '5y': period1 = new Date(now - days(365 * 5)); break;
+                case 'max': period1 = new Date(0); break;
+                default: period1 = new Date(now - days(2));
+            }
+
+            const queryOptions = {
+                period1: period1,
+                interval: interval,
+                includePrePost: false
+            };
+
+            const result = await yahooFinance.chart(symbol, queryOptions);
+
+            if (!result || !result.quotes || result.quotes.length === 0) {
+                // Try fallback or throw
+                if (cached) throw new Error('Empty result from Yahoo');
+                return res.json({ quotes: [] });
+            }
+
+            // 3. Transform
+            const quotes = result.quotes.map(q => ({
+                date: q.date.toISOString(),
+                open: q.open,
+                high: q.high,
+                low: q.low,
+                close: q.close,
+                volume: q.volume,
+                price: q.close
+            }));
+
+            const finalData = {
+                symbol: result.meta.symbol,
+                currency: result.meta.currency,
+                quotes: quotes
+            };
+
+            // 4. Upsert Cache
+            await pool.query(
+                `INSERT INTO chart_cache (symbol, range, interval, data, updated_at)
+                 VALUES ($1, $2, $3, $4, NOW())
+                 ON CONFLICT (symbol, range, interval) 
+                 DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
+                [symbol, range, interval, finalData]
+            );
+
+            res.setHeader('X-Cache', 'MISS');
+            res.json(finalData);
+
+        } catch (yahooErr) {
+            console.error(`[Chart] Yahoo Error: ${yahooErr.message}`);
+
+            // 5. Fallback Stale
+            if (cached) {
+                console.warn(`[Chart] Returning STALE for ${symbol}`);
+                res.setHeader('X-Cache', 'STALE');
+                return res.json({ ...cached.data, _stale: true });
+            }
+
+            throw yahooErr;
+        }
 
     } catch (error) {
         console.error('[Chart] Library Error:', error.message);
