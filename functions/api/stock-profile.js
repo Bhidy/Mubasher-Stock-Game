@@ -6,11 +6,11 @@ export async function onRequest(context) {
     const url = new URL(request.url);
     const symbol = url.searchParams.get('symbol');
 
-    // Target Vercel Backend
-    const VERCEL_API_URL = 'https://bhidy.vercel.app/api/stock-profile';
+    // Target Robust Backend (Hetzner)
+    const BACKEND_API_URL = context.env.BACKEND_URL || 'https://stock-hero-backend.hetzner.app/api/stock-profile';
 
     try {
-        const response = await fetch(`${VERCEL_API_URL}?symbol=${encodeURIComponent(symbol)}`, {
+        const response = await fetch(`${BACKEND_API_URL}?symbol=${encodeURIComponent(symbol)}`, {
             headers: {
                 'User-Agent': 'Cloudflare-Worker-Proxy/1.0',
                 'Accept': 'application/json'
