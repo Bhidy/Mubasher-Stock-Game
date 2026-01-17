@@ -6,8 +6,8 @@ export async function onRequest(context) {
     const url = new URL(request.url);
     const symbol = url.searchParams.get('symbol');
 
-    // Target Robust Backend (Hetzner)
-    const BACKEND_API_URL = context.env.BACKEND_URL || 'https://stock-hero-backend.hetzner.app/api/stock-profile';
+    // Target Robust Backend (Hetzner) - Port 80 (HTTP)
+    const BACKEND_API_URL = context.env.BACKEND_URL || 'http://stock-hero-backend.hetzner.app/api/stock-profile';
 
     try {
         const response = await fetch(`${BACKEND_API_URL}?symbol=${encodeURIComponent(symbol)}`, {

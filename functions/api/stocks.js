@@ -7,9 +7,8 @@ export async function onRequest(context) {
     const url = new URL(request.url);
     const market = url.searchParams.get('market') || 'US';
 
-    // Target Robust Backend (Hetzner)
-    // TODO: Ensure 'BACKEND_URL' env var is set in Cloudflare Pages settings
-    const BACKEND_API_URL = context.env.BACKEND_URL || 'https://stock-hero-backend.hetzner.app/api/stocks';
+    // Target Robust Backend (Hetzner) - Port 80 (HTTP)
+    const BACKEND_API_URL = context.env.BACKEND_URL || 'http://stock-hero-backend.hetzner.app/api/stocks';
 
     try {
         console.log(`[Proxy] Forwarding ${market} request to Backend...`);

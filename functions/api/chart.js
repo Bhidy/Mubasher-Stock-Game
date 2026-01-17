@@ -8,8 +8,8 @@ export async function onRequest(context) {
     const range = url.searchParams.get('range') || '1d';
     const interval = url.searchParams.get('interval') || '5m';
 
-    // Target Robust Backend (Hetzner)
-    const BACKEND_API_URL = context.env.BACKEND_URL || 'https://stock-hero-backend.hetzner.app/api/chart';
+    // Target Robust Backend (Hetzner) - Port 80 (HTTP)
+    const BACKEND_API_URL = context.env.BACKEND_URL || 'http://stock-hero-backend.hetzner.app/api/chart';
 
     try {
         const response = await fetch(`${BACKEND_API_URL}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`, {
