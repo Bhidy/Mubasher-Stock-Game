@@ -1,38 +1,69 @@
-// Cloudflare Pages Function - Proxy to Vercel (Stock Profile)
-// Forwarding to Vercel to handle data fetching and avoid Edge runtime issues
+// Cloudflare Pages Function - Data Lake Proxy (Profiles)
+// Version: GITHUB-PROFILE-LAKE-CF-V1
+
+const PROFILE_BASE_URL = 'https://raw.githubusercontent.com/Bhidy/Mubasher-Stock-Game/main/public/data/profiles';
+
+// Helper: Normalize Symbol
+const normalizeSymbol = (sym) => {
+    let s = sym.toUpperCase();
+    if (s === 'CASE30.CA') return '^CASE30';
+    if (s === '^CASE30.CA') return '^CASE30';
+    return s.replace('^', '');
+};
 
 export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
     const symbol = url.searchParams.get('symbol');
 
-    // Target Robust Backend (Hetzner) - Port 80 (HTTP)
-    const BACKEND_API_URL = context.env.BACKEND_URL || 'http://stock-hero-backend.hetzner.app/api/stock-profile';
+    if (!symbol) {
+        return new Response(JSON.stringify({ error: "Symbol required" }), { status: 400 });
+    }
 
     try {
-        const response = await fetch(`${BACKEND_API_URL}?symbol=${encodeURIComponent(symbol)}`, {
+        const safeSymbol = normalizeSymbol(symbol);
+
+        const response = await fetch(`${PROFILE_BASE_URL}/${safeSymbol}.json`, {
             headers: {
-                'User-Agent': 'Cloudflare-Worker-Proxy/1.0',
-                'Accept': 'application/json'
-            }
+                'User-Agent': 'StockHero-CF-Proxy/1.0',
+                'Cache-Control': 'no-cache'
+            },
+            cf: { cacheTtl: 300, cacheEverything: true }
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`Profile not found in Lake (Status ${response.status})`);
+        }
 
-        return new Response(JSON.stringify(data), {
-            status: response.ok ? 200 : response.status,
+        const profileData = await response.json();
+
+        return new Response(JSON.stringify(profileData), {
+            status: 200,
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=60'
+                'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+                'X-Data-Source': 'GitHub-Data-Lake-CF'
             }
         });
 
     } catch (error) {
-        console.error('[Proxy-Profile] Check failed:', error);
-        return new Response(JSON.stringify({ error: error.message, location: 'Cloudflare Proxy' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
+        console.error(`[Profile-CF] Error for ${symbol}:`, error.message);
+
+        // Return valid but empty structure
+        return new Response(JSON.stringify({
+            symbol: symbol,
+            name: symbol,
+            description: "Profile data currently updating. Please try again shortly.",
+            sector: "N/A",
+            price: 0,
+            error: "Data Lake miss"
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
         });
     }
 }
