@@ -1,9 +1,14 @@
 import yfinance as yf
+try:
+    import psycopg2
+    from psycopg2.extras import execute_values
+except ImportError:
+    psycopg2 = None
 import json
 import time
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 import pandas as pd
 import numpy as np
 
@@ -41,15 +46,15 @@ CANADA_STOCKS = ['^GSPTSE', 'RY.TO', 'TD.TO', 'SHOP.TO', 'ENB.TO', 'CNR.TO', 'CP
 AUSTRALIA_STOCKS = ['^AXJO', 'BHP.AX', 'CBA.AX', 'CSL.AX', 'NAB.AX', 'WBC.AX', 'ANZ.AX', 'FMG.AX', 'WDS.AX', 'TLS.AX']
 HK_STOCKS = ['^HSI', '0700.HK', '9988.HK', '0939.HK', '1299.HK', '0941.HK', '3690.HK', '0005.HK', '0388.HK']
 SWISS_STOCKS = ['^SSMI', 'NESN.SW', 'ROG.SW', 'NOVN.SW', 'UBSG.SW', 'ABBN.SW', 'CFR.SW', 'ZURN.SW', 'LONN.SW']
-NETHERLANDS_STOCKS = ['^AEX', 'ASML.AS', 'UNA.AS', 'SHELL.AS', 'HEIA.AS', 'INGA.AS', 'PHIA.AS', 'ADYEN.AS', 'DSM.AS']
+NETHERLANDS_STOCKS = ['^AEX', 'ASML.AS', 'UNA.AS', 'SHELL.AS', 'HEIA.AS', 'INGA.AS', 'PHIA.AS', 'ADYEN.AS', 'DSFIR.AS']
 SPAIN_STOCKS = ['^IBEX', 'ITX.MC', 'IBE.MC', 'BBVA.MC', 'SAN.MC', 'AMS.MC', 'TEF.MC', 'REP.MC', 'CLNX.MC']
 ITALY_STOCKS = ['FTSEMIB.MI', 'ENEL.MI', 'ISP.MI', 'STLAM.MI', 'ENI.MI', 'UCG.MI', 'RACE.MI', 'G.MI', 'MB.MI']
 BRAZIL_STOCKS = ['^BVSP', 'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBDC4.SA', 'PETR3.SA', 'ABEV3.SA', 'WEGE3.SA', 'BBAS3.SA']
-MEXICO_STOCKS = ['^MXX', 'WALMEX.MX', 'AMXL.MX', 'FEMSAUBD.MX', 'GMEXICOB.MX', 'BIMBOA.MX', 'CEMEXCPO.MX', 'TLEVISACPO.MX']
+MEXICO_STOCKS = ['^MXX', 'WALMEX.MX', 'AMX.MX', 'FEMSAUBD.MX', 'GMEXICOB.MX', 'BIMBOA.MX', 'CEMEXCPO.MX', 'TLEVISACPO.MX']
 KOREA_STOCKS = ['^KS11', '005930.KS', '000660.KS', '005380.KS', '207940.KS', '051910.KS', '005490.KS']
 TAIWAN_STOCKS = ['^TWII', '2330.TW', '2317.TW', '2454.TW', '2308.TW', '2382.TW', '2881.TW']
 SINGAPORE_STOCKS = ['^STI', 'D05.SI', 'O39.SI', 'U11.SI', 'Z74.SI', 'C52.SI']
-UAE_STOCKS = ['EMAAR.AE', 'FAB.AD', 'ETISALAT.AD', 'ALDAR.AD', 'DIB.AE', 'ENBD.AE', 'TAQA.AD']
+UAE_STOCKS = ['EMAAR.AE', 'FAB.AD', 'ETISALAT.AD', 'ALDAR.AE', 'DIB.AE', 'EMIRATESNBD.AE', 'TAQA.AD']
 SOUTH_AFRICA_STOCKS = ['JSE.JO', 'NPN.JO', 'FSR.JO', 'SBK.JO', 'ABG.JO', 'SOL.JO', 'MTN.JO']
 QATAR_STOCKS = ['QNBK.QA', 'IQCD.QA', 'QIBK.QA', 'CBQK.QA', 'MARK.QA']
 
@@ -222,7 +227,7 @@ def save_profile_data(symbol, info, quote_data=None):
             "targetHighPrice": info.get('targetHighPrice'),
             "recommendationTrend": info.get('recommendationTrend'), # This is usually a list of dicts
 
-            "lastUpdated": datetime.utcnow().isoformat() + "Z"
+            "lastUpdated": datetime.now(timezone.utc).isoformat() + "Z"
         }
         
         profile_dir = "public/data/profiles"
@@ -264,15 +269,25 @@ def fetch_market_data(market_code, tickers):
                             df = data_batch
                     except KeyError:
                         # print(f"KeyError for {symbol}")
-                        continue 
-                    # print(f"DEBUG: Symbol {symbol} extracted DF Shape: {df.shape}")
+                        df = pd.DataFrame() # Trigger fallback
+
+                    # FALLBACK Mechanism for Failed Batch Downloads
+                    if df.empty:
+                        try:
+                            # print(f"⚠️ Batch failed for {symbol}, attempting individual fetch...")
+                            fallback = yf.Ticker(symbol).history(period="1y", interval="1d")
+                            if not fallback.empty:
+                                df = fallback
+                                # print(f"✅ Fallback recovered data for {symbol}")
+                        except Exception:
+                            pass
+                    
                     if df.empty: continue
                     
                     latest = df.iloc[-1]
                     prev = df.iloc[-2] if len(df) > 1 else latest
                     
                     clean_symbol = symbol
-                    if symbol == 'CASE30.CA': clean_symbol = '^CASE30'
                     
                     # PROFILE & META
                     # Note: accessing .info triggers a request per ticker. 
@@ -316,7 +331,7 @@ def fetch_market_data(market_code, tickers):
                         "peRatio": info.get('trailingPE') or info.get('forwardPE'), 
                         "dividendYield": info.get('dividendYield'),
                         
-                        "lastUpdated": datetime.utcnow().isoformat() + "Z"
+                        "lastUpdated": datetime.now(timezone.utc).isoformat() + "Z"
                     }
                     
                     market_results.append(stock_data)
@@ -332,6 +347,77 @@ def fetch_market_data(market_code, tickers):
             print(f"Batch Error: {e}")
 
     return market_results
+
+def sync_to_db(all_data):
+    """Syncs the collected JSON data to the Postgres Database if configured."""
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url or not psycopg2:
+        print("⚠️  Skipping DB Sync (Missing DATABASE_URL or psycopg2)")
+        return
+
+    print("🔌 Connecting to Database for Sync...")
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
+        
+        # Flatten data for batch insert
+        print("📦 Preparing batch upsert...", end="")
+        records = []
+        for market, stocks in all_data.items():
+            if market == 'Global': continue # Duplicate of US often
+            for s in stocks:
+                # Map fields to DB - Ensure robustness for missing keys
+                records.append((
+                    s.get('symbol'),
+                    s.get('name'),
+                    s.get('price', 0),
+                    s.get('changePercent', 0),
+                    s.get('volume', 0),
+                    s.get('marketCap', 0),
+                    s.get('peRatio', 0),
+                    s.get('dividendYield', 0),
+                    s.get('fiftyTwoWeekHigh', 0),
+                    s.get('fiftyTwoWeekLow', 0),
+                    s.get('previousClose', 0),
+                    s.get('currency', 'USD'),
+                    s.get('country', '🌍'),
+                    s.get('sector', 'General'),
+                    s.get('category', market),
+                    datetime.now(timezone.utc)
+                ))
+        
+        print(f" {len(records)} records.")
+
+        query = """
+            INSERT INTO stocks (
+                ticker, name, current_price, change_percent, volume, 
+                market_cap, pe_ratio, dividend_yield, fifty_two_week_high, 
+                fifty_two_week_low, previous_close, currency, country, sector, category, last_updated_ts
+            ) VALUES %s
+            ON CONFLICT (ticker) DO UPDATE SET
+                current_price = EXCLUDED.current_price,
+                change_percent = EXCLUDED.change_percent,
+                volume = EXCLUDED.volume,
+                market_cap = EXCLUDED.market_cap,
+                pe_ratio = EXCLUDED.pe_ratio,
+                dividend_yield = EXCLUDED.dividend_yield,
+                fifty_two_week_high = EXCLUDED.fifty_two_week_high,
+                fifty_two_week_low = EXCLUDED.fifty_two_week_low,
+                previous_close = EXCLUDED.previous_close,
+                last_updated_ts = EXCLUDED.last_updated_ts,
+                name = EXCLUDED.name, -- Update metadata too if changed
+                country = EXCLUDED.country,
+                sector = EXCLUDED.sector
+        """
+        
+        execute_values(cur, query, records)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print(f"✅ Database Sync Complete: Updated {len(records)} stocks.")
+        
+    except Exception as e:
+        print(f"❌ Database Sync Failed: {e}")
 
 def main():
     print("🚀 Starting Data & Chart & Profile Pump...")
@@ -351,6 +437,9 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     with open(os.path.join(output_dir, "stocks.json"), "w", encoding='utf-8') as f:
         json.dump(all_data, f, indent=None, ensure_ascii=False)
+    
+    # --- NEW DB SYNC STEP ---
+    sync_to_db(all_data)
         
     print(f"\n🎉 PUMP COMPLETE in {time.time() - start_time:.2f}s")
 

@@ -22,9 +22,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install yfinance pandas numpy
+          pip install yfinance pandas numpy psycopg2-binary
 
       - name: Run Data Ingestion
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           python backend/ingest_master.py
 
