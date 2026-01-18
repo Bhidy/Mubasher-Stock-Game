@@ -36,10 +36,24 @@ router.get('/', async (req, res) => {
 
         let data = result.rows;
 
-        // 2. Fallback if empty (e.g. if worker hasn't run yet for this market)
+        // 2. Fallback / Stale Data Handling
+        // The app MUST NOT CRASH if ingestion fails. We serve what we have.
         if (data.length === 0) {
             console.warn(`[API] No data found for ${market}. Returning empty list.`);
-            // Optional: Trigger background refresh here if we had a queue system
+            // In a real disaster scenario, we could return a static backup JSON here.
+        }
+
+        // Check freshness of data
+        const now = new Date();
+        const staleThreshold = 15 * 60 * 1000; // 15 minutes
+        let isStale = false;
+
+        if (data.length > 0 && data[0].lastUpdated) {
+            const lastUpdate = new Date(data[0].lastUpdated);
+            if (now - lastUpdate > staleThreshold) {
+                console.warn(`[WARN] Data for ${market} is stale (older than 15m). Serving anyway to prevent crash.`);
+                isStale = true;
+            }
         }
 
         // 3. Format/Transform if necessary to match frontend expectations

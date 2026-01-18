@@ -140,6 +140,7 @@ const formatPercent = (val) => {
 
 const formatPrice = (val) => {
     if (val === null || val === undefined) return 'N/A';
+    if (val === 'N/A') return 'N/A';
     const num = parseFloat(val);
     if (isNaN(num)) return 'N/A';
     return num.toFixed(2);
@@ -503,6 +504,7 @@ export default function AdminCompanyProfile() {
                 setLastUpdate(new Date());
             } else {
                 setStockData(null);
+                console.error('Stock fetch failed:', res.status, res.statusText);
             }
         } catch (e) {
             console.error('Error fetching stock data:', e);

@@ -9,10 +9,9 @@ const PROD_URL = 'https://bhidy-app.pages.dev';
  * - On Web (Browser): Returns empty string (relative path) to avoid CORS issues.
  */
 export const getApiBaseUrl = () => {
-    if (Capacitor.isNativePlatform()) {
-        return PROD_URL;
-    }
-    return ''; // Relative path for web
+    // Always use production URL to avoid relative path confusion
+    // This ensures web and mobile both hit the Cloudflare worker
+    return PROD_URL;
 };
 
 /**

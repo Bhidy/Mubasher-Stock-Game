@@ -2,23 +2,37 @@ const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
 const YahooFinancePkg = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinancePkg({ suppressNotices: ['yahooSurvey'] });
+// Attempt to bypass simple User-Agent blocks
+const yahooFinance = new YahooFinancePkg({
+    suppressNotices: ['yahooSurvey'],
+    // yahoo-finance2 might not support headers directly in constructor in all versions, 
+    // but we can try common patterns or rely on its internal randomness if available.
+    // Actually, let's use standard node request options if exposed, but yahoo-finance2 abstracts this.
+    // We will proceed with suppressed notices and standard retry.
+});
+// Note: yahoo-finance2 uses 'node-fetch' or similar internally. 
+// A better way might be to just retry with slower intervals as we already do.
+// Let's rely on the rate limit handling we already built.
+
 
 // Helper: Robust Retry with Exponential Backoff
 async function fetchWithRetry(symbol, retries = 3) {
+    let lastError;
     for (let i = 0; i < retries; i++) {
         try {
             return await yahooFinance.quote(symbol);
         } catch (err) {
-            if (err.message.includes('429') || err.message.includes('network')) {
-                console.warn(`⚠️ Rate Limit (429) for ${symbol}. Retrying in ${Math.pow(2, i + 1)}s...`);
+            lastError = err;
+            console.warn(`⚠️ Attempt ${i + 1}/${retries} failed for ${symbol}: ${err.message}`);
+            if (err.message.includes('429') || err.message.includes('network') || err.message.includes('ETIMEDOUT')) {
+                console.warn(`⚠️ Rate Limit/Network Error for ${symbol}. Retrying in ${Math.pow(2, i + 1)}s...`);
                 await new Promise(r => setTimeout(r, Math.pow(2, i + 1) * 1000 + Math.random() * 1000));
             } else {
                 throw err; // Throw non-retriable errors immediately
             }
         }
     }
-    throw new Error(`Failed to fetch ${symbol} after ${retries} retries.`);
+    throw new Error(`Failed to fetch ${symbol} after ${retries} retries. Last Error: ${lastError?.message}`);
 }
 
 // Database Connection
@@ -101,7 +115,7 @@ router.post('/', async (req, res) => {
                     }
                 } catch (err) {
                     console.error(`❌ Failed ${symbol}:`, err.message);
-                    errors.push(symbol);
+                    errors.push({ symbol, error: err.message });
                 }
             }));
 
@@ -113,7 +127,8 @@ router.post('/', async (req, res) => {
         res.json({
             status: 'Success',
             updated: updates.length,
-            errors: errors.length,
+            errorsCount: errors.length,
+            errors: errors.slice(0, 10), // Return first 10 errors for debugging
             sample: updates.slice(0, 5)
         });
 

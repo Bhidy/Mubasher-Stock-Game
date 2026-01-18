@@ -87,9 +87,10 @@ export function PriceProvider({ children }) {
                         value.forEach(stock => {
                             priceMap[stock.symbol] = {
                                 ...stock,
-                                price: stock.regularMarketPrice || stock.price,
-                                change: stock.regularMarketChange || stock.change,
-                                changePercent: stock.regularMarketChangePercent || stock.changePercent || 0,
+                                price: stock.price || stock.regularMarketPrice,
+                                change: stock.change || stock.regularMarketChange,
+                                changePercent: stock.changePercent || stock.regularMarketChangePercent || 0,
+                                prevClose: stock.prevClose || stock.regularMarketPreviousClose,
                                 name: stock.name,
                                 lastUpdated: stock.lastUpdated
                             };

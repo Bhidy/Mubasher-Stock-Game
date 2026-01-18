@@ -1,0 +1,38 @@
+name: Data Pump (Global Stocks)
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Run every 10 minutes
+  workflow_dispatch:        # Allow manual trigger
+
+jobs:
+  pump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install yfinance
+
+      - name: Run Data Ingestion
+        run: |
+          python backend/ingest_master.py
+
+      - name: Commit and Push Data
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add public/data/stocks.json
+          git commit -m "📈 Data Pump: Updated stock prices [skip ci]" || echo "No changes to commit"
+          git push
