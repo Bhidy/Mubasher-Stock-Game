@@ -1,5 +1,5 @@
 // Cloudflare Pages Function - Data Lake Proxy (Legacy Yahoo Fallback)
-// Version: GITHUB-LAKE-FALLBACK-V1
+// Version: GITHUB-DATA-LAKE-CF-V1 (Forced Update 2026-01-18)ALLBACK-V1
 
 const PROFILE_BASE_URL = 'https://raw.githubusercontent.com/Bhidy/Mubasher-Stock-Game/main/public/data/profiles';
 

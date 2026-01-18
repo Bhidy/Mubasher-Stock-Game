@@ -1,5 +1,5 @@
 // Cloudflare Pages Function - Data Lake Proxy (Stocks)
-// Version: GITHUB-DATA-LAKE-CF-V1
+// Version: GITHUB-DATA-LAKE-CF-V1 (Forced Update 2026-01-18)
 // Sourcing from Static GitHub Assets to prevent 429 blocking
 
 const STATIC_DATA_URL = 'https://raw.githubusercontent.com/Bhidy/Mubasher-Stock-Game/main/public/data/stocks.json';

@@ -1,5 +1,5 @@
 // Cloudflare Pages Function - Data Lake Proxy (Charts)
-// Version: GITHUB-CHART-LAKE-CF-V1
+// Version: GITHUB-DATA-LAKE-CF-V1 (Forced Update 2026-01-18)
 
 const CHART_BASE_URL = 'https://raw.githubusercontent.com/Bhidy/Mubasher-Stock-Game/main/public/data/charts';
 
