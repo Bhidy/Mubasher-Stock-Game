@@ -348,6 +348,20 @@ def fetch_market_data(market_code, tickers):
 
     return market_results
 
+import numpy as np
+
+def sanitize_for_db(val):
+    """Converts numpy types to native python types and handles NaN."""
+    if val is None:
+        return None
+    if isinstance(val, (float, np.float64, np.float32)):
+        if np.isnan(val) or np.isinf(val):
+            return 0.0
+        return float(val)
+    if isinstance(val, (int, np.int64, np.int32)):
+        return int(val)
+    return val
+
 def sync_to_db(all_data):
     """Syncs the collected JSON data to the Postgres Database if configured."""
     db_url = os.environ.get('DATABASE_URL')
@@ -367,24 +381,28 @@ def sync_to_db(all_data):
             if market == 'Global': continue # Duplicate of US often
             for s in stocks:
                 # Map fields to DB - Ensure robustness for missing keys
-                records.append((
-                    s.get('symbol'),
-                    s.get('name'),
-                    s.get('price', 0),
-                    s.get('changePercent', 0),
-                    s.get('volume', 0),
-                    s.get('marketCap', 0),
-                    s.get('peRatio', 0),
-                    s.get('dividendYield', 0),
-                    s.get('fiftyTwoWeekHigh', 0),
-                    s.get('fiftyTwoWeekLow', 0),
-                    s.get('previousClose', 0),
-                    s.get('currency', 'USD'),
-                    s.get('country', '🌍'),
-                    s.get('sector', 'General'),
-                    s.get('category', market),
-                    datetime.now(timezone.utc)
-                ))
+                try:
+                    records.append((
+                        s.get('symbol'),
+                        s.get('name'),
+                        sanitize_for_db(s.get('price', 0)),
+                        sanitize_for_db(s.get('changePercent', 0)),
+                        sanitize_for_db(s.get('volume', 0)),
+                        sanitize_for_db(s.get('marketCap', 0)),
+                        sanitize_for_db(s.get('peRatio', 0)),
+                        sanitize_for_db(s.get('dividendYield', 0)),
+                        sanitize_for_db(s.get('fiftyTwoWeekHigh', 0)),
+                        sanitize_for_db(s.get('fiftyTwoWeekLow', 0)),
+                        sanitize_for_db(s.get('previousClose', 0)),
+                        s.get('currency', 'USD'),
+                        s.get('country', '🌍'),
+                        s.get('sector', 'General'),
+                        s.get('category', market),
+                        datetime.now(timezone.utc)
+                    ))
+                except Exception as row_err:
+                    print(f"⚠️ Skipping row {s.get('symbol')}: {row_err}")
+                    continue
         
         print(f" {len(records)} records.")
 
