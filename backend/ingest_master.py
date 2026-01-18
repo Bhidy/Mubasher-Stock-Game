@@ -98,14 +98,23 @@ def save_chart_data(symbol, prices_df):
         for index, row in prices_df.iterrows():
             chart_data.append({
                 "date": index.strftime('%Y-%m-%d'),
-                "price": row['Close'] if not pd.isna(row['Close']) else 0
+                "price": row['Close'] if not pd.isna(row['Close']) else 0,
+                # Add open/high/low/volume for potential candlestick charts later
+                "open": row['Open'] if not pd.isna(row['Open']) else 0,
+                "high": row['High'] if not pd.isna(row['High']) else 0,
+                "low": row['Low'] if not pd.isna(row['Low']) else 0,
+                "volume": int(row['Volume']) if not pd.isna(row['Volume']) else 0
             })
         
         chart_dir = "public/data/charts"
         os.makedirs(chart_dir, exist_ok=True)
         safe_symbol = symbol.replace('^', '')
+        
+        # WRAP IN "quotes" KEY TO MATCH FRONTEND EXPECTATION
+        output = {"quotes": clean_data(chart_data)}
+        
         with open(f"{chart_dir}/{safe_symbol}.json", "w") as f:
-            json.dump(clean_data(chart_data), f)
+            json.dump(output, f)
     except Exception as e:
         # print(f"⚠️ Failed to save chart for {symbol}: {e}")
         pass
@@ -127,6 +136,7 @@ def save_profile_data(symbol, info, quote_data=None):
             "city": info.get('city'),
             "country": info.get('country'),
             "currency": info.get('currency') or 'USD',
+            "exchange": info.get('exchange'),
             
             # Live Quote Data (Injected)
             "price": quote_data.get('price'),
@@ -136,32 +146,82 @@ def save_profile_data(symbol, info, quote_data=None):
             "dayHigh": quote_data.get('dayHigh'),
             "volume": quote_data.get('volume'),
             "open": quote_data.get('open'),
-            "previousClose": quote_data.get('previousClose'),
+            "previousClose": quote_data.get('previousClose'), # Correct mapping for "prevClose" if needed
 
             # Key Stats
             "marketCap": info.get('marketCap'),
             "trailingPE": info.get('trailingPE'),
             "forwardPE": info.get('forwardPE'),
+            "peRatio": info.get('trailingPE'), # Frontend fallback
             "trailingEps": info.get('trailingEps') or info.get('epsTrailingTwelveMonths'),
+            "eps": info.get('trailingEps'), # Frontend fallback
             
             "dividendYield": info.get('dividendYield'),
+            "trailingAnnualDividendYield": info.get('trailingAnnualDividendYield'),
             "dividendRate": info.get('dividendRate'),
+            "trailingAnnualDividendRate": info.get('trailingAnnualDividendRate'),
+            "payoutRatio": info.get('payoutRatio'),
+            "lastDividendValue": info.get('lastDividendValue'),
+            "lastDividendDate": info.get('lastDividendDate'), # Might require formatting
             
             "priceToBook": info.get('priceToBook'),
             "profitMargins": info.get('profitMargins'),
             "beta": info.get('beta'),
             
+            # Moving Averages & Range
             "fiftyTwoWeekHigh": info.get('fiftyTwoWeekHigh'),
             "fiftyTwoWeekLow": info.get('fiftyTwoWeekLow'),
+            "fiftyTwoWeekChange": info.get('52WeekChange'),
             "averageVolume": info.get('averageVolume'),
+            "fiftyDayAverage": info.get('fiftyDayAverage'),
+            "twoHundredDayAverage": info.get('twoHundredDayAverage'),
             
-            # Financials (Subset)
+            # Ownership
+            "sharesOutstanding": info.get('sharesOutstanding'),
+            "floatShares": info.get('floatShares'),
+            "sharesShort": info.get('sharesShort'),
+            "shortRatio": info.get('shortRatio'),
+            "heldPercentInstitutions": info.get('heldPercentInstitutions'),
+            "heldPercentInsiders": info.get('heldPercentInsiders'),
+            
+            # Financials (Comprehensive)
             "totalRevenue": info.get('totalRevenue'),
+            "revenuePerShare": info.get('revenuePerShare'),
+            "revenueGrowth": info.get('revenueGrowth'),
             "grossProfits": info.get('grossProfits'),
-            "totalCash": info.get('totalCash'),
-            "totalDebt": info.get('totalDebt'),
+            "grossMargins": info.get('grossMargins'),
+            "operatingMargins": info.get('operatingMargins'),
             "ebitda": info.get('ebitda'),
+            "ebitdaMargins": info.get('ebitdaMargins'),
+            "netIncomeToCommon": info.get('netIncomeToCommon'),
+            "earningsGrowth": info.get('earningsGrowth'),
+            "returnOnEquity": info.get('returnOnEquity'),
+            "returnOnAssets": info.get('returnOnAssets'),
             
+            # Cash Flow & Balance Sheet
+            "operatingCashflow": info.get('operatingCashflow'),
+            "freeCashflow": info.get('freeCashflow'),
+            "totalCash": info.get('totalCash'),
+            "totalCashPerShare": info.get('totalCashPerShare'),
+            "totalDebt": info.get('totalDebt'),
+            "debtToEquity": info.get('debtToEquity'),
+            "currentRatio": info.get('currentRatio'),
+            "quickRatio": info.get('quickRatio'),
+            "bookValue": info.get('bookValue'),
+            "enterpriseValue": info.get('enterpriseValue'),
+            "enterpriseToEbitda": info.get('enterpriseToEbitda'),
+            "priceToSalesTrailing12Months": info.get('priceToSalesTrailing12Months'),
+            
+            # Analyst Data
+            "recommendationMean": info.get('recommendationMean'),
+            "recommendationKey": info.get('recommendationKey'),
+            "numberOfAnalystOpinions": info.get('numberOfAnalystOpinions'),
+            "targetLowPrice": info.get('targetLowPrice'),
+            "targetMeanPrice": info.get('targetMeanPrice'),
+            "targetMedianPrice": info.get('targetMedianPrice'),
+            "targetHighPrice": info.get('targetHighPrice'),
+            "recommendationTrend": info.get('recommendationTrend'), # This is usually a list of dicts
+
             "lastUpdated": datetime.utcnow().isoformat() + "Z"
         }
         
@@ -194,14 +254,18 @@ def fetch_market_data(market_code, tickers):
             for symbol in batch:
                 try:
                     # History
-                    if len(batch) > 1:
-                        try:
+                    # Robust DF Extraction for both Single and Multi-Batch
+                    try:
+                        # If MultiIndex (Ticker, Price), this extracts the ticker's DF
+                        if isinstance(data_batch.columns, pd.MultiIndex):
                             df = data_batch[symbol]
-                        except KeyError:
-                            continue 
-                    else:
-                        df = data_batch
-                    
+                        else:
+                            # If flat DF (unlikely with group_by='ticker' but possible)
+                            df = data_batch
+                    except KeyError:
+                        # print(f"KeyError for {symbol}")
+                        continue 
+                    # print(f"DEBUG: Symbol {symbol} extracted DF Shape: {df.shape}")
                     if df.empty: continue
                     
                     latest = df.iloc[-1]
