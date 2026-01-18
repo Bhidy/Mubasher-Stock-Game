@@ -4,6 +4,23 @@ const { Pool } = require('pg');
 const YahooFinancePkg = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinancePkg({ suppressNotices: ['yahooSurvey'] });
 
+// Helper: Robust Retry with Exponential Backoff
+async function fetchWithRetry(symbol, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await yahooFinance.quote(symbol);
+        } catch (err) {
+            if (err.message.includes('429') || err.message.includes('network')) {
+                console.warn(`⚠️ Rate Limit (429) for ${symbol}. Retrying in ${Math.pow(2, i + 1)}s...`);
+                await new Promise(r => setTimeout(r, Math.pow(2, i + 1) * 1000 + Math.random() * 1000));
+            } else {
+                throw err; // Throw non-retriable errors immediately
+            }
+        }
+    }
+    throw new Error(`Failed to fetch ${symbol} after ${retries} retries.`);
+}
+
 // Database Connection
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -25,7 +42,7 @@ router.post('/', async (req, res) => {
         // 2. Fetch Stocks to Update
         // (Optimized: Only update stocks older than 5 mins or never updated)
         const result = await pool.query(`
-            SELECT symbol FROM stocks 
+            SELECT ticker FROM stocks 
             WHERE last_updated_ts IS NULL 
             OR last_updated_ts < NOW() - INTERVAL '5 minutes'
             LIMIT 50
@@ -38,7 +55,7 @@ router.post('/', async (req, res) => {
             return res.json({ status: 'Skipped', message: 'All stocks are fresh.' });
         }
 
-        const symbols = stocksToUpdate.map(s => s.symbol);
+        const symbols = stocksToUpdate.map(s => s.ticker);
         const updates = [];
         const errors = [];
 
@@ -49,7 +66,7 @@ router.post('/', async (req, res) => {
 
             await Promise.all(batch.map(async (symbol) => {
                 try {
-                    const quote = await yahooFinance.quote(symbol);
+                    const quote = await fetchWithRetry(symbol);
                     if (quote) {
                         await pool.query(`
                             UPDATE stocks SET
@@ -88,8 +105,8 @@ router.post('/', async (req, res) => {
                 }
             }));
 
-            // Artificial Delay
-            await new Promise(r => setTimeout(r, 1000));
+            // Artificial Delay to respect rate limits
+            await new Promise(r => setTimeout(r, 3000));
         }
 
         console.log('✅ Ingestion Complete.');
