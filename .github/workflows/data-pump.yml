@@ -38,4 +38,5 @@ jobs:
           git add public/data/profiles/*.json
           git add public/data/charts/*.json
           git commit -m "📈 Data Pump: Updated stock prices [skip ci]" || echo "No changes to commit"
-          git push
+          git pull --rebase origin main || true
+          git push || echo "Push failed, will retry next run"
