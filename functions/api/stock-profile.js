@@ -21,7 +21,7 @@ export async function onRequest(context) {
         const safeSymbol = normalizeSymbol(symbol);
         const response = await fetch(`${PROFILE_BASE_URL}/${safeSymbol}.json`, {
             headers: { 'User-Agent': 'StockHero-CF-Proxy/1.0', 'Cache-Control': 'no-cache' },
-            cf: { cacheTtl: 300, cacheEverything: true }
+            cf: { cacheTtl: 30, cacheEverything: true }
         });
 
         if (!response.ok) throw new Error(`Profile not found (Status ${response.status})`);
@@ -32,7 +32,7 @@ export async function onRequest(context) {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+                'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
                 'X-Data-Source': 'GitHub-Data-Lake-CF'
             }
         });

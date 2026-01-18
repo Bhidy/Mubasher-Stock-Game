@@ -167,7 +167,8 @@ export default function CompanyProfile() {
         const fetchProfile = async () => {
             try {
                 // Use fullSymbol (with market suffix) for API call
-                const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${fullSymbol}`));
+                // Add timestamp to bypass Cloudflare/Browser cache
+                const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${fullSymbol}&_t=${Date.now()}`));
                 if (res.ok) {
                     const data = await res.json();
                     if (isMounted) setDetailedStock(data);
