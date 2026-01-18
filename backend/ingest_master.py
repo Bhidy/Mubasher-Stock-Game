@@ -4,6 +4,8 @@ import time
 import os
 import random
 from datetime import datetime
+import pandas as pd
+import numpy as np
 
 # ==========================================
 # 1. MARKET CATALOG
@@ -30,7 +32,6 @@ US_STOCKS = [
     'JPM', 'V', 'MA', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'DIS', 'NKE', 'BRK-B', 'LLY'
 ]
 
-# Standard Arrays for other markets (Trimming for brevity in this view, effectively same as before)
 INDIA_STOCKS = ['^NSEI', 'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS', 'HINDUNILVR.NS', 'ITC.NS', 'SBIN.NS', 'BHARTIARTL.NS', 'LICI.NS']
 UK_STOCKS = ['^FTSE', 'AZN.L', 'SHEL.L', 'HSBA.L', 'ULVR.L', 'BP.L', 'DGE.L', 'RIO.L', 'GSK.L', 'GLEN.L']
 GERMANY_STOCKS = ['^GDAXI', 'SAP.DE', 'SIE.DE', 'ALV.DE', 'DTE.DE', 'AIR.DE', 'BMW.DE', 'VOW3.DE', 'BAS.DE', 'ADS.DE']
@@ -85,115 +86,155 @@ def clean_data(data):
         if data != data: return 0.0
         if data == float('inf') or data == float('-inf'): return 0.0
         return data
-    return data
+    elif isinstance(data, (int, float, str, bool, type(None))):
+        return data
+    else:
+        # Fallback for numpy/pandas types
+        return str(data)
 
 def save_chart_data(symbol, prices_df):
-    """Save Chart Data (1Y) to individual JSON file"""
     try:
-        # Format: [{ date: "2024-01-01", price: 100.5 }, ...]
-        # Yahoo DF index is Date
         chart_data = []
         for index, row in prices_df.iterrows():
             chart_data.append({
                 "date": index.strftime('%Y-%m-%d'),
-                "price": row['Close'] if not row['Close'] != row['Close'] else row['Open'] or 0
+                "price": row['Close'] if not pd.isna(row['Close']) else 0
             })
         
-        # Ensure charts directory
         chart_dir = "public/data/charts"
         os.makedirs(chart_dir, exist_ok=True)
-        
-        # Save File (Sanitize symbol for filename)
         safe_symbol = symbol.replace('^', '')
         with open(f"{chart_dir}/{safe_symbol}.json", "w") as f:
             json.dump(clean_data(chart_data), f)
+    except Exception as e:
+        # print(f"⚠️ Failed to save chart for {symbol}: {e}")
+        pass
+
+def save_profile_data(symbol, info):
+    """Save Deep Profile Data to individual JSON file"""
+    try:
+        # Construct Profile Object matching Frontend Expectations
+        profile = {
+            # Basic Info
+            "symbol": symbol,
+            "name": info.get('longName') or info.get('shortName') or symbol,
+            "description": info.get('longBusinessSummary') or 'No description available',
+            "sector": info.get('sector') or 'N/A',
+            "industry": info.get('industry') or 'N/A',
+            "employees": info.get('fullTimeEmployees'),
+            "website": info.get('website'),
+            "city": info.get('city'),
+            "country": info.get('country'),
+            "currency": info.get('currency') or 'USD',
+            
+            # Key Stats
+            "marketCap": info.get('marketCap'),
+            "trailingPE": info.get('trailingPE'),
+            "forwardPE": info.get('forwardPE'),
+            "trailingEps": info.get('trailingEps') or info.get('epsTrailingTwelveMonths'),
+            
+            "dividendYield": info.get('dividendYield'),
+            "dividendRate": info.get('dividendRate'),
+            
+            "priceToBook": info.get('priceToBook'),
+            "profitMargins": info.get('profitMargins'),
+            "beta": info.get('beta'),
+            
+            "fiftyTwoWeekHigh": info.get('fiftyTwoWeekHigh'),
+            "fiftyTwoWeekLow": info.get('fiftyTwoWeekLow'),
+            "averageVolume": info.get('averageVolume'),
+            
+            # Financials (Subset)
+            "totalRevenue": info.get('totalRevenue'),
+            "grossProfits": info.get('grossProfits'),
+            "totalCash": info.get('totalCash'),
+            "totalDebt": info.get('totalDebt'),
+            "ebitda": info.get('ebitda'),
+            
+            "lastUpdated": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        profile_dir = "public/data/profiles"
+        os.makedirs(profile_dir, exist_ok=True)
+        safe_symbol = symbol.replace('^', '')
+        with open(f"{profile_dir}/{safe_symbol}.json", "w") as f:
+            json.dump(clean_data(profile), f)
             
     except Exception as e:
-        print(f"⚠️ Failed to save chart for {symbol}: {e}")
+        print(f"⚠️ Failed to save profile for {symbol}: {e}")
+
 
 def fetch_market_data(market_code, tickers):
     print(f"📡 {market_code}: Processing {len(tickers)} stocks...")
     
     BATCH_SIZE = 8
     market_results = []
-    
-    unique_tickers = list(set(tickers)) # Deduplicate
+    unique_tickers = list(set(tickers))
     
     for i in range(0, len(unique_tickers), BATCH_SIZE):
         batch = unique_tickers[i:i+BATCH_SIZE]
-        
         try:
-            # 1. DOWNLOAD PRICE HISTORY (Last 365 Days)
-            # We download history to get the latest close AND generate the chart
+            # 1. DOWNLOAD PRICE HISTORY
             data_batch = yf.download(batch, period="1y", interval="1d", group_by='ticker', threads=True, progress=False)
             
-            # 2. Process each symbol
+            # 2. DOWNLOAD META INFO (This is slow, so we do it per ticker or via Tickers object)
+            tickers_obj = yf.Tickers(" ".join(batch))
+            
             for symbol in batch:
                 try:
-                    # Handle yfinance structure (MultiIndex if multiple, single DF if one)
+                    # History
                     if len(batch) > 1:
                         try:
                             df = data_batch[symbol]
                         except KeyError:
-                            continue # Failed download
+                            continue 
                     else:
                         df = data_batch
                     
                     if df.empty: continue
                     
-                    # Extract Latest Data (Last Row)
                     latest = df.iloc[-1]
                     prev = df.iloc[-2] if len(df) > 1 else latest
                     
-                    price = latest['Close']
-                    prev_close = prev['Close']
-                    open_price = latest['Open']
-                    high = latest['High']
-                    low = latest['Low']
-                    volume = latest['Volume']
-                    
-                    change = price - prev_close
-                    change_percent = (change / prev_close) * 100 if prev_close > 0 else 0
-                    
-                    # Clean Symbol
                     clean_symbol = symbol
                     if symbol == 'CASE30.CA': clean_symbol = '^CASE30'
                     
-                    # Construct Stock Object
+                    # PROFILE & META
+                    # Note: accessing .info triggers a request per ticker. 
+                    # This is unavoidable for detailed profiles but slow.
+                    # We accept the slowness in the background pump for quality.
+                    info = {}
+                    try:
+                        info = tickers_obj.tickers[symbol].info
+                    except:
+                        pass
+                    
+                    # Merge Price info from DF if missing in Info
+                    price = latest['Close']
+                    if pd.isna(price): price = 0
+                    
                     stock_data = {
                         "symbol": clean_symbol,
-                        "name": clean_symbol, # Shortname hard to get from bulk download efficiently, fallback to symbol
+                        "name": info.get('shortName') or info.get('longName') or clean_symbol,
                         "category": market_code,
                         "country": get_country_flag(market_code),
-                        "sector": 'General',
+                        "sector": info.get('sector') or 'General',
                         "logo": f"https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://{clean_symbol.split('.')[0].lower()}.com&size=128",
-                        
                         "price": price,
-                        "change": change,
-                        "changePercent": change_percent,
-                        "prevClose": prev_close,
-                        "high": high,
-                        "low": low,
-                        "open": open_price,
-                        "volume": volume,
-                        
+                        "change": (price - prev['Close']) if not pd.isna(prev['Close']) else 0,
+                        "changePercent": ((price - prev['Close']) / prev['Close'] * 100) if not pd.isna(prev['Close']) and prev['Close'] != 0 else 0,
+                        "volume": int(latest['Volume']) if not pd.isna(latest['Volume']) else 0,
                         "lastUpdated": datetime.utcnow().isoformat() + "Z"
                     }
                     
-                    # Try to get better metadata (name/sector) individually?
-                    # Too slow. We stick to price data for bulk updates.
-                    # Or use Ticker info carefully.
-                    
                     market_results.append(stock_data)
-                    
-                    # SAVE CHART DATA
                     save_chart_data(clean_symbol, df)
+                    save_profile_data(clean_symbol, info) # SAVE PROFILE
                     
                 except Exception as inner_e:
-                   # print(f"Skipped {symbol}: {inner_e}")
                    pass
             
-            time.sleep(1) # Polite delay
+            time.sleep(2) # Increased delay for Profile fetching safety
             
         except Exception as e:
             print(f"Batch Error: {e}")
@@ -201,29 +242,22 @@ def fetch_market_data(market_code, tickers):
     return market_results
 
 def main():
+    print("🚀 Starting Data & Chart & Profile Pump...")
     start_time = time.time()
     all_data = {}
     
-    print("🚀 Starting Data & Chart Pump...")
-    
-    # Process all markets
     for code, tickers in MARKET_MAPPING.items():
-        # Optimization: Don't re-fetch Global if we fetched US
         if code == 'Global' and 'US' in all_data:
-            all_data['Global'] = all_data['US'] # Logic: US stocks are Global
+            all_data['Global'] = all_data['US']
             continue
             
         data = fetch_market_data(code, tickers)
         all_data[code] = clean_data(data)
         print(f"✅ {code}: Processed {len(data)} stocks.")
     
-    # Ensure Public Data Directory Exists
     output_dir = "public/data"
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Save Master JSON
-    output_file = os.path.join(output_dir, "stocks.json")
-    with open(output_file, "w", encoding='utf-8') as f:
+    with open(os.path.join(output_dir, "stocks.json"), "w", encoding='utf-8') as f:
         json.dump(all_data, f, indent=None, ensure_ascii=False)
         
     print(f"\n🎉 PUMP COMPLETE in {time.time() - start_time:.2f}s")
