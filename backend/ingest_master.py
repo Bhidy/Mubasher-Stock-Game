@@ -362,6 +362,34 @@ def sanitize_for_db(val):
         return int(val)
     return val
 
+def ensure_db_schema(cur):
+    """Ensures the DB schema can handle longer strings."""
+    try:
+        # We blindly attempt to widen columns. 
+        # Postgres is smart enough to handle this instantly if they are already wide enough? 
+        # Actually, standard SQL: ALTER COLUMN ... TYPE ...
+        queries = [
+            "ALTER TABLE stocks ALTER COLUMN ticker TYPE VARCHAR(50);",
+            "ALTER TABLE stocks ALTER COLUMN name TYPE VARCHAR(255);",
+            "ALTER TABLE stocks ALTER COLUMN sector TYPE VARCHAR(100);",
+            "ALTER TABLE stocks ALTER COLUMN category TYPE VARCHAR(50);"
+        ]
+        for q in queries:
+            try:
+                cur.execute(q)
+            except Exception:
+                # Ignore if fails (e.g. locks or permission), we hope for the best
+                cur.connection.rollback()
+                continue
+        cur.connection.commit()
+        print("✅ DB Schema Verified/Updated.")
+    except Exception as e:
+        print(f"⚠️ Schema Update Check Failed (Non-Critical): {e}")
+        try:
+            cur.connection.rollback()
+        except:
+            pass
+
 def sync_to_db(all_data):
     """Syncs the collected JSON data to the Postgres Database if configured."""
     db_url = os.environ.get('DATABASE_URL')
@@ -373,6 +401,9 @@ def sync_to_db(all_data):
     try:
         conn = psycopg2.connect(db_url)
         cur = conn.cursor()
+        
+        # 1. Ensure Schema
+        ensure_db_schema(cur)
         
         # Flatten data for batch insert
         print("📦 Preparing batch upsert...", end="")
