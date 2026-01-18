@@ -21,6 +21,7 @@ app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/community', require('./routes/community'));
 app.use('/api/academy', require('./routes/academy'));
 app.use('/api/yahoo', require('./routes/yahoo'));
+app.use('/api/ingest', require('./routes/ingest')); // NEW: Serverless Ingestion
 
 // NEW: Production Proxies for Full Restoration
 app.use('/api/news', require('./routes/news'));
