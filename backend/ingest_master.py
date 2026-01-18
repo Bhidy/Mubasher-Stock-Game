@@ -310,6 +310,12 @@ def fetch_market_data(market_code, tickers):
                         "change": quote_data['change'],
                         "changePercent": quote_data['changePercent'],
                         "volume": quote_data['volume'],
+                        
+                        # Added for Market Summary Columns
+                        "marketCap": info.get('marketCap'),
+                        "peRatio": info.get('trailingPE') or info.get('forwardPE'), 
+                        "dividendYield": info.get('dividendYield'),
+                        
                         "lastUpdated": datetime.utcnow().isoformat() + "Z"
                     }
                     
