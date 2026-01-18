@@ -142,7 +142,11 @@ export default function InvestorHome() {
                     const price = data.price || data.regularMarketPrice || 0;
 
                     // Improved Change Calculation fallback
-                    let changePercent = data.regularMarketChangePercent;
+                    let changePercent = data.changePercent;
+                    if (changePercent === undefined || changePercent === null) {
+                        changePercent = data.regularMarketChangePercent;
+                    }
+
                     if (changePercent === undefined || changePercent === null) {
                         const prevClose = data.regularMarketPreviousClose || data.previousClose;
                         if (prevClose && price) {

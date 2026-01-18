@@ -110,8 +110,9 @@ def save_chart_data(symbol, prices_df):
         # print(f"⚠️ Failed to save chart for {symbol}: {e}")
         pass
 
-def save_profile_data(symbol, info):
+def save_profile_data(symbol, info, quote_data=None):
     """Save Deep Profile Data to individual JSON file"""
+    if quote_data is None: quote_data = {}
     try:
         # Construct Profile Object matching Frontend Expectations
         profile = {
@@ -127,6 +128,16 @@ def save_profile_data(symbol, info):
             "country": info.get('country'),
             "currency": info.get('currency') or 'USD',
             
+            # Live Quote Data (Injected)
+            "price": quote_data.get('price'),
+            "change": quote_data.get('change'),
+            "changePercent": quote_data.get('changePercent'),
+            "dayLow": quote_data.get('dayLow'),
+            "dayHigh": quote_data.get('dayHigh'),
+            "volume": quote_data.get('volume'),
+            "open": quote_data.get('open'),
+            "previousClose": quote_data.get('previousClose'),
+
             # Key Stats
             "marketCap": info.get('marketCap'),
             "trailingPE": info.get('trailingPE'),
@@ -213,6 +224,17 @@ def fetch_market_data(market_code, tickers):
                     price = latest['Close']
                     if pd.isna(price): price = 0
                     
+                    quote_data = {
+                        "price": price,
+                        "change": (price - prev['Close']) if not pd.isna(prev['Close']) else 0,
+                        "changePercent": ((price - prev['Close']) / prev['Close'] * 100) if not pd.isna(prev['Close']) and prev['Close'] != 0 else 0,
+                        "volume": int(latest['Volume']) if not pd.isna(latest['Volume']) else 0,
+                        "dayHigh": float(latest['High']) if not pd.isna(latest['High']) else 0,
+                        "dayLow": float(latest['Low']) if not pd.isna(latest['Low']) else 0,
+                        "open": float(latest['Open']) if not pd.isna(latest['Open']) else 0,
+                        "previousClose": float(prev['Close']) if not pd.isna(prev['Close']) else 0
+                    }
+
                     stock_data = {
                         "symbol": clean_symbol,
                         "name": info.get('shortName') or info.get('longName') or clean_symbol,
@@ -220,16 +242,16 @@ def fetch_market_data(market_code, tickers):
                         "country": get_country_flag(market_code),
                         "sector": info.get('sector') or 'General',
                         "logo": f"https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://{clean_symbol.split('.')[0].lower()}.com&size=128",
-                        "price": price,
-                        "change": (price - prev['Close']) if not pd.isna(prev['Close']) else 0,
-                        "changePercent": ((price - prev['Close']) / prev['Close'] * 100) if not pd.isna(prev['Close']) and prev['Close'] != 0 else 0,
-                        "volume": int(latest['Volume']) if not pd.isna(latest['Volume']) else 0,
+                        "price": quote_data['price'],
+                        "change": quote_data['change'],
+                        "changePercent": quote_data['changePercent'],
+                        "volume": quote_data['volume'],
                         "lastUpdated": datetime.utcnow().isoformat() + "Z"
                     }
                     
                     market_results.append(stock_data)
                     save_chart_data(clean_symbol, df)
-                    save_profile_data(clean_symbol, info) # SAVE PROFILE
+                    save_profile_data(clean_symbol, info, quote_data) # SAVE PROFILE WITH QUOTE
                     
                 except Exception as inner_e:
                    pass
