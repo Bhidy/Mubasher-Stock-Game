@@ -63,14 +63,59 @@ router.get('/', async (req, res) => {
                 marketCap: price.marketCap,
                 volume: detail.volume || price.regularMarketVolume,
 
-                // Financials
-                peRatio: detail.trailingPE || null,
-                dividendYield: detail.dividendYield || null,
-                beta: detail.beta || null,
+                // Financials - Income Statement
+                totalRevenue: result.financialData?.totalRevenue,
+                revenuePerShare: result.financialData?.revenuePerShare,
+                revenueGrowth: result.financialData?.revenueGrowth,
+                grossProfits: result.financialData?.grossProfits, // Note: Yahoo often puts this in financialData
+                ebitda: result.financialData?.ebitda,
+                netIncomeToCommon: result.defaultKeyStatistics?.netIncomeToCommon,
+
+                // Margins
+                profitMargins: result.financialData?.profitMargins,
+                grossMargins: result.financialData?.grossMargins,
+                operatingMargins: result.financialData?.operatingMargins,
+                ebitdaMargins: result.financialData?.ebitdaMargins,
+
+                // Cash Flow
+                operatingCashflow: result.financialData?.operatingCashflow,
+                freeCashflow: result.financialData?.freeCashflow,
+                totalCash: result.financialData?.totalCash,
+                totalCashPerShare: result.financialData?.totalCashPerShare,
+
+                // Balance Sheet & Ratios
+                totalDebt: result.financialData?.totalDebt,
+                debtToEquity: result.financialData?.debtToEquity, // Yahoo returns as percentage usually (e.g. 50.5 for 50.5%)
+                currentRatio: result.financialData?.currentRatio,
+                quickRatio: result.financialData?.quickRatio,
+                bookValue: result.defaultKeyStatistics?.bookValue,
+
+                // Valuation
+                peRatio: detail.trailingPE || result.summaryDetail?.trailingPE,
+                forwardPE: result.summaryDetail?.forwardPE,
+                pegRatio: result.defaultKeyStatistics?.pegRatio,
+                priceToBook: result.defaultKeyStatistics?.priceToBook,
+                priceToSales: result.summaryDetail?.priceToSalesTrailing12Months,
+                enterpriseValue: result.defaultKeyStatistics?.enterpriseValue,
+                trailingEps: result.defaultKeyStatistics?.trailingEps,
+                forwardEps: result.defaultKeyStatistics?.forwardEps,
+                dividendYield: detail.dividendYield || result.summaryDetail?.dividendYield,
+                beta: detail.beta || result.summaryDetail?.beta,
+
+                // Key Statistics
+                sharesOutstanding: result.defaultKeyStatistics?.sharesOutstanding,
+                floatShares: result.defaultKeyStatistics?.floatShares,
+                sharesShort: result.defaultKeyStatistics?.sharesShort,
+                shortRatio: result.defaultKeyStatistics?.shortRatio,
+                heldPercentInsiders: result.defaultKeyStatistics?.heldPercentInsiders,
+                heldPercentInstitutions: result.defaultKeyStatistics?.heldPercentInstitutions,
 
                 // High/Low
                 fiftyTwoWeekHigh: detail.fiftyTwoWeekHigh || null,
                 fiftyTwoWeekLow: detail.fiftyTwoWeekLow || null,
+                fiftyDayAverage: detail.fiftyDayAverage,
+                twoHundredDayAverage: detail.twoHundredDayAverage,
+                fiftyTwoWeekChange: result.defaultKeyStatistics?.['52WeekChange'], // Yahoo might key this as "52WeekChange"
                 dayHigh: price.regularMarketDayHigh || null,
                 dayLow: price.regularMarketDayLow || null,
 

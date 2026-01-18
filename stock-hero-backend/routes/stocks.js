@@ -25,6 +25,9 @@ router.get('/', async (req, res) => {
                 previous_close as "prevClose",
                 volume, 
                 market_cap as "marketCap",
+                pe_ratio as "peRatio",
+                dividend_yield as "dividendYield",
+                sector,
                 category, 
                 currency,
                 last_updated_ts as "lastUpdated"
@@ -84,7 +87,10 @@ router.get('/', async (req, res) => {
                 price: price,
                 changePercent: parseFloat(stock.change_percent || 0),
                 volume: parseInt(stock.volume || 0),
-                marketCap: parseInt(stock.marketCap || 0)
+                marketCap: parseInt(stock.marketCap || 0),
+                peRatio: parseFloat(stock.peRatio || 0),
+                dividendYield: parseFloat(stock.dividendYield || 0),
+                sector: stock.sector
             };
         });
 
