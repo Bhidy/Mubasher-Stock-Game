@@ -47,6 +47,8 @@ const JUNK_SELECTORS = [
     'iframe', 'form', 'figure.related', '.tags', '.breadcrumb',
     '[class*="sidebar"]', '[class*="widget"]', '[class*="promo"]',
     '[class*="banner"]', '[id*="sidebar"]', '[id*="ad"]',
+    // Schema.org markup not needed in rendered content
+    'meta[itemprop]', '.scroll-anchor',
 ];
 
 function getDomain(urlStr) {
