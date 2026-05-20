@@ -92,6 +92,7 @@ export default function NewsFeed() {
                 thumbnail: item.imageUrl,
                 summary: item.summary,
                 content: item.content,
+                isFeatured: item.isFeatured,
                 link: '#' // CMS news is internal
             }));
 
@@ -120,7 +121,31 @@ export default function NewsFeed() {
             const combined = [...formattedCmsNews, ...scrapedData];
 
             // 4. Sort by Time (Newest First)
-            combined.sort((a, b) => new Date(b.time) - new Date(a.time));
+            const now = Date.now();
+            combined.sort((a, b) => {
+                // Always put featured items at the very top
+                if (a.isFeatured && !b.isFeatured) return -1;
+                if (!a.isFeatured && b.isFeatured) return 1;
+
+                let timeA = new Date(a.time).getTime();
+                let timeB = new Date(b.time).getTime();
+
+                // BUGFIX: Scraped news often contains timestamps parsed in the wrong timezone (UTC instead of KSA)
+                // This causes them to be 3 hours in the future. We cap all future timestamps to `now`
+                // so they don't permanently bury real-time CMS articles.
+                if (timeA > now) timeA = now;
+                if (timeB > now) timeB = now;
+
+                if (timeA === timeB) {
+                    // If timestamps tie (or both are capped to now), give priority to CMS news
+                    const aIsCMS = a.link === '#';
+                    const bIsCMS = b.link === '#';
+                    if (aIsCMS && !bIsCMS) return -1;
+                    if (!aIsCMS && bIsCMS) return 1;
+                }
+
+                return timeB - timeA;
+            });
 
             setNewsItems(combined);
             setLoading(false);
