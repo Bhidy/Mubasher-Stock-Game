@@ -1,8 +1,5 @@
-// Cloudflare Pages Function - CMS API (DIRECT - No Vercel Proxy)
-// Connects directly to JSONBlob for persistence
-
-const BLOB_ID = '019b326d-2968-77d3-ae7d-c043fa08d324'; // NEW BLOB - Created 2025-12-18
-const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
+// Cloudflare Pages Function - CMS API (DIRECT - KV Storage)
+// Connects directly to Cloudflare KV for robust, permanent persistence
 
 const INITIAL_DATA = {
     lessons: [
@@ -39,64 +36,12 @@ const INITIAL_DATA = {
     ]
 };
 
-async function getCMSData() {
-    const maxRetries = 3;
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            // Cache-busting to prevent stale reads
-            const res = await fetch(`${BLOB_URL}?t=${Date.now()}`, {
-                headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
-            });
-
-            // If 404, valid case to return initial data (first time setup)
-            if (res.status === 404) return INITIAL_DATA;
-
-            // If other error (500, 502, etc), throw to trigger retry or fail safe
-            if (!res.ok) throw new Error(`Blob store returned ${res.status}`);
-
-            const data = await res.json();
-            // Validate data structure integrity
-            if (!data || typeof data !== 'object') throw new Error('Invalid data format');
-
-            // Logic Removed: Manual seed preferred over risky auto-init
-
-            return data;
-        } catch (e) {
-            console.warn(`Attempt ${i + 1} failed: ${e.message}`);
-            if (i === maxRetries - 1) {
-                // CRITICAL: New behavior - Do NOT return INITIAL_DATA on failure. 
-                // Creating a new item when read fails would wipe the DB. 
-                // Better to fail the request than lose data.
-                throw new Error('Persistence unavailable');
-            }
-            // Wait 500ms before retry
-            await new Promise(r => setTimeout(r, 500));
-        }
-    }
-}
-
-async function saveCMSData(data) {
-    if (!data) throw new Error('Cannot save empty data');
-
-    const res = await fetch(BLOB_URL, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-        },
-        body: JSON.stringify(data)
-    });
-
-    if (!res.ok) throw new Error('Blob save failed');
-}
-
 const generateId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
     const url = new URL(request.url);
+    const kv = env.CMS_DATA;
 
     // CORS headers
     const corsHeaders = {
@@ -108,6 +53,13 @@ export async function onRequest(context) {
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    if (!kv) {
+        return new Response(JSON.stringify({ error: 'KV Namespace CMS_DATA not bound' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
     }
 
     const entity = url.searchParams.get('entity');
@@ -123,7 +75,27 @@ export async function onRequest(context) {
         });
     }
 
-    let cmsData = await getCMSData();
+    // Load data from KV
+    let cmsData;
+    try {
+        const stored = await kv.get('cms_state');
+        if (stored) {
+            cmsData = JSON.parse(stored);
+        } else {
+            cmsData = JSON.parse(JSON.stringify(INITIAL_DATA));
+            await kv.put('cms_state', JSON.stringify(cmsData));
+        }
+    } catch (e) {
+        console.error('KV Read Error:', e);
+        return new Response(JSON.stringify({ error: 'Database read failed' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+    }
+
+    async function saveCMSData(data) {
+        await kv.put('cms_state', JSON.stringify(data));
+    }
 
     // Dashboard stats
     if (entity === 'dashboard') {
@@ -148,46 +120,49 @@ export async function onRequest(context) {
 
     let result;
 
-    switch (method) {
-        case 'GET':
-            result = id ? cmsData[entity].find(i => i.id === id) : cmsData[entity];
-            return new Response(JSON.stringify(result || []), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    try {
+        switch (method) {
+            case 'GET':
+                result = id ? cmsData[entity].find(i => i.id === id) : cmsData[entity];
+                return new Response(JSON.stringify(result || []), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
 
-        case 'POST':
-            const newItem = { id: generateId(prefixMap[entity]), ...await request.json(), createdAt: new Date().toISOString() };
-            cmsData[entity].push(newItem);
-            await saveCMSData(cmsData);
+            case 'POST':
+                const newItem = { id: generateId(prefixMap[entity]), ...await request.json(), createdAt: new Date().toISOString() };
+                cmsData[entity].push(newItem);
+                await saveCMSData(cmsData);
 
-            // Debug: Return metadata to help diagnose persistence issues
-            const debugPayload = {
-                ...newItem,
-                _debug: {
-                    totalCount: cmsData[entity].length,
-                    persistedAt: new Date().toISOString()
-                }
-            };
-            return new Response(JSON.stringify(debugPayload), {
-                status: 201,
-                headers: { 'Content-Type': 'application/json', ...corsHeaders }
-            });
+                return new Response(JSON.stringify({
+                    ...newItem,
+                    _debug: { totalCount: cmsData[entity].length, persistedAt: new Date().toISOString() }
+                }), {
+                    status: 201,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders }
+                });
 
-        case 'PUT':
-            if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-            const idx = cmsData[entity].findIndex(i => i.id === id);
-            if (idx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-            cmsData[entity][idx] = { ...cmsData[entity][idx], ...await request.json(), updatedAt: new Date().toISOString() };
-            await saveCMSData(cmsData);
-            return new Response(JSON.stringify(cmsData[entity][idx]), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            case 'PUT':
+                if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+                const idx = cmsData[entity].findIndex(i => i.id === id);
+                if (idx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+                cmsData[entity][idx] = { ...cmsData[entity][idx], ...await request.json(), updatedAt: new Date().toISOString() };
+                await saveCMSData(cmsData);
+                return new Response(JSON.stringify(cmsData[entity][idx]), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
 
-        case 'DELETE':
-            if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-            const delIdx = cmsData[entity].findIndex(i => i.id === id);
-            if (delIdx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-            const deleted = cmsData[entity].splice(delIdx, 1)[0];
-            await saveCMSData(cmsData);
-            return new Response(JSON.stringify({ message: 'Deleted', item: deleted }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            case 'DELETE':
+                if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+                const delIdx = cmsData[entity].findIndex(i => i.id === id);
+                if (delIdx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+                const deleted = cmsData[entity].splice(delIdx, 1)[0];
+                await saveCMSData(cmsData);
+                return new Response(JSON.stringify({ message: 'Deleted', item: deleted }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
 
-        default:
-            return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            default:
+                return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+        }
+    } catch (error) {
+        console.error('API Processing Error:', error);
+        return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
     }
 }
