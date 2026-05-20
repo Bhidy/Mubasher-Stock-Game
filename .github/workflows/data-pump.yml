@@ -8,52 +8,45 @@ on:
     branches: [main]                # Deploy on every push to main
   schedule:
     - cron: '*/10 * * * *'          # Scrape fresh news every 10 minutes
-  workflow_dispatch:                 # Manual trigger (for testing/debugging)
+  workflow_dispatch:                 # Manual trigger
 
 # ─────────────────────────────────────────────────────────
 # PERMISSIONS
 # ─────────────────────────────────────────────────────────
 permissions:
-  contents: write                   # Needed to commit scraped news data
+  contents: write
 
 jobs:
 
   # ═══════════════════════════════════════════════════════
   # JOB 1: News Scraper (runs on schedule + manual)
+  # Skips on push events to keep deploys fast
   # ═══════════════════════════════════════════════════════
   scrape-news:
-    name: 📰 Scrape News
+    name: 📰 Scrape & Commit News
     runs-on: ubuntu-latest
-    # Only run scraper on schedule or manual trigger (not on every push)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 1
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci --prefer-offline
+      - run: npm ci --prefer-offline
 
-      - name: Run News Scraper
+      - name: Scrape News
         run: |
-          echo "🕷️ Starting news scraper..."
+          echo "🕷️ Scraping news..."
           node backend/jobs/newsScraper.js
-          echo "📦 Splitting news into market files..."
           node restore_news.cjs
-          echo "✅ News scraping complete"
 
       - name: Show Stats
         run: |
-          echo "=== News Data Lake Stats ==="
           node -e "
             const sa = require('./public/data/news_SA.json');
             const eg = require('./public/data/news_EG.json');
@@ -61,74 +54,66 @@ jobs:
             console.log('EG:', eg.length, 'articles | Latest:', eg[0]?.published_at || 'N/A');
           "
 
-      - name: Run Stock Data Ingestion
+      - name: Stock Data (optional)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -f "backend/ingest_master.py" ]; then
-            pip install -q yfinance pandas numpy psycopg2-binary 2>/dev/null || true
-            python backend/ingest_master.py || echo "⚠️ Stock ingestion failed (non-critical)"
-          fi
+        run: python3 backend/ingest_master.py 2>/dev/null || echo "Stocks skipped"
+        continue-on-error: true
 
-      - name: Commit Updated Data
+      - name: Commit & Push Data
         run: |
           git config user.name "Bhidy Data Bot"
           git config user.email "data-bot@bhidy.app"
-          git add public/data/news_SA.json public/data/news_EG.json public/data/news_US.json
-          git add public/data/stocks.json public/data/profiles/ public/data/charts/ 2>/dev/null || true
-          git diff --staged --quiet && echo "No data changes" || (
-            git commit -m "📊 Auto: Fresh news & stock data $(date -u '+%Y-%m-%d %H:%M UTC') [skip ci]"
+          git add public/data/
+          git diff --staged --quiet && echo "No changes" || (
+            git commit -m "📊 Data: Fresh news $(date -u '+%H:%M UTC') [skip ci]"
             git pull --rebase origin main || true
-            git push
-            echo "✅ Data committed and pushed"
+            git push && echo "✅ Pushed"
           )
 
   # ═══════════════════════════════════════════════════════
-  # JOB 2: Deploy to Cloudflare Pages (runs on push to main)
+  # JOB 2: Build & Deploy to Cloudflare Pages
+  # Runs ONLY on push to main (not on schedule)
   # ═══════════════════════════════════════════════════════
   deploy:
-    name: ☁️ Deploy to Cloudflare Pages
+    name: ☁️ Build & Deploy
     runs-on: ubuntu-latest
-    # Only deploy when code is pushed (not on scheduled data runs)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
+      - run: npm ci
 
       - name: Build
         run: |
-          echo "🔨 Building production bundle..."
           npm run build
-          echo "✅ Build complete"
+          echo "Build output:"
           ls dist/
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=bhidy-app --commit-dirty=true
+        run: |
+          npx wrangler pages deploy dist \
+            --project-name=bhidy-app \
+            --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Verify Deployment
+      - name: Verify Live
         run: |
-          echo "⏳ Waiting 15s for deployment to propagate..."
-          sleep 15
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bhidy-app.pages.dev/)
-          echo "🌍 Production status: HTTP $STATUS"
-          if [ "$STATUS" -eq 200 ]; then
-            echo "✅ DEPLOYMENT SUCCESSFUL — https://bhidy-app.pages.dev"
-          else
-            echo "⚠️ Got HTTP $STATUS — deployment may still be propagating"
-          fi
+          echo "Waiting for propagation..."
+          sleep 20
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bhidy-app.pages.dev/api/news?market=SA)
+          echo "API status: HTTP $STATUS"
+          DATE=$(curl -s -H "Accept: application/json" https://bhidy-app.pages.dev/api/news?market=SA \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['time'][:10] if d else 'empty')")
+          echo "Latest news date: $DATE"
+          echo ""
+          echo "✅ Live at: https://bhidy-app.pages.dev"
+          echo "🔧 Admin:  https://bhidy-app.pages.dev/admin"
