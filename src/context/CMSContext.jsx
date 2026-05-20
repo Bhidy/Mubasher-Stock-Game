@@ -462,7 +462,11 @@ export function CMSProvider({ children }) {
     const getPublishedNews = useCallback((market = null) => {
         let filtered = news.filter(n => n.isPublished);
         if (market) filtered = filtered.filter(n => n.market === market || n.market === 'all');
-        return filtered.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        return filtered.sort((a, b) => {
+            const dateA = new Date(a.publishedAt || a.createdAt || 0);
+            const dateB = new Date(b.publishedAt || b.createdAt || 0);
+            return dateB - dateA;
+        });
     }, [news]);
 
     const getAvailableShopItems = useCallback((category = null) => {

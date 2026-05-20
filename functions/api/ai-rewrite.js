@@ -69,55 +69,59 @@ export async function onRequestPost(context) {
 
         // Create the rewrite prompt
         const systemPrompt = getRewritePrompt(targetMarket, targetLanguage, tone);
-        const userMessage = `${systemPrompt}
+        const userMessage = `Title: ${title}\nContent: ${content.substring(0, 4000)}`;
 
-Please rewrite this article:
+        // Direct Groq Call
+        const apiKey = context.env.GROQ_API_KEY;
+        if (!apiKey) {
+             console.error("GROQ_API_KEY missing");
+             return handleFallback(title, content, targetMarket, targetLanguage, corsHeaders);
+        }
 
-TITLE: ${title}
-
-CONTENT:
-${content.substring(0, 4000)}`;
-
-        // Call Vercel's Groq-powered chatbot API
-        const response = await fetch(VERCEL_CHATBOT_URL, {
+        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                message: userMessage,
-                conversationHistory: []
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userMessage }
+                ],
+                temperature: 0.3,
+                max_tokens: 2048,
+                response_format: { type: "json_object" }
             })
         });
 
-        if (!response.ok) {
-            console.error('Groq API error:', await response.text());
+        if (!groqRes.ok) {
+            console.error('Groq API error:', await groqRes.text());
             return handleFallback(title, content, targetMarket, targetLanguage, corsHeaders);
         }
 
-        const data = await response.json();
-
-        if (!data.success || !data.response) {
-            return handleFallback(title, content, targetMarket, targetLanguage, corsHeaders);
+        const groqData = await groqRes.json();
+        const aiResponse = groqData.choices?.[0]?.message?.content;
+        
+        if (!aiResponse) {
+             return handleFallback(title, content, targetMarket, targetLanguage, corsHeaders);
         }
 
         // Parse JSON from Groq response
         let result;
         try {
-            const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 result = JSON.parse(jsonMatch[0]);
             } else {
-                // If no JSON, use the raw response
-                result = {
-                    title: title,
-                    content: data.response,
-                    summary: data.response.substring(0, 200) + '...'
-                };
+                result = JSON.parse(aiResponse);
             }
         } catch (parseError) {
             result = {
                 title: title,
-                content: data.response,
-                summary: data.response.substring(0, 200) + '...'
+                content: aiResponse,
+                summary: aiResponse.substring(0, 200) + '...'
             };
         }
 

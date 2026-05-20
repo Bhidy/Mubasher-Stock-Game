@@ -68,7 +68,11 @@ export default function AdminNews() {
         for (const id of selectedIds) {
             const article = news.find(n => n.id === id);
             if (article && !article.isPublished) {
-                await updateNews(id, { isPublished: true });
+                const updates = { isPublished: true };
+                if (!article.publishedAt) {
+                    updates.publishedAt = new Date().toISOString();
+                }
+                await updateNews(id, updates);
             }
         }
         addNotification('success', 'Bulk Publish Complete', `Successfully published ${selectedIds.size} articles.`, { count: selectedIds.size, ids: Array.from(selectedIds) });
@@ -100,7 +104,11 @@ export default function AdminNews() {
     };
 
     const handleTogglePublish = (article) => {
-        updateNews(article.id, { isPublished: !article.isPublished });
+        const updates = { isPublished: !article.isPublished };
+        if (!article.isPublished && !article.publishedAt) {
+            updates.publishedAt = new Date().toISOString();
+        }
+        updateNews(article.id, updates);
     };
 
     const handleToggleFeatured = (article) => {
