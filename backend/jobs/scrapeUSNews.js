@@ -42,12 +42,8 @@ const US_NEWS_SOURCES = [
     {
         name: 'Investing.com US',
         url: 'https://www.investing.com/rss/news_25.rss',
-    },
-    {
-        name: 'Reuters Business',
-        url: 'https://feeds.reuters.com/reuters/businessNews',
-        fallback: 'https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best'
     }
+    // Note: Reuters RSS feeds (feeds.reuters.com) are permanently dead as of 2023
 ];
 
 async function fetchRssFeed(source) {
