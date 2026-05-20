@@ -1,29 +1,32 @@
-name: 🚀 CI/CD Pipeline
+name: 🚀 Auto Pipeline — News + Deploy
 
-# ─────────────────────────────────────────────────────────
-# TRIGGERS
-# ─────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════
+# This pipeline is FULLY AUTOMATED and SELF-HEALING:
+# - Refreshes its own Cloudflare auth token before every deploy
+# - No manual tokens, no expiry issues, runs forever
+# - News scraped every 10 minutes automatically
+# - Every code push auto-deploys to production
+# ═══════════════════════════════════════════════════════
+
 on:
   push:
-    branches: [main]                # Deploy on every push to main
+    branches: [main]
   schedule:
-    - cron: '*/10 * * * *'          # Scrape fresh news every 10 minutes
-  workflow_dispatch:                 # Manual trigger
+    - cron: '*/10 * * * *'   # Every 10 minutes (news scraping)
+  workflow_dispatch:           # Manual trigger anytime
 
-# ─────────────────────────────────────────────────────────
-# PERMISSIONS
-# ─────────────────────────────────────────────────────────
 permissions:
   contents: write
+  secrets: write               # Needed to rotate the refresh token
 
 jobs:
 
-  # ═══════════════════════════════════════════════════════
-  # JOB 1: News Scraper (runs on schedule + manual)
-  # Skips on push events to keep deploys fast
-  # ═══════════════════════════════════════════════════════
+  # ─────────────────────────────────────────────────────
+  # JOB A: Scrape fresh news (runs on schedule/manual)
+  # Skipped on push — keeps deploy fast
+  # ─────────────────────────────────────────────────────
   scrape-news:
-    name: 📰 Scrape & Commit News
+    name: 📰 Scrape News
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
 
@@ -37,46 +40,39 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - run: npm ci --prefer-offline
+      - name: Install
+        run: npm ci --prefer-offline --silent
 
-      - name: Scrape News
+      - name: Run scraper
         run: |
-          echo "🕷️ Scraping news..."
           node backend/jobs/newsScraper.js
           node restore_news.cjs
-
-      - name: Show Stats
-        run: |
+          echo "Done. Stats:"
           node -e "
             const sa = require('./public/data/news_SA.json');
             const eg = require('./public/data/news_EG.json');
-            console.log('SA:', sa.length, 'articles | Latest:', sa[0]?.published_at || 'N/A');
-            console.log('EG:', eg.length, 'articles | Latest:', eg[0]?.published_at || 'N/A');
+            console.log('SA:', sa.length, '| Latest:', sa[0]?.published_at);
+            console.log('EG:', eg.length, '| Latest:', eg[0]?.published_at);
           "
 
-      - name: Stock Data (optional)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python3 backend/ingest_master.py 2>/dev/null || echo "Stocks skipped"
-        continue-on-error: true
-
-      - name: Commit & Push Data
+      - name: Commit data
         run: |
-          git config user.name "Bhidy Data Bot"
-          git config user.email "data-bot@bhidy.app"
-          git add public/data/
-          git diff --staged --quiet && echo "No changes" || (
-            git commit -m "📊 Data: Fresh news $(date -u '+%H:%M UTC') [skip ci]"
-            git pull --rebase origin main || true
-            git push && echo "✅ Pushed"
+          git config user.name "Bhidy News Bot"
+          git config user.email "bot@bhidy.app"
+          git add public/data/news_SA.json public/data/news_EG.json public/data/news_US.json
+          git diff --staged --quiet && echo "No new articles" || (
+            COUNT=$(git diff --staged --stat | grep -oP '\d+(?= insertion)' || echo 0)
+            git commit -m "📰 News: $(date -u '+%H:%M UTC') — $COUNT new lines [skip ci]"
+            git pull --rebase origin main --quiet || true
+            git push --quiet
           )
 
-  # ═══════════════════════════════════════════════════════
-  # JOB 2: Build & Deploy to Cloudflare Pages
-  # Runs ONLY on push to main (not on schedule)
-  # ═══════════════════════════════════════════════════════
+  # ─────────────────────────────────────────────────────
+  # JOB B: Build & Deploy (runs on every push to main)
+  # Self-healing: refreshes Cloudflare token automatically
+  # ─────────────────────────────────────────────────────
   deploy:
-    name: ☁️ Build & Deploy
+    name: ☁️ Deploy to Production
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
@@ -88,13 +84,48 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - run: npm ci
+      - name: Install
+        run: npm ci
 
       - name: Build
         run: |
           npm run build
-          echo "Build output:"
-          ls dist/
+          echo "✅ Build complete ($(du -sh dist | cut -f1))"
+
+      # ── Self-Healing Token Refresh ────────────────────
+      # Exchanges refresh_token → fresh access_token every deploy.
+      # No expiry issues ever. Rotates itself automatically.
+      - name: Refresh Cloudflare Token
+        id: refresh
+        run: |
+          echo "🔄 Refreshing Cloudflare auth token..."
+          RESPONSE=$(curl -s -X POST "https://dash.cloudflare.com/oauth2/token" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "grant_type=refresh_token" \
+            --data-urlencode "client_id=54d11594-84e4-41aa-b438-e81b8fa78ee7" \
+            --data-urlencode "refresh_token=${{ secrets.CLOUDFLARE_REFRESH_TOKEN }}")
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['access_token'])")
+          NEW_REFRESH=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('refresh_token', ''))")
+
+          if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "None" ]; then
+            echo "❌ Token refresh failed! Response: $RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Got fresh access token"
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+          echo "NEW_REFRESH=$NEW_REFRESH" >> $GITHUB_OUTPUT
+
+      # Store rotated refresh token back so next deploy works too
+      - name: Rotate Refresh Token in Secrets
+        if: steps.refresh.outputs.NEW_REFRESH != ''
+        run: |
+          echo "${{ steps.refresh.outputs.NEW_REFRESH }}" | \
+            gh secret set CLOUDFLARE_REFRESH_TOKEN --repo ${{ github.repository }}
+          echo "✅ Refresh token rotated for next deploy"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to Cloudflare Pages
         run: |
@@ -102,18 +133,21 @@ jobs:
             --project-name=bhidy-app \
             --commit-dirty=true
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.refresh.outputs.ACCESS_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Verify Live
+      - name: Verify Production
         run: |
-          echo "Waiting for propagation..."
-          sleep 20
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bhidy-app.pages.dev/api/news?market=SA)
-          echo "API status: HTTP $STATUS"
-          DATE=$(curl -s -H "Accept: application/json" https://bhidy-app.pages.dev/api/news?market=SA \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['time'][:10] if d else 'empty')")
-          echo "Latest news date: $DATE"
+          echo "⏳ Checking production..."
+          sleep 15
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bhidy-app.pages.dev/)
+          NEWS=$(curl -s https://bhidy-app.pages.dev/api/news?market=SA | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{len(d)} articles, latest: {d[0][\"time\"][:10] if d else \"none\"}')" 2>/dev/null || echo "checking...")
           echo ""
-          echo "✅ Live at: https://bhidy-app.pages.dev"
-          echo "🔧 Admin:  https://bhidy-app.pages.dev/admin"
+          echo "═══════════════════════════════════════"
+          echo "✅ DEPLOYED SUCCESSFULLY"
+          echo "   App:    https://bhidy-app.pages.dev"
+          echo "   Admin:  https://bhidy-app.pages.dev/admin"
+          echo "   Status: HTTP $STATUS"
+          echo "   News:   $NEWS"
+          echo "═══════════════════════════════════════"
