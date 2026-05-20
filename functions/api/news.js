@@ -42,8 +42,39 @@ export async function onRequest(context) {
             freshNews = await response.json();
             if (!Array.isArray(freshNews)) freshNews = [];
         } catch (e) {
-            console.error('Failed to fetch fresh news:', e);
+            console.error('Failed to fetch fresh news from Vercel:', e);
             freshNews = [];
+        }
+
+        // Bypassing Vercel fail: Fallback to Raw GitHub Data Lake
+        if (freshNews.length === 0) {
+            try {
+                console.log(`⚠️ Vercel news failed, falling back to GitHub Data Lake for ${market}...`);
+                const githubUrl = `https://raw.githubusercontent.com/Bhidy/Mubasher-Stock-Game/main/public/data/news_${market}.json`;
+                const response = await fetch(githubUrl, {
+                    headers: {
+                        'User-Agent': 'StocksHero-Cloudflare/1.0',
+                        'Accept': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    const gitNews = await response.json();
+                    if (Array.isArray(gitNews)) {
+                        freshNews = gitNews.map(a => ({
+                            id: a.url || a.link || a.id,
+                            title: a.title,
+                            publisher: a.source || a.publisher || 'Market News',
+                            link: a.url || a.link,
+                            time: a.time || a.pubDate || a.publishedAt || new Date().toISOString(),
+                            thumbnail: a.thumbnail || a.imageUrl || 'https://placehold.co/600x400/f1f5f9/475569?text=News',
+                            content: a.content || a.summary || ''
+                        }));
+                        console.log(`🎯 Successfully loaded ${freshNews.length} articles from GitHub Data Lake`);
+                    }
+                }
+            } catch (gitErr) {
+                console.error('Failed to fetch news from GitHub Data Lake:', gitErr);
+            }
         }
 
         // 2. LOAD EXISTING ARCHIVE from KV

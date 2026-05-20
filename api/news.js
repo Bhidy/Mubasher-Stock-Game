@@ -64,6 +64,8 @@ async function translateText(text) {
     return text;
 }
 
+const translateToEnglish = translateText;
+
 // SCRAPER: Mubasher Direct (English + Arabic with Auto-Translate)
 async function scrapeMubasher(market = 'SA') {
     const articles = [];

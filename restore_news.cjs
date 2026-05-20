@@ -30,8 +30,8 @@ articles.forEach(a => {
     }
 });
 
-fs.writeFileSync('news_archive_SA.json', JSON.stringify(sa));
-fs.writeFileSync('news_archive_EG.json', JSON.stringify(eg));
-fs.writeFileSync('news_archive_US.json', JSON.stringify(us));
+fs.writeFileSync('./public/data/news_SA.json', JSON.stringify(sa, null, 2));
+fs.writeFileSync('./public/data/news_EG.json', JSON.stringify(eg, null, 2));
+fs.writeFileSync('./public/data/news_US.json', JSON.stringify(us, null, 2));
 
 console.log(`Prepared archives: SA=${sa.length}, EG=${eg.length}, US=${us.length}`);

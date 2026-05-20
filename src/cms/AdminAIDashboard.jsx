@@ -335,7 +335,7 @@ export default function AdminAIDashboard() {
     useEffect(() => {
         const fetchSourceNews = async () => {
             try {
-                const apiBase = '/api/news';
+                const apiBase = getEndpoint('/api/news');
                 const [sa, eg] = await Promise.all([
                     fetch(`${apiBase}?market=SA`).then(r => r.ok ? r.json() : []),
                     fetch(`${apiBase}?market=EG`).then(r => r.ok ? r.json() : []),

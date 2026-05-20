@@ -30,6 +30,21 @@ jobs:
         run: |
           python backend/ingest_master.py
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: |
+          npm install
+
+      - name: Run News Scraper
+        run: |
+          node backend/jobs/newsScraper.js
+          node restore_news.cjs
+
       - name: Commit and Push Data
         run: |
           git config --global user.name "GitHub Actions Bot"
@@ -37,6 +52,7 @@ jobs:
           git add public/data/stocks.json
           git add public/data/profiles/*.json
           git add public/data/charts/*.json
-          git commit -m "📈 Data Pump: Updated stock prices [skip ci]" || echo "No changes to commit"
+          git add public/data/news_*.json
+          git commit -m "📈 Data Pump: Updated stock prices and news [skip ci]" || echo "No changes to commit"
           git pull --rebase origin main || true
           git push || echo "Push failed, will retry next run"
