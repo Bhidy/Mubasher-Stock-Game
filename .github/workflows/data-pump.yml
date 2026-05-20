@@ -47,12 +47,15 @@ jobs:
         run: |
           node backend/jobs/newsScraper.js
           node restore_news.cjs
+          node backend/jobs/scrapeUSNews.js
           echo "Done. Stats:"
           node -e "
             const sa = require('./public/data/news_SA.json');
             const eg = require('./public/data/news_EG.json');
+            const us = require('./public/data/news_US.json');
             console.log('SA:', sa.length, '| Latest:', sa[0]?.published_at);
             console.log('EG:', eg.length, '| Latest:', eg[0]?.published_at);
+            console.log('US:', us.length, '| Latest:', us[0]?.published_at);
           "
 
       - name: Commit data

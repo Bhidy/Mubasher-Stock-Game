@@ -104,22 +104,40 @@ const ArticleView = ({ article, onBack }) => {
 
     // Fetch full article content
     useEffect(() => {
-        if (article?.link && article.link !== '#') {
+        if (!article) return;
+
+        // Reset state when article changes
+        setFullContent(null);
+        setIsTranslated(false);
+        setTranslatedTitle(null);
+        setTranslatedContent(null);
+
+        if (article.link && article.link !== '#') {
+            // Show snippet immediately while full content loads
+            if (article.content) {
+                setFullContent(`<p>${article.content}</p>`);
+            }
             setLoading(true);
             fetch(`${CONTENT_API_URL}?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.content) {
-                        // Clean the content to remove duplicates
+                    if (data.content && !data.content.includes('Unable to load article')) {
                         const cleaned = cleanArticleContent(data.content, article.title, article.thumbnail);
-                        setFullContent(cleaned);
+                        if (cleaned && cleaned.trim().length > 100) {
+                            setFullContent(cleaned);
+                        }
+                        // else keep the snippet we already set
                     }
                 })
                 .catch(e => console.error('Content fetch failed:', e))
                 .finally(() => setLoading(false));
-        } else if (article?.content) {
-            const cleaned = cleanArticleContent(article.content, article.title, article.thumbnail);
-            setFullContent(cleaned);
+        } else {
+            // CMS article — use stored content directly
+            const raw = article.content || article.summary || '';
+            if (raw) {
+                const cleaned = cleanArticleContent(raw, article.title, article.thumbnail);
+                setFullContent(cleaned || raw);
+            }
         }
 
         // Scroll to top

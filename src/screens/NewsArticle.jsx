@@ -127,27 +127,33 @@ export default function NewsArticle() {
     };
 
     useEffect(() => {
+        if (!article) return;
+
         // Scroll top on mount
         window.scrollTo(0, 0);
 
         const heroUrl = article?.imageUrl || article?.thumbnail;
 
-        // If the article has direct content (CMS), use it.
-        if (article?.content) {
+        // If the article has direct content (CMS), use it immediately.
+        if (article?.content && article.content.trim().length > 30) {
             setFullContent(removeDuplicateImage(article.content, heroUrl));
         }
         // Otherwise, if it has an external link, try to fetch/scrape it.
-        else if (article?.link) {
-            setFullContentLoading(true);
-            fetch(getEndpoint(`/api/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`))
-                .then(res => res.json())
-                .then(data => {
-                    if (data.content) {
-                        setFullContent(removeDuplicateImage(data.content, heroUrl));
-                    }
-                })
-                .catch(e => console.error("Content fetch failed:", e))
-                .finally(() => setFullContentLoading(false));
+        // Also try to get richer content if article.content is just a short snippet
+        if (article?.link && article.link !== '#') {
+            if (!article?.content || article.content.trim().length < 200) {
+                setFullContentLoading(true);
+                fetch(getEndpoint(`/api/content?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`))
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.content && !data.content.includes('Unable to load article') && data.content.trim().length > 100) {
+                            setFullContent(removeDuplicateImage(data.content, heroUrl));
+                        }
+                        // else keep what we already have from article.content
+                    })
+                    .catch(e => console.error("Content fetch failed:", e))
+                    .finally(() => setFullContentLoading(false));
+            }
         }
     }, [article]);
 
