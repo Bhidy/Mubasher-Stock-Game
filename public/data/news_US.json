@@ -1,13 +1,183 @@
 [
   {
-    "title": "Beloved troll statue at Pease Park in Austin, Texas burns down",
-    "url": "https://finance.yahoo.com/m/a63a6002-e285-3a77-944f-833aeebd1a7a/beloved-troll-statue-at-pease.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/63lxIfCTg8LqaWpvrmxpcA--~B/aD0xMjgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/usa_today_news_641/0ed5dad3307fdcf0dc38de730f52d14c",
-    "published_at": "2026-05-21T18:07:37.000Z",
-    "source": "USA TODAY",
+    "title": "Walmart Slips Despite Solid Sales Growth",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/walmart-slips-despite-solid-sales-185704952.html",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T18:57:04.000Z",
+    "source": "GuruFocus.com",
     "country": "US",
     "market": "US",
-    "content": "\"...we are heartbroken alongside the community that cherished it,\" according to a social media post from Pease Park."
+    "content": "The retailer topped U.S. sales expectations, but higher fuel costs raised margin concerns."
+  },
+  {
+    "title": "World Cup could make football 'mainstream' in co-host Canada",
+    "url": "https://finance.yahoo.com/m/9bc27fa4-65ec-3bdb-a1c9-be742baf97d8/world-cup-could-make-football.html",
+    "image_url": "https://s.yimg.com/uu/api/res/1.2/vyYdRnLOLv2s98oeNfD6Bg--~B/aD01MTI7dz03Njg7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/afp.com/8ccc5482bad629a1949a0e1c4eb536c9",
+    "published_at": "2026-05-21T18:53:08.000Z",
+    "source": "AFP",
+    "country": "US",
+    "market": "US",
+    "content": "Three weeks before kickoff in the first ever World Cup match in Canada, football leaders in the country voiced hope the tournament will finally give the sport the cultural prominence it deserves. In two previous World Cup appearances -- the 1986 finals in Mexico and the 2022 tournament in Qatar -- Canada played six and lost six."
+  },
+  {
+    "title": "ZoomInfo Technologies Shares Fall After Downgrade From Jefferies",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/zoominfo-technologies-shares-fall-downgrade-185123754.html",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T18:51:23.000Z",
+    "source": "MT Newswires",
+    "country": "US",
+    "market": "US",
+    "content": "ZoomInfo Technologies (GTM) shares were down more than 2% in Thursday trading after Jefferies downgr"
+  },
+  {
+    "title": "Microsoft, EY Plan $1B AI Push",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/microsoft-ey-plan-1b-ai-184944653.html",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T18:49:44.000Z",
+    "source": "GuruFocus.com",
+    "country": "US",
+    "market": "US",
+    "content": "Five-year investment aims to help companies use AI across daily operations."
+  },
+  {
+    "title": "NTN starts China push for EV bearing production",
+    "url": "https://finance.yahoo.com/m/86d1389e-f676-3f31-b9da-157dd3ffc4ef/ntn-starts-china-push-for-ev.html",
+    "image_url": "https://s.yimg.com/uu/api/res/1.2/jLmvc1yC2G_uitNm.xSpSg--~B/aD04MTA7dz0xNDQwO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/just_auto_187/a4673a6e369bc61697b8df5cd06ce5f5",
+    "published_at": "2026-05-21T18:49:35.000Z",
+    "source": "Just Auto",
+    "country": "US",
+    "market": "US",
+    "content": "The Japanese bearings manufacturer said the shift to mass production will take place in stages, depending on market trends and customer demand."
+  },
+  {
+    "title": "Mullen Group Declares Unchanged Monthly Dividend",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/mullen-group-declares-unchanged-monthly-184850217.html",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T18:48:50.000Z",
+    "source": "MT Newswires",
+    "country": "US",
+    "market": "US",
+    "content": "Mullen Group's (MTL.TO) board of directors declared a monthly dividend of $0.07 per common share, it"
+  },
+  {
+    "title": "Webuild says NEOM terminates connector high-speed line contract in Saudi Arabia",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/webuild-says-neom-terminates-connector-184810939.html",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T18:48:10.000Z",
+    "source": "Reuters",
+    "country": "US",
+    "market": "US",
+    "content": "Saudi Arabia's high-tech NEOM has terminated Webuild's contract for the ‌Connector High-Speed Line project in Tabuk, Italy's ‌largest construction company said on Thursday.  The termination will become ​effective on May 27.  The works are around 20% complete, with a remaining project backlog for Webuild of around 1 billion euros ($1.16 billion)."
+  },
+  {
+    "title": "AMD makes a major $10 billion push in crucial tech hub",
+    "url": "https://finance.yahoo.com/m/9b240790-1b20-3157-9cf0-937dbdd51dd9/amd-makes-a-major-%2410-billion.html",
+    "image_url": "https://s.yimg.com/uu/api/res/1.2/A338rAKCIipEkB7vrsd3YQ--~B/aD02NzU7dz0xMjAwO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/thestreet_881/5c5bee8e13b73730a75584058d766c68",
+    "published_at": "2026-05-21T18:47:12.000Z",
+    "source": "TheStreet",
+    "country": "US",
+    "market": "US",
+    "content": "Advanced Micro Devices (AMD) stock closed the May 20 trading session 8.1% up at $447.58, according to Yahoo Finance. It is currently trading 0.8% down at $444.0, according to Yahoo Finance at the time of writing, Thursday morning, May 21. ARM closed 15.05% higher at $256.73.Intel closed 7.36% ..."
+  },
+  {
+    "title": "Liferay Named Technology Partner of the Year by Camunda at Global Partner Summit",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/liferay-named-technology-partner-camunda-184700960.html",
+    "image_url": "https://s.yimg.com/uu/api/res/1.2/7.mW.KtiPA7yNruI7SBR8w--~B/aD0zMDAwO3c9NDAwMDthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/globenewswire.com/c69ae5c9c45c4a9af447de9a53be5809",
+    "published_at": "2026-05-21T18:47:00.000Z",
+    "source": "GlobeNewswire",
+    "country": "US",
+    "market": "US",
+    "content": "Prestigious honor recognizes Liferay's technical excellence, innovative approach to AI-powered orchestration, and deep commitment to enterprise customer success Liferay Receives Camunda 2026 Technology Partner of the Year Award Liferay team members accept Camunda’s 2026 Technology Partner of the Year award during the Camunda Partner Summit at CamundaCon 2026 in Amsterdam. LOS ANGELES, May 21, 2026 (GLOBE NEWSWIRE) -- Liferay, Inc., a leading provider of Digital Experience Platforms (DXPs), today"
+  },
+  {
+    "title": "Electrolux sets share price at 16.75 crowns in $976 million rights issue",
+    "url": "https://www.investing.com/news/stock-market-news/electrolux-sets-share-price-at-1675-crowns-in-976-million-rights-issue-93CH-4704847",
+    "image_url": "https://i-invdn-com.investing.com/news/LYNXNPEB6U08A_M.jpg",
+    "published_at": "2026-05-21T18:46:52.000Z",
+    "source": "Investing.com US",
+    "country": "US",
+    "market": "US",
+    "content": ""
+  },
+  {
+    "title": "SEC’s Peirce to Depart Wall Street Regulator for Law School Job",
+    "url": "https://finance.yahoo.com/m/f49f0177-9831-325c-8118-70a356eec3b6/sec%E2%80%99s-peirce-to-depart-wall.html",
+    "image_url": "https://s.yimg.com/uu/api/res/1.2/xcJVQDI7yyqWs8bZB8kkNw--~B/aD00MTY7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/wealth_management_474/4af9bfcad155ddf35babea59febd73ae",
+    "published_at": "2026-05-21T18:46:48.000Z",
+    "source": "Wealth Management",
+    "country": "US",
+    "market": "US",
+    "content": "Peirce’s exit could leave what is supposed to be a five-person, bipartisan commission with just Chairman Paul Atkins and Republican Commissioner Mark Uyeda."
+  },
+  {
+    "title": "Google, Meta, TikTok hit by EU consumer complaints about handling of financial scams",
+    "url": "https://www.investing.com/news/stock-market-news/google-meta-tiktok-face-eu-consumer-complaints-about-handling-of-financial-scams-4703529",
+    "image_url": "https://i-invdn-com.investing.com/trkd-images/LYNXMPEM4K0UM_L.jpg",
+    "published_at": "2026-05-21T18:43:15.000Z",
+    "source": "Investing.com US",
+    "country": "US",
+    "market": "US",
+    "content": ""
+  },
+  {
+    "title": "1 Services Stock to Research Further and 2 We Avoid",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/1-services-stock-research-further-183655989.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/dq3l7K_tXXi0dDTHyw2y.g--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/stockstory_922/60821e584fcf5902e3b0fc7a48812474",
+    "published_at": "2026-05-21T18:36:55.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "Business services providers play a critical role for enterprises, assisting them with everything from new hardware integrations to consulting and marketing. These firms have helped their customers unlock huge efficiencies, so it’s no surprise the industry has posted a 14.2% gain over the past six months, nearly mirrorring the S&P 500."
+  },
+  {
+    "title": "Air India CEO says successor will have \"hands full\" amid operational challenges",
+    "url": "https://www.investing.com/news/stock-market-news/air-india-ceo-says-successor-will-have-hands-full-amid-operational-challenges-93CH-4704836",
+    "image_url": "https://i-invdn-com.investing.com/news/LYNXNPEC0Q0MJ_M.jpg",
+    "published_at": "2026-05-21T18:35:46.000Z",
+    "source": "Investing.com US",
+    "country": "US",
+    "market": "US",
+    "content": ""
+  },
+  {
+    "title": "Nvidia Earnings Are Out--How Options Traders Are Reacting",
+    "url": "https://finance.yahoo.com/markets/options/articles/nvidia-earnings-options-traders-reacting-183009867.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/schaeffers_investment_research_24/2302c9931bf059f5c54f16a003a88ab3",
+    "published_at": "2026-05-21T18:30:09.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "Nvidia's report itself was excellent, just not up to Wall Street's lofty standards"
+  },
+  {
+    "title": "Equity Markets Rise Intraday, Oil Falls as Traders Monitor Middle East Developments",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/equity-markets-rise-intraday-oil-182355146.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/mt_newswires_premium_news_706/97f8529991dafd96c1cb04f4325c2221",
+    "published_at": "2026-05-21T18:23:55.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "US equity markets edged higher intraday and oil prices declined as traders tracked the latest on the"
+  },
+  {
+    "title": "US to invest $2 billion in IBM, other quantum computing firms",
+    "url": "https://www.investing.com/news/stock-market-news/us-to-award-2-billion-to-quantum-computing-firms-take-equity-stakes-wsj-reports-4703495",
+    "image_url": "https://i-invdn-com.investing.com/trkd-images/LYNXMPEM4K0UI_L.jpg",
+    "published_at": "2026-05-21T18:12:59.000Z",
+    "source": "Investing.com US",
+    "country": "US",
+    "market": "US",
+    "content": ""
+  },
+  {
+    "title": "Sector Update: Energy Stocks Decline Thursday Afternoon",
+    "url": "https://finance.yahoo.com/sectors/energy/articles/sector-energy-stocks-decline-thursday-180708708.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T18:07:08.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "Energy stocks were lower Thursday afternoon, with the NYSE Energy Sector Index decreasing 0.6% and t"
   },
   {
     "title": "Stock Market Today: Dow, S&P 500 Turn Up As Nvidia Cuts Losses; Intuit Craters, AI Players Jam (Live Coverage)",
@@ -20,94 +190,54 @@
     "content": "Stock Market Today: The Dow Jones index wavered Thursday after surprise jobless claims data. Nvidia stock fell despite strong earnings."
   },
   {
-    "title": "Sector Update: Financial Stocks Mixed Thursday Afternoon",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/sector-financial-stocks-mixed-thursday-180254359.html",
-    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
-    "published_at": "2026-05-21T18:02:54.000Z",
-    "source": "MT Newswires",
+    "title": "UBS reshuffles wealth management leadership in Middle East",
+    "url": "https://www.investing.com/news/stock-market-news/ubs-reshuffles-wealth-management-leadership-in-middle-east-93CH-4704793",
+    "image_url": "https://i-invdn-com.investing.com/news/LYNXNPEC3B0CQ_M.jpg",
+    "published_at": "2026-05-21T18:02:47.000Z",
+    "source": "Investing.com US",
     "country": "US",
     "market": "US",
-    "content": "Financial stocks were mixed in Thursday afternoon trading, with the NYSE Financial Index fractionall"
+    "content": ""
   },
   {
-    "title": "Update: Gold Rises as the Dollar and Yields Moderate as Iran Considers a Fresh U.S. Peace Offer",
-    "url": "https://finance.yahoo.com/markets/commodities/articles/gold-rises-dollar-yields-moderate-180142345.html",
-    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
-    "published_at": "2026-05-21T18:01:42.000Z",
-    "source": "MT Newswires",
+    "title": "Arm, IBM among market cap stock movers on Thursday",
+    "url": "https://www.investing.com/news/stock-market-news/arm-ibm-among-market-cap-stock-movers-on-thursday-93CH-4704791",
+    "image_url": "https://i-invdn-com.investing.com/news/IBM_1_M_1440048638.jpg",
+    "published_at": "2026-05-21T18:02:09.000Z",
+    "source": "Investing.com US",
     "country": "US",
     "market": "US",
-    "content": "(Updates prices.) Gold edged higher midafternoon Thursday, moving up from early losses as the dol"
+    "content": ""
   },
   {
     "title": "US Equity Indexes Advance as Iran Reviews Washington's Peace Proposal",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-advance-iran-180141628.html",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-advance-iran-180141628.html?.tsrc=rss",
     "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
     "published_at": "2026-05-21T18:01:41.000Z",
-    "source": "MT Newswires",
+    "source": "Yahoo Finance",
     "country": "US",
     "market": "US",
     "content": "US equity indexes rose as President Donald Trump appeared open to giving Iran time to review Washing"
   },
   {
-    "title": "LongPoint Announces Cash Distribution on MOAT ETF",
-    "url": "https://finance.yahoo.com/markets/options/articles/longpoint-announces-cash-distribution-moat-180000499.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/Vap.kuxiKVfiK3_HhaXLzw--~B/aD00MDA7dz00MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/newsfile_64/06d90a4a76d44196291d745ffda6699c",
-    "published_at": "2026-05-21T18:00:00.000Z",
-    "source": "TMX Newsfile",
+    "title": "Market Update: CSX, NEM, SCHW, UL, HUBS",
+    "url": "https://finance.yahoo.com/research/reports/ARGUS_47102_MarketUpdate_1779386230000?yptr=yahoo&ncid=yahooproperties_plusresear_nm5q6ze1cei",
+    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    "published_at": "2026-05-21T17:57:10.000Z",
+    "source": "Yahoo Finance Markets",
     "country": "US",
     "market": "US",
-    "content": "Toronto, Ontario--(Newsfile Corp. - May 21, 2026) - LongPoint Asset Management Inc. (\"LongPoint\") is pleased to announce the monthly cash distribution for the Moat Active Premium Yield ETF (the \"Moat ETF\") listed on the Toronto Stock Exchange under the symbol (TSX: MOAT). The Moat ETF seeks to provide high income and moderate capital growth primarily by writing put options on a portfolio of North American equity securities. Unitholders of record on May 28, 2026, will receive a cash distribution."
+    "content": "At Yahoo Finance, you get free stock quotes, up-to-date news, portfolio management resources, international market data, social interaction and mortgage rates that help you manage your financial life."
   },
   {
-    "title": "Vadzo Imaging Defines USB Video Class (UVC) vs USB3 Vision: The Protocol Decision Every Industrial Camera Designer Must Make",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/vadzo-imaging-defines-usb-video-180000143.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/nYp.c_Fnme.eSx9vg98bhw--~B/aD00MDA7dz00MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/accesswire.ca/66a860e31e3b873ec8c20560efcc398a",
-    "published_at": "2026-05-21T18:00:00.000Z",
-    "source": "ACCESS Newswire",
+    "title": "HB Fuller said to propose 285 pence per share deal for Advanced Medical Solutions",
+    "url": "https://www.investing.com/news/stock-market-news/hb-fuller-said-to-propose-285-pence-deal-for-advanced-medical-solutions--source-4704766",
+    "image_url": "https://i-invdn-com.investing.com/news/LYNXMPEA830AT_M.jpg",
+    "published_at": "2026-05-21T17:51:20.000Z",
+    "source": "Investing.com US",
     "country": "US",
     "market": "US",
-    "content": "When the wrong USB protocol is selected for an embedded vision product, the integration failure does not appear at the bench. Vadzo Imaging examines how UVC and USB3 Vision determine driver dependency, host platform compatibility, bandwidth ceiling, ..."
-  },
-  {
-    "title": "Church Mutual® Shares 2025 Results at Annual Policyholder Meeting; Announces Daniel Kim as New Chief Financial Officer, Other Leadership Appointments",
-    "url": "https://finance.yahoo.com/sectors/healthcare/articles/church-mutual-shares-2025-results-180000831.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/GWfzNicuEGfGJN2QJY5Jrw--~B/aD00ODA7dz00ODA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/business-wire.com/00f7097aa10d4fd78284a1163af6a439",
-    "published_at": "2026-05-21T18:00:00.000Z",
-    "source": "Business Wire",
-    "country": "US",
-    "market": "US",
-    "content": "MERRILL, Wis., May 21, 2026--Church Mutual Insurance Company, S.I. (a stock insurer)1 today shared 2025 financial results for the Church Mutual family of companies at its annual policyholder meeting, reflecting continued financial strength and disciplined performance."
-  },
-  {
-    "title": "Mexedia Signs a Binding Agreement for the Acquisition of 51% of Stantup Service S.r.l. for a Total Consideration of Eur 16.5 Million",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/mexedia-signs-binding-agreement-acquisition-180000035.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/qhpU9TEP6_RB4CFJIAb1Hg--~B/aD00NzE7dz0xODE4O2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/business-wire.com/d4cafe9cea97ac6c1d1bd0462e5dfbeb",
-    "published_at": "2026-05-21T18:00:00.000Z",
-    "source": "Business Wire",
-    "country": "US",
-    "market": "US",
-    "content": "ROME, May 21, 2026--Regulatory News: Mexedia S.p.A. Società Benefit (Euronext Growth Paris: ALMEX, ISIN: IT0005450819), an international tech company operating in the telecommunications and digital services sector, announces that, on today’s date, the Board of Directors of Mexedia and the Board of Directors of Rocket Sharing Company S.p.A. (Euronext Growth Milan: RKT:IM) approved the execution of a binding agreement for the sale to Mexedia of a 51% equity interest in Stantup Service S.r.l., an I"
-  },
-  {
-    "title": "Exelon Expands 2c2i Portfolio with New Investments in Natrion and Blackcurrant AI",
-    "url": "https://finance.yahoo.com/sectors/energy/articles/exelon-expands-2c2i-portfolio-investments-180000623.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/Wf.J5PpsNKfNmV7ojbXlDw--~B/aD0yMzQ7dz05MjM7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/business-wire.com/376055be4e20c68e92d6c1f6019a3938",
-    "published_at": "2026-05-21T18:00:00.000Z",
-    "source": "Business Wire",
-    "country": "US",
-    "market": "US",
-    "content": "CHICAGO, May 21, 2026--The Exelon Foundation has added two new companies to the Climate Change Investment Initiative (2c2i) portfolio—Blackcurrant AI and Natrion—each tackling different, but critical, energy innovations and positioned to scale as demand for more efficient, lower-cost energy solutions grows."
-  },
-  {
-    "title": "#1 Real Estate Agent in Frisco, TX: Linda Bale",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/1-real-estate-agent-frisco-180000691.html",
-    "image_url": "https://s.yimg.com/uu/api/res/1.2/pe2glEl9zWcQBvRkCyfFCQ--~B/aD00MDA7dz00MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/accesswire.ca/dcf0fb2d8ff9933052e5f833eef76a42",
-    "published_at": "2026-05-21T18:00:00.000Z",
-    "source": "ACCESS Newswire",
-    "country": "US",
-    "market": "US",
-    "content": "With more than $50 million in residential sales over the past 36 months, deep North Dallas market expertise, and a concierge-level client experience, Linda Bale continues to stand out as the #1 real estate agent in Frisco, TX, for buyers and sellers ..."
+    "content": ""
   },
   {
     "title": "Got $500? The Best Dividend Stocks to Buy Right Now",
@@ -120,6 +250,16 @@
     "content": "Altria and Realty Income are still evergreen income investments."
   },
   {
+    "title": "Meta settles lawsuit with Kentucky school district over social media harm",
+    "url": "https://www.investing.com/news/stock-market-news/meta-settles-lawsuit-with-kentucky-school-district-over-social-media-harm-93CH-4704771",
+    "image_url": "https://i-invdn-com.investing.com/news/google_2_M_1440049078.jpg",
+    "published_at": "2026-05-21T17:49:22.000Z",
+    "source": "Investing.com US",
+    "country": "US",
+    "market": "US",
+    "content": ""
+  },
+  {
     "title": "3 Industrials Stocks with Warning Signs",
     "url": "https://finance.yahoo.com/markets/stocks/articles/3-industrials-stocks-warning-signs-174855350.html?.tsrc=rss",
     "image_url": "https://s.yimg.com/ny/api/res/1.2/RE5voZDSbK3Gshz5vyY7sw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/stockstory_922/a6b456d85e0dd3843607ef01a95b89c2",
@@ -128,6 +268,46 @@
     "country": "US",
     "market": "US",
     "content": "Whether you see them or not, industrials businesses play a crucial part in our daily activities. They are also bound to benefit from a friendlier regulatory environment with the Trump administration, and this excitement has led to a six-month gain of 20.5% for the sector - higher than the S&P 500’s 13.2% return."
+  },
+  {
+    "title": "Meta settles first US case over school costs tied to youth mental health, court filing shows",
+    "url": "https://www.investing.com/news/stock-market-news/meta-settles-first-us-case-over-school-costs-tied-to-youth-mental-health-court-filing-shows-4704768",
+    "image_url": "https://i-invdn-com.investing.com/trkd-images/LYNXMPEM4K1KC_L.jpg",
+    "published_at": "2026-05-21T17:48:30.000Z",
+    "source": "Investing.com US",
+    "country": "US",
+    "market": "US",
+    "content": ""
+  },
+  {
+    "title": "XPON Incurs Loss in Q1, Revenues Down Y/Y on Soft OEM Demand",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/xpon-incurs-loss-q1-revenues-174300224.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/cd9ed8cf63fa5a7bc41c5e977c67cccb",
+    "published_at": "2026-05-21T17:43:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "Expion360's Q1 loss narrows year over year, but revenues decline as OEM demand softens, and management remains optimistic on new battery launches and industrial market expansion."
+  },
+  {
+    "title": "KLNG Swings to Earnings in Q1 as Revenues Jump 56% on Contract Wins",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/klng-swings-earnings-q1-revenues-174200763.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/d0715e0f72c3dee0fed6587d79207dc0",
+    "published_at": "2026-05-21T17:42:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "Koil Energy posts a Q1 EPS of 2 cents, aided by strong subsea contract activity and international expansion efforts, which drove growth and returned the company to profitability."
+  },
+  {
+    "title": "Syntec Optics Incurs Q1 Loss, Shipment Delays Hit Results",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/syntec-optics-incurs-q1-loss-174000426.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/006666fd31a7552680e072226bfa1214",
+    "published_at": "2026-05-21T17:40:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "OPTX posts a loss per share in Q1 as shipment timing delays hurt revenue and margins, though defense and space optics demand is expected to support sequential growth in Q2 2026."
   },
   {
     "title": "Cummins CEO Explains How to Manage the AI Boom",
@@ -160,6 +340,46 @@
     "content": "Planet Fitness operates a hybrid franchise and corporate-owned gym model, serving value-focused fitness customers nationwide."
   },
   {
+    "title": "GEE Group's Earnings Break Even in Q1, Revenues Down Y/Y",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/gee-groups-earnings-break-even-170400313.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/c04fa10cfb24515e5fe8fc912bd81a3a",
+    "published_at": "2026-05-21T17:04:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "JOB's fiscal Q2 results faced AI-related hiring pressure and weaker contract revenue, though higher-margin direct hire placements and cost cuts provided some relief."
+  },
+  {
+    "title": "Comstock's Q1 Earnings Increase Y/Y on Portfolio Growth",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/comstocks-q1-earnings-increase-y-165900615.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/8288d0472e293718934d3e1da510f867",
+    "published_at": "2026-05-21T16:59:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "CHCI posted a year-over-year increase in Q1 earnings per share and revenue, supported by leasing momentum, portfolio expansion and recurring fee-based income."
+  },
+  {
+    "title": "Retractable Stock Slips Post Q1 Earnings, Sales Decline Y/Y",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/retractable-stock-slips-post-q1-165800393.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/294ac5400447acbf80c7325a61f41736",
+    "published_at": "2026-05-21T16:58:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "RVP's first-quarter 2026 sales decline as mix shifts and tariffs pressure pricing, prompting cost cuts and a push to expand domestic production."
+  },
+  {
+    "title": "Daily Journal Incurs Q2 Loss Due to Investment Losses, Rising Costs",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/daily-journal-incurs-q2-loss-165700594.html?.tsrc=rss",
+    "image_url": "https://s.yimg.com/os/en/zacks.com/9fd4cc380fae9cece48d9f5d21464129",
+    "published_at": "2026-05-21T16:57:00.000Z",
+    "source": "Yahoo Finance",
+    "country": "US",
+    "market": "US",
+    "content": "DJCO posts a loss per share in fiscal Q2 as unrealized investment losses and higher operating costs offset revenue growth at Journal Technologies."
+  },
+  {
     "title": "Micron jumps nearly as chip stocks roar back in AI-fueled rebound",
     "url": "https://finance.yahoo.com/markets/stocks/articles/micron-jumps-nearly-chip-stocks-165458378.html?.tsrc=rss",
     "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
@@ -170,66 +390,6 @@
     "content": "Micron recovers from sell-off, but still lags record highs as volatility lingers"
   },
   {
-    "title": "Microsoft Falls 12% As AI Spending Concerns Pressure S&P 500",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/microsoft-falls-12-ai-spending-165401602.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
-    "published_at": "2026-05-21T16:54:01.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "Software giant becomes the index's biggest drag as Azure growth and $190 billion capex outlook weigh on sentiment."
-  },
-  {
-    "title": "Here's Why You Should Retain Ecolab Stock in Your Portfolio Now",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/heres-why-retain-ecolab-stock-165100485.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/os/en/zacks.com/181d5ab1675d8aae9c53428215552644",
-    "published_at": "2026-05-21T16:51:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "ECL's strong Q1 earnings, digital growth and expanding high-tech platform support long-term upside despite rising cost pressures."
-  },
-  {
-    "title": "Vaso Stock Gains Post Q1 Earnings, Deferred Revenue Grows",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/vaso-stock-gains-post-q1-164700498.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/os/en/zacks.com/838cf8b60fbc1e7928a087dc9bcb3648",
-    "published_at": "2026-05-21T16:47:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "VASO's first-quarter 2026 revenues dip after its healthcare IT divestiture, but losses narrow and deferred revenue kept climbing."
-  },
-  {
-    "title": "US Equity Indexes Decline as Iran's Efforts to Keep Enriched Uranium Risk Fallout With Trump",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-decline-iran-162829659.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
-    "published_at": "2026-05-21T16:28:29.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "US equity indexes fell, pressured by higher crude oil and Treasury yields, amid concern that Iran's"
-  },
-  {
-    "title": "Target Earnings Show Turnaround Progress. Investors Are Skeptical.",
-    "url": "https://finance.yahoo.com/m/59b059f2-1ab5-393d-9afd-03e4fa63d880/target-earnings-show.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/pftzjNSaIwszjJDtVMO5.Q--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/Barrons.com/51a0fb273210778ff91af5160d995ed7",
-    "published_at": "2026-05-21T16:27:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "The big-box retailer reports adjusted earnings of $1.71 a share, as revenue jumps 6.7% from a year ago."
-  },
-  {
-    "title": "Here's Why You Should Retain OPK Stock in Your Portfolio for Now",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/heres-why-retain-opk-stock-162300386.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/os/en/zacks.com/181d5ab1675d8aae9c53428215552644",
-    "published_at": "2026-05-21T16:23:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "OPKO Health leans on RAYALDEE and key partnerships, such as BioReference and 4Kscore, as it ramps toward mid-2026 diagnostics breakeven."
-  },
-  {
     "title": "Here we go again with Nvidia falling on earnings. What the sellers are missing",
     "url": "https://www.cnbc.com/2026/05/21/here-we-go-again-with-nvidia-falling-on-earnings-what-the-sellers-are-missing.html",
     "image_url": "https://image.cnbcfm.com/api/v1/image/108279129-1773774466063-gettyimages-2266555824-NVIDIA_GTC.jpeg?v=1774007143&w=1920&h=1080",
@@ -238,16 +398,6 @@
     "country": "US",
     "market": "US",
     "content": "Nvidia's stock is down again after earnings. The sellers are missing the bigger picture."
-  },
-  {
-    "title": "SLF Stock Trades at 2.56X Book Value: What Should Investors Know?",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/slf-stock-trades-2-56x-161800305.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/os/en/zacks.com/9d8e6ae4a2f2f78756262fb38b308001",
-    "published_at": "2026-05-21T16:18:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "Sun Life Financial expands in Asia and asset management while pursuing capital-light growth strategies to drive earnings and market positioning."
   },
   {
     "title": "Walmart issues worse-than-expected outlook as high gas prices hit shoppers, shares drop 7%",
@@ -268,116 +418,6 @@
     "country": "US",
     "market": "US",
     "content": "Ubisoft shares fell on Thursday after the Assassin's Creed maker warned of further losses this year."
-  },
-  {
-    "title": "Home Depot Beats Earnings Estimates as Shoppers Defy Inflation Fears. The Stock Advances.",
-    "url": "https://finance.yahoo.com/m/a2949685-3c95-3431-9a03-86c3a3e7f78d/home-depot-beats-earnings.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/OQQI0Rauf96Vmbjq5U5JFw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/Barrons.com/8023d429b2251e7436787b4fb971cde9",
-    "published_at": "2026-05-21T16:01:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "Home Depot reported earnings Tuesday as investors look for signs that weak housing demand and cautious consumers are still weighing on home-improvement sales."
-  },
-  {
-    "title": "TJX Stock Is Rising. Why Investors Are Shrugging Off Cautious Guidance.",
-    "url": "https://finance.yahoo.com/m/2ec95876-8b93-347d-af22-c243f8ae4f9e/tjx-stock-is-rising.-why.html?.tsrc=rss",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/HDpdOsfEBdxw4lKDFpv5Gg--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/Barrons.com/9f80944afe5d597ab3cdb5dcb9968e4c",
-    "published_at": "2026-05-21T15:47:00.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "The parent company of Marshalls and TJ Maxx posted first-quarter earnings of $1.19 a share, beating the $1.02 a share analysts had anticipated."
-  },
-  {
-    "title": "If Treasury Yields Jump Above 4.75%, Here’s What Happens to SDY",
-    "url": "https://247wallst.com/investing/2026/05/21/if-treasury-yields-jump-above-4-75-heres-what-happens-to-sdy/?.tsrc=rss",
-    "image_url": "https://247wallst.com/wp-content/uploads/2019/04/imageforentry13-h6i.jpg",
-    "published_at": "2026-05-21T15:45:43.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "The SPDR S&P Dividend ETF (NYSEARCA:SDY) is doing exactly what a yield-tilted dividend fund is supposed to do while the broader market wobbles: grinding higher while the broad market wobbles. SDY trades near $146, up 4% year to date after the S&P 500 finished Q1 2026 in negative territory. Over the past year, SDY has ... If Treasury Yields Jump Above 4.75%, Here’s What Happens to SDY"
-  },
-  {
-    "title": "Doma Perpetual Buys Another $5.6 Million of Nomad Foods With the Stock Down 20% in 2026",
-    "url": "https://www.fool.com/coverage/filings/2026/05/21/doma-perpetual-buys-another-usd5-6-million-of-nomad-foods-with-the-stock-down-20-in-2026/?.tsrc=rss",
-    "image_url": "https://g.foolcdn.com/image/?url=https%3A%2F%2Fcdn.content.foolcdn.com%2Fimages%2F1umn9qeh%2Fproduction%2F280eca1b4ecd8cc2401a2f4b2c3a68395e00dc85-1401x1251.png%3Fw%3D800%26q%3D75%26fit%3Dmax%26auto%3Dformat&w=1200&op=resize",
-    "published_at": "2026-05-21T15:37:08.000Z",
-    "source": "Yahoo Finance",
-    "country": "US",
-    "market": "US",
-    "content": "Nomad Foods is a leading European frozen foods producer with a broad portfolio of well-known brands sold across major supermarket chains."
-  },
-  {
-    "title": "HB Fuller said to propose 285 pence per share deal for Advanced Medical Solutions",
-    "url": "https://www.investing.com/news/stock-market-news/hb-fuller-said-to-propose-285-pence-deal-for-advanced-medical-solutions--source-4704766",
-    "image_url": "https://i-invdn-com.investing.com/news/LYNXMPEA830AT_M.jpg",
-    "published_at": "2026-05-21T14:51:20.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
-  },
-  {
-    "title": "Meta settles lawsuit with Kentucky school district over social media harm",
-    "url": "https://www.investing.com/news/stock-market-news/meta-settles-lawsuit-with-kentucky-school-district-over-social-media-harm-93CH-4704771",
-    "image_url": "https://i-invdn-com.investing.com/news/google_2_M_1440049078.jpg",
-    "published_at": "2026-05-21T14:49:22.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
-  },
-  {
-    "title": "Meta settles first US case over school costs tied to youth mental health, court filing shows",
-    "url": "https://www.investing.com/news/stock-market-news/meta-settles-first-us-case-over-school-costs-tied-to-youth-mental-health-court-filing-shows-4704768",
-    "image_url": "https://i-invdn-com.investing.com/trkd-images/LYNXMPEM4K1KC_L.jpg",
-    "published_at": "2026-05-21T14:48:30.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
-  },
-  {
-    "title": "H.B. Fuller reportedly bids over £600 million for Advanced Medical Solutions",
-    "url": "https://www.investing.com/news/stock-market-news/hb-fuller-reportedly-bids-over-600-million-for-advanced-medical-solutions-93CH-4704758",
-    "image_url": "https://i-invdn-com.investing.com/news/LYNXMPEB0E0CQ_M.jpg",
-    "published_at": "2026-05-21T14:40:24.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
-  },
-  {
-    "title": "Analysis-SpaceX IPO bets $2 trillion on Musk’s ambitious rockets-to-AI vision",
-    "url": "https://www.investing.com/news/stock-market-news/analysisspacex-ipo-bets-2-trillion-on-musks-ambitious-rocketstoai-vision-4703460",
-    "image_url": "https://i-invdn-com.investing.com/trkd-images/LYNXMPEM4K0U9_L.jpg",
-    "published_at": "2026-05-21T14:12:56.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
-  },
-  {
-    "title": "BofA: China semiconductor equipment imports fall 3% in April",
-    "url": "https://www.investing.com/news/stock-market-news/bofa-china-semiconductor-equipment-imports-fall-3-in-april-93CH-4704711",
-    "image_url": "https://i-invdn-com.investing.com/news/LYNXNPEC0K08U_M.jpg",
-    "published_at": "2026-05-21T14:04:26.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
-  },
-  {
-    "title": "Devon snaps up prime Delaware Basin acreage for $2.6 billion after Coterra merger",
-    "url": "https://www.investing.com/news/stock-market-news/devon-snaps-up-prime-delaware-basin-acreage-for-26-billion-after-coterra-merger-4704695",
-    "image_url": "https://i-invdn-com.investing.com/trkd-images/LYNXMPEM4K0XT_L.jpg",
-    "published_at": "2026-05-21T14:00:43.000Z",
-    "source": "Investing.com US",
-    "country": "US",
-    "market": "US",
-    "content": ""
   },
   {
     "title": "Technical Assessment: Bullish in the Intermediate-Term",
@@ -560,6 +600,16 @@
     "content": "Learn whether money market account interest is taxable, how much you may owe, and how to report your earnings to the IRS at tax time."
   },
   {
+    "title": "AI financing fueling a surge in U.S. convertible bond sales",
+    "url": "https://finance.yahoo.com/markets/options/articles/ai-financing-fueling-surge-u-100326400.html",
+    "image_url": "https://s.yimg.com/os/en/reuters-finance.com/9aa19f917f5f5082ea7b08864da8ae1f",
+    "published_at": "2026-05-20T10:03:26.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "Corporate America is tapping the convertible bond market at a record pace as companies linked to artificial intelligence drive a surge in demand for debt that often draws extra investor interest in hot markets because it can convert into equity.  Companies are using convertible debt to fund data centers, power infrastructure and cloud expansion while also rolling over pandemic‑era debt.  \"A lot of it is to build out capital expenditure, particularly AI, and that's unusual and not something we've seen in previous cycles,\" said Michael Youngworth, managing director and head of global convertible"
+  },
+  {
     "title": "Virginia woman says her insurer denied her a critical scan two years ago — now she’s fighting stage 4 lung cancer",
     "url": "https://finance.yahoo.com/sectors/healthcare/articles/virginia-woman-says-her-insurer-093500696.html",
     "image_url": "https://s.yimg.com/ny/api/res/1.2/ev8hLe40YT29Lg0TgeLjLw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/moneywise_327/a810d2ebf9f8982727d98020cbc1edfd",
@@ -590,6 +640,76 @@
     "content": "The fact that Americans are living longer has made the usual approach to financial planning incomplete, according to a new study of approximately 1,200 people and 10 focus groups by MIT AgeLab and Transamerica. The traditional three-part plan of education, work and retirement and aiming to ensure that people have enough to live comfortably in […] The post New Study Finds That Planning for Retirement Is Linked to Overall Well-Being appeared first on SmartReads by SmartAsset."
   },
   {
+    "title": "S&U, 88 Energy, Serval Resources, Shoe Zone, hVIVO - Small Cap Snapshot",
+    "url": "https://finance.yahoo.com/video/u-88-energy-serval-resources-085543169.html",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/ziIkOtUGoYb2ubz4UIoEuQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/proactive_video_751/359fd872f9f819fec55406bb77b57130",
+    "published_at": "2026-05-20T08:55:43.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "S&U PLC (LSE:SUS) has reported first-quarter trading ahead of budget and the prior year, with its motor finance arm Advantage Finance seeing transactions jump 63% year-on-year. The company is confident of achieving double-digit growth this year, with a securitisation project set to deliver lower-cost medium-term funding. 88 Energy Ltd (AIM:88E, ASX:88E, OTCQB:EEENF, FRA:POQ) says its Augusta-1 well in Alaska remains on track for a Q1 2027 spud, targeting up to 133.7 million barrels of gross unrisked resources across three stacked reservoir intervals. A farm-out process is underway, with multip"
+  },
+  {
+    "title": "Private-equity-backed firm makes fuels-focused M&A push",
+    "url": "https://finance.yahoo.com/sectors/energy/articles/private-equity-backed-firm-makes-085512070.html",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/.s.9lWGD9QMrJxAVQOvESA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/c_store_dive_342/fc41dce2d8ca666c55b82f282ad842df",
+    "published_at": "2026-05-20T08:55:12.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "Continental Fuel Group aims to acquire fuel distributors in the bulk, on-site, mobile and wholesale delivery sectors, which are seeing consolidation."
+  },
+  {
+    "title": "Digital transformation tops list of factors reshaping CFO role",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/digital-transformation-tops-list-factors-085434936.html",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/943g6gjL9MD9sva.ftBrCA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/cfo_com_600/66f6592f674634b3e596ce24593e8cd6",
+    "published_at": "2026-05-20T08:54:34.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "Recent developments have “sharply accelerated” the pace of change for finance chiefs, a new report contends."
+  },
+  {
+    "title": "3 Stocks to Take Advantage of the $72 Billion Quantum Computing Industry",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/3-stocks-advantage-72-billion-084700255.html",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/mqB2eK0bvm0TvdILMibV2g--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NjA-/https://media.zenfs.com/en/motleyfool.com/5f7c40ec722c3b9a5a62e5266c626690",
+    "published_at": "2026-05-20T08:47:00.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "Quantum computing will hit the mainstream faster than most think."
+  },
+  {
+    "title": "Wendy’s appoints Bob Wright as CEO",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/wendy-appoints-bob-wright-ceo-084626682.html",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/xrANWr4gF6cLNRqIcYnSbg--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/restaurant_dive_404/5eadc902c2bec60cd1688af45c6a416d",
+    "published_at": "2026-05-20T08:46:26.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "Wright joins the fast food chain as it continues to face declining sales, store closures and pressure from an activist investor."
+  },
+  {
+    "title": "XRP News: The Truth Behind the XRP and JPMorgan Rumors",
+    "url": "https://finance.yahoo.com/markets/crypto/articles/xrp-news-truth-behind-xrp-083801376.html",
+    "image_url": "https://s.yimg.com/os/en/99bitcoins_us_315/0a5204690144e41d465caef63000e3b3",
+    "published_at": "2026-05-20T08:38:01.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "In the latest XRP news Today, a viral claim has been circulating across crypto social media: that JPMorgan and Ripple are headed toward a massive settlement or strategic partnership that could send XRP’s price soaring. JPMorgan’s Kinexys infrastructure did interact with the XRP Ledger during a real, documented transaction involving ..."
+  },
+  {
+    "title": "Kinetik takes FID on $260m Kings Landing II gas processing plant",
+    "url": "https://finance.yahoo.com/sectors/energy/articles/kinetik-takes-fid-260m-kings-083729629.html",
+    "image_url": "https://s.yimg.com/ny/api/res/1.2/tBaOGNXOwpxsbfTPtwMNeQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/offshore_technology_431/e0d594ae6d6cd4252eb452bb60b0fda6",
+    "published_at": "2026-05-20T08:37:29.000Z",
+    "source": "Yahoo Finance Markets",
+    "country": "US",
+    "market": "US",
+    "content": "The new plant will process 300mcf/d of gas, lifting Kinetik’s total processing capacity to more than 2.7bcf/d."
+  },
+  {
     "title": "Astera Labs (ALAB) Soars 13% on Analyst ‘Buy’ Reco",
     "url": "https://finance.yahoo.com/markets/stocks/articles/astera-labs-alab-soars-13-033746775.html",
     "image_url": "https://s.yimg.com/os/en/insidermonkey.com/498a6bc7082e04dc903121c60fb39013",
@@ -600,24 +720,14 @@
     "content": "Astera Labs Inc. (NASDAQ:ALAB) is one of the 10 Stocks With Powerful Gains. Astera Labs bounced back by 13.30 percent on Tuesday to finish at $244.26 apiece, as investor sentiment was bolstered by Evercore ISI’s bullish call for its stock. In a market note during the day, the investment firm raised its price target for […]"
   },
   {
-    "title": "Topgolf appoints over half a dozen execs following Callaway spinoff",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/topgolf-appoints-over-half-dozen-081000610.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/umRHtzIrXo98mKeNAmVpDA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/restaurant_dive_404/f459ec5f8d6501004e8330cc7e0f5681",
-    "published_at": "2026-05-20T08:10:00.000Z",
+    "title": "Landmark UK bill tackles persistent late payment culture",
+    "url": "https://finance.yahoo.com/economy/policy/articles/landmark-uk-bill-tackles-persistent-082757863.html",
+    "image_url": "https://s.yimg.com/os/en/retail_insight_network_724/d3cc97f6b21c91953ab1aed9d43ef052",
+    "published_at": "2026-05-20T08:27:57.000Z",
     "source": "Yahoo Finance Markets",
     "country": "US",
     "market": "US",
-    "content": "The company named new leadership spanning departments, including operations and finance, a few months after David McKillips became CEO."
-  },
-  {
-    "title": "The Smartest Tech Stock to Buy During Every Market Correction. It's Not What You'd Expect.",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/smartest-tech-stock-buy-during-081000737.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/ATXyqVIfTHoyEQOGDpN3Tw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD04MDA-/https://media.zenfs.com/en/motleyfool.com/67a574401a337b4493af30b1d2a22b4c",
-    "published_at": "2026-05-20T08:10:00.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "A correction offers you the chance to get in on quality stocks for a good price."
+    "content": "The UK government has introduced a Bill to tackle late payments, aiming to improve cash flow and ease pressure on retail and supply chain suppliers."
   },
   {
     "title": "Tech leaders favoured by hedge funds last month, Hazeltree says",
@@ -628,46 +738,6 @@
     "country": "US",
     "market": "US",
     "content": "Hedge funds stuck to their holdings in companies with ‌strong fundamentals in April, particularly technology ‌and semiconductor stocks, according to a report on Wednesday ​from data platform Hazeltree, in a month when the S&P 500 jumped over 10%."
-  },
-  {
-    "title": "Bill Ackman Dumped Most of His Alphabet Stock to Buy Microsoft Instead. Here's the Pattern Every Investor Should Study.",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/bill-ackman-dumped-most-alphabet-080500485.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/wO7rTrGJxV61Sn_E4L4gdQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD03NjY-/https://media.zenfs.com/en/motleyfool.com/1efdade29480ee76fd256b43f0cbcca1",
-    "published_at": "2026-05-20T08:05:00.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "The key takeaway from Ackman's move isn't that Alphabet isn't a good stock to own."
-  },
-  {
-    "title": "Bentley Systems Bets on Infrastructure AI as Monetization Remains in Early Innings",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/bentley-systems-bets-infrastructure-ai-080305962.html",
-    "image_url": "https://s.yimg.com/os/en/marketbeat_955/ccf0415c4953a6847568189931f8b5b0",
-    "published_at": "2026-05-20T08:03:05.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Bentley Systems (NASDAQ:BSY) Chairman Greg Bentley used an appearance at the J.P. Morgan Boston TMC Conference to outline why the infrastructure software company sees artificial intelligence as a long-term growth driver, while acknowledging that commercial monetization of some AI-related capabilitie"
-  },
-  {
-    "title": "Marks and Spencer Group H2 Earnings Call Highlights",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/marks-spencer-group-h2-earnings-080305522.html",
-    "image_url": "https://s.yimg.com/os/en/marketbeat_955/fbc91aea110be8060a119af24c95c8ca",
-    "published_at": "2026-05-20T08:03:05.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Marks and Spencer Group (LON:MKS) reported higher annual group sales and said it expects profit growth to resume as management outlined plans to step up investment in stores, supply chain, digital systems and value. On an analyst call, CEO Stuart Machin said the year had been “a year of 2 halves,”"
-  },
-  {
-    "title": "3 Catalysts Powering Lighter’s 20% Rally Today",
-    "url": "https://finance.yahoo.com/markets/crypto/articles/3-catalysts-powering-lighter-20-074138774.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/O2fvX_sWkd61q.tkyPOvew--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzU-/https://media.zenfs.com/en/beincrypto_us_662/6e43790f8993fa6c81209a157b461f9d",
-    "published_at": "2026-05-20T07:41:38.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Lighter's LIT token jumped 20% to $1.23 on Vitalik Buterin mention, Tealstreet integration, and SpaceX perps traction."
   },
   {
     "title": "Visa (V) Launches Stablecoin Settlement Program in Canada",
@@ -728,75 +798,5 @@
     "country": "US",
     "market": "US",
     "content": "Steve Cohen ranks among the richest hedge fund managers in the world. Accounting for a 1.59% share of the billionaire’s portfolio, Taiwan Semiconductor Manufacturing Company Limited (NYSE:TSM) ranks among Steve Cohen’s top stock picks. Taiwan Semiconductor Manufacturing Company Limited (NYSE:TSM) demonstrated advancements in its next-gen chipmaking and packaging technology at the 2026 Taiwan Technology Symposium […]"
-  },
-  {
-    "title": "UBS Raises Target on Carvana (CVNA) After Strong Quarterly Results",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/ubs-raises-target-carvana-cvna-072234138.html",
-    "image_url": "https://s.yimg.com/os/en/insidermonkey.com/7da7944768358379145d056625bc7770",
-    "published_at": "2026-05-20T07:22:34.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Steve Mandel ranks among the list of the richest hedge fund managers in the world. While Taiwan Semiconductor Manufacturing Company Limited (NYSE:TSM) remains the billionaire’s largest position, Carvana Co. (NYSE:CVNA) ranks 3rd on the list of Steve Mandel’s top holdings with a 5.52% portfolio share. On May 6, Needham reiterated Carvana Co. (NYSE:CVNA) as its top […]"
-  },
-  {
-    "title": "Needham Keeps Buy Rating on Revolution Medicines (RVMD) Despite Wider Loss",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/needham-keeps-buy-rating-revolution-072232641.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/_7thUKqlbS8KF7dJ8ov05A--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD04MDA-/https://media.zenfs.com/en/insidermonkey.com/ab6f878f3081ddfbe3cd231ff6eb130e",
-    "published_at": "2026-05-20T07:22:32.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Tom Steyer ranks among the list of the richest hedge fund managers in the world. Revolution Medicines, Inc. (NASDAQ:RVMD) is Tom Steyer’s largest holding, accounting for 5.26% of the billionaire’s total portfolio. In response to the company’s first-quarter 2026 results, Needham reduced its price target for Revolution Medicines, Inc. (NASDAQ:RVMD) to $183 from $186 on […]"
-  },
-  {
-    "title": "UK CMA Opens Probe Into Microsoft (MSFT) Software Practices",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/uk-cma-opens-probe-microsoft-072231635.html",
-    "image_url": "https://s.yimg.com/os/en/insidermonkey.com/652806cf1ea1389eb1245ed67846307e",
-    "published_at": "2026-05-20T07:22:31.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Andreas Halvorsen ranks among the richest hedge fund managers in the world. Accounting for a 4.13% share ($1.55 billion) in the billionaire’s portfolio, Microsoft Corporation (NASDAQ:MSFT) ranks as Andreas Halvorsen’s top stock pick. The UK’s Competition and Markets Authority (CMA) has initiated a probe into Microsoft Corporation (NASDAQ:MSFT)’s commercial software infrastructure, the regulatory agency announced […]"
-  },
-  {
-    "title": "Triple Flag Precious Metals (TFPM) Reports Record GEOs for Q1",
-    "url": "https://finance.yahoo.com/markets/commodities/articles/triple-flag-precious-metals-tfpm-072229064.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/iu.D3ChTPgWABpnWili6BQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NzQ-/https://media.zenfs.com/en/insidermonkey.com/515c27b4f36085d5944ca3c19bad2416",
-    "published_at": "2026-05-20T07:22:29.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Paul Singer ranks among the richest hedge fund managers in the world. Triple Flag Precious Metals Corp. (NYSE:TFPM) is one of Paul Singer’s largest holdings, with the billionaire holding $4.45 billion worth of the company’s shares. Triple Flag Precious Metals Corp. (NYSE:TFPM) reported Q1 earnings on May 6, noting record quarterly performance driven by increased […]"
-  },
-  {
-    "title": "Mizuho Cuts Target on Moody’s (MCO) After Earnings Beat",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/mizuho-cuts-target-moody-mco-072228303.html",
-    "image_url": "https://s.yimg.com/os/en/insidermonkey.com/a93e4050f6c1b0b67c0997b182d214fa",
-    "published_at": "2026-05-20T07:22:28.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Chris Hohn ranks among the list of the richest hedge fund managers in the world. While Genie Energy Ltd. (NYSE:GNE) remains the billionaire’s largest position, Moody’s Corporation (NYSE:MCO) ranks 4th on the list of Chris Hohn’s top holdings with a 12.67% portfolio share. On April 27, Mizuho cut its price target on Moody’s Corporation (NYSE:MCO) to […]"
-  },
-  {
-    "title": "UBS Reaffirms Buy Rating on Walmart (WMT) Amid Strong E-Commerce Growth",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/ubs-reaffirms-buy-rating-walmart-072226331.html",
-    "image_url": "https://s.yimg.com/ny/api/res/1.2/1KqjhzeJifDFPgLZZFGC3Q--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD03Njc-/https://media.zenfs.com/en/insidermonkey.com/71b33ea37e69f8b8933eb47466fd5f90",
-    "published_at": "2026-05-20T07:22:26.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Israel Englander ranks among the richest hedge fund managers in the world. Walmart Inc. (NASDAQ:WMT) is Israel Englander’s largest holding, accounting for 1.91% ($4.54 billion) of the billionaire’s total portfolio. UBS reaffirmed its Buy rating on Walmart Inc. (NASDAQ:WMT) shares on May 14, with a price target of $147. The firm projects Walmart’s earnings to […]"
-  },
-  {
-    "title": "Citi Lowers Target on Salesforce (CRM) Over Slower Deal Activity",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/citi-lowers-target-salesforce-crm-072224534.html",
-    "image_url": "https://s.yimg.com/os/en/insidermonkey.com/bb83c4cf6e17dcd0f8e57f62df9e0417",
-    "published_at": "2026-05-20T07:22:24.000Z",
-    "source": "Yahoo Finance Markets",
-    "country": "US",
-    "market": "US",
-    "content": "Ray Dalio ranks among the richest hedge fund managers in the world. Although NVIDIA Corporation (NASDAQ:NVDA) remains the billionaire’s largest position, Salesforce Inc. (NYSE:CRM) ranks 5th on the list of Ray Dalio’s top holdings with a 1.87% portfolio share. Citing field data indicating slowed transaction activity and increasing competitive pressure, Citi lowered its price target on […]"
   }
 ]
