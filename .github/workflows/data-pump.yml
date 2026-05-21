@@ -13,6 +13,7 @@ on:
     branches: [main]
   schedule:
     - cron: '*/10 * * * *'   # Every 10 minutes (news scraping)
+    - cron: '*/30 * * * *'   # Every 30 minutes (price pump)
   workflow_dispatch:           # Manual trigger anytime
 
 permissions:
@@ -71,7 +72,53 @@ jobs:
           )
 
   # ─────────────────────────────────────────────────────
-  # JOB B: Build & Deploy (runs on every push to main)
+  # JOB B: Pump Live Prices (runs every 30 min + manual)
+  # Fetches quotes for all markets, writes stocks.json
+  # ─────────────────────────────────────────────────────
+  pump-prices:
+    name: 📈 Pump Stock Prices
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci --prefer-offline --silent
+
+      - name: Run price pump
+        run: |
+          node backend/jobs/pumpPrices.js
+          echo "Price pump complete. Sample:"
+          node -e "
+            const d = require('./public/data/stocks.json');
+            const sa = d['SA'] || []; const us = d['US'] || []; const eg = d['EG'] || [];
+            console.log('SA:', sa.length, 'stocks | latest:', sa[0]?.lastUpdated?.substring(0,19));
+            console.log('US:', us.length, 'stocks | latest:', us[0]?.lastUpdated?.substring(0,19));
+            console.log('EG:', eg.length, 'stocks | latest:', eg[0]?.lastUpdated?.substring(0,19));
+          "
+
+      - name: Commit prices
+        run: |
+          git config user.name "Bhidy Price Bot"
+          git config user.email "bot@bhidy.app"
+          git add public/data/stocks.json
+          git diff --staged --quiet && echo "No price changes" || (
+            MARKETS=$(node -e "const d=require('./public/data/stocks.json'); console.log(Object.keys(d).filter(k=>k!=='Global').length)" 2>/dev/null || echo "?")
+            git commit -m "📈 Prices: $(date -u '+%H:%M UTC') — ${MARKETS} markets [skip ci]"
+            git pull --rebase origin main --strategy-option=theirs --quiet || true
+            git push --quiet
+          )
+
+  # ─────────────────────────────────────────────────────
+  # JOB C: Build & Deploy (runs on every push to main)
   # Self-healing: refreshes Cloudflare token automatically
   # ─────────────────────────────────────────────────────
   deploy:

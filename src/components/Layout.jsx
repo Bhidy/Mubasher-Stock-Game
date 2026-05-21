@@ -179,42 +179,7 @@ export default function Layout({ children }) {
                 })}
             </nav>
 
-            {!sidebarOpen && (
-                <div
-                    className="bottom-nav-container"
-                    onClick={() => {
-                        const newMode = isPlayerMode ? 'investor' : 'player';
-                        switchMode(newMode);
-                        navigate(isPlayerMode ? '/investor/home' : '/player/home');
-                    }}
-                    style={{
-                        position: 'fixed',
-                        bottom: 'calc(68px + 2rem)',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        background: isPlayerMode
-                            ? 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)'
-                            : 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)',
-                        color: 'white',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '999px',
-                        fontSize: '0.65rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        boxShadow: isPlayerMode
-                            ? '0 4px 12px rgba(139, 92, 246, 0.3)'
-                            : '0 4px 12px rgba(14, 165, 233, 0.3)',
-                        zIndex: 1001,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.375rem',
-                        cursor: 'pointer',
-                    }}>
-                    <span>{isPlayerMode ? '🎮' : '📈'}</span>
-                    <span>{isPlayerMode ? 'Player' : 'Investor'}</span>
-                </div>
-            )}
+            {/* INVESTOR/PLAYER toggle pill — hidden per product requirement */}
 
         </>
     );

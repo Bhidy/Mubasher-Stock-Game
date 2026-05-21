@@ -337,13 +337,14 @@ function StockLogo({ ticker, size = 56, logoUrl = null }) {
     // Handle Image Load Error - Try multiple fallback sources
     const handleError = () => {
         const fallbacks = [
+            // Fallback 0: Static mapping logo (local PNG / Wikimedia SVG / etc.)
+            // Only add if it wasn't already the source that just failed
+            (mappedStock?.logo && mappedStock.logo !== imgSrc) ? mappedStock.logo : null,
             // Fallback 1: CompaniesMarketCap (High Quality)
             `https://companiesmarketcap.com/img/company-logos/64/${cleanTicker.toUpperCase()}.png`,
-            // Fallback 2: General Google
-            mappedStock?.website ? `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${mappedStock.website}&size=128` : null,
-            // Fallback 3: TradingView (Reliable but sometimes generic)
+            // Fallback 2: TradingView (broad global coverage)
             `https://s3-symbol-logo.tradingview.com/${cleanTicker.toLowerCase()}--big.svg`,
-            // Fallback 4: Clearbit (often blocked but good)
+            // Fallback 3: Clearbit via website domain
             mappedStock?.website ? `https://logo.clearbit.com/${mappedStock.website}` : null,
         ].filter(Boolean);
 
