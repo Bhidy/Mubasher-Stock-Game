@@ -128,52 +128,76 @@ export default function InvestorHome() {
 
     const fetchIndices = async () => {
         try {
-            const promises = INDICES_CONFIG.map(async (idx) => {
-                // Use robust Context logic for status
-                const isOpen = isMarketOpen(idx.marketId);
-                const marketStatus = isOpen ? 'open' : 'closed';
-
+            // ── Step 1: fetch each unique market's stock list in parallel ──────
+            // stocks.json (updated every 30 min) holds every index with live
+            // price + changePercent. stock-profile was using stale profile files.
+            const uniqueMarkets = [...new Set(INDICES_CONFIG.map(c => c.marketId))];
+            const marketDataMap = {};
+            await Promise.all(uniqueMarkets.map(async (mktId) => {
                 try {
-                    const res = await fetch(getEndpoint(`/api/stock-profile?symbol=${encodeURIComponent(idx.symbol)}`));
-                    const data = await res.json();
+                    const res = await fetch(getEndpoint(`/api/stocks?market=${mktId}`));
+                    if (res.ok) marketDataMap[mktId] = await res.json();
+                } catch (e) {
+                    console.warn(`[Indices] market fetch failed for ${mktId}:`, e.message);
+                }
+            }));
 
-                    if (!data || data.error) return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], status: marketStatus };
-
-                    const price = data.price || data.regularMarketPrice || 0;
-
-                    // Improved Change Calculation fallback
-                    let changePercent = data.changePercent;
-                    if (changePercent === undefined || changePercent === null) {
-                        changePercent = data.regularMarketChangePercent;
-                    }
-
-                    if (changePercent === undefined || changePercent === null) {
-                        const prevClose = data.regularMarketPreviousClose || data.previousClose;
-                        if (prevClose && price) {
-                            changePercent = ((price - prevClose) / prevClose) * 100;
-                        } else {
-                            changePercent = 0;
+            // ── Step 2: fetch 5D sparklines for each index in parallel ─────────
+            const sparklineMap = {};
+            await Promise.all(INDICES_CONFIG.map(async (cfg) => {
+                try {
+                    const res = await fetch(
+                        getEndpoint(`/api/chart?symbol=${encodeURIComponent(cfg.symbol)}&range=5D`)
+                    );
+                    if (res.ok) {
+                        const json = await res.json();
+                        const quotes = json.quotes || [];
+                        if (quotes.length >= 2) {
+                            sparklineMap[cfg.symbol] = quotes.map(q => q.price ?? q.close ?? 0);
                         }
                     }
+                } catch (_) { /* sparkline is decorative — silence errors */ }
+            }));
 
-                    const isPositive = changePercent >= 0;
+            // ── Step 3: build final index entries ────────────────────────────
+            const FALLBACK_SPARK_UP   = [40, 42, 41, 45, 47, 44, 48, 51, 50, 53, 55];
+            const FALLBACK_SPARK_DOWN = [55, 53, 50, 51, 48, 44, 47, 45, 41, 42, 40];
 
-                    return {
-                        ...idx,
-                        value: price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                        change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
-                        isPositive,
-                        chartData: [50, 52, 55, 53, 58, 62, 60, 65, 70, 72, 75],
-                        status: marketStatus // Use calculated status from Context
-                    };
-                } catch (e) {
+            const results = INDICES_CONFIG.map(idx => {
+                const isOpen = isMarketOpen(idx.marketId);
+                const marketStatus = isOpen ? 'open' : 'closed';
+                const stocks = marketDataMap[idx.marketId] || [];
+
+                // Match by exact symbol, then by symbol without ^ prefix
+                const live = stocks.find(s =>
+                    s.symbol === idx.symbol ||
+                    s.symbol?.replace('^', '') === idx.symbol?.replace('^', '')
+                );
+
+                if (!live || !live.price) {
                     return { ...idx, value: '---', change: '0.00%', isPositive: true, chartData: [], status: marketStatus };
                 }
+
+                const price = live.price;
+                const changePercent = live.changePercent ?? live.regularMarketChangePercent ?? 0;
+                const isPositive = changePercent >= 0;
+
+                const sparkline = sparklineMap[idx.symbol]
+                    || (isPositive ? FALLBACK_SPARK_UP : FALLBACK_SPARK_DOWN);
+
+                return {
+                    ...idx,
+                    value: price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
+                    isPositive,
+                    chartData: sparkline,
+                    status: marketStatus,
+                };
             });
-            const results = await Promise.all(promises);
+
             setIndicesData(results);
         } catch (err) {
-            console.error("Global Indices Error:", err);
+            console.error('Global Indices Error:', err);
         } finally {
             setLoadingIndices(false);
         }
