@@ -1,13 +1,26 @@
 [
   {
-    "title": "Egypt: Arab Aluminum becomes profitable in Q1 2026",
-    "url": "https://www.zawya.com/en/capital-markets/equities/egypt-arab-aluminum-becomes-profitable-in-q1-2026-k42ypq95",
+    "title": "Eissa outlines Egypt’s privatization program to boost economic returns",
+    "url": "https://www.zawya.com/en/economy/north-africa/eissa-outlines-egypts-privatization-program-to-boost-economic-returns-eejhkaf0",
     "image_url": null,
-    "published_at": "Wed, 20 May 2026 04:53:00 GMT",
+    "published_at": "Wed, 20 May 2026 03:37:00 GMT",
     "source": "Zawya",
     "country": "EG",
     "market": "EGX",
-    "content": "Arab Aluminum Company has garnered EGP 2.243 million in net profits after tax in the first quarter (Q1) of 2026, versus net losses after tax valued at EGP 6.003 million in Q1 2025, according to the ...",
+    "content": "The government is currently preparing for the initial public offerings (IPOs) of eight state-owned companies on EGX ...",
+    "tickers": [
+      "EGX"
+    ]
+  },
+  {
+    "title": "Egypt launches unified digital environmental registry for industry",
+    "url": "https://www.zawya.com/en/business/technology-and-telecom/egypt-launches-unified-digital-environmental-registry-for-industry-kp5143er",
+    "image_url": null,
+    "published_at": "Wed, 20 May 2026 21:57:00 GMT",
+    "source": "Zawya",
+    "country": "EG",
+    "market": "EGX",
+    "content": "The platform is designed to simplify registration and reporting procedures for industrial facilities and connect relevant government bodies through one digital portal ...",
     "tickers": []
   },
   {
@@ -22,19 +35,6 @@
     "tickers": []
   },
   {
-    "title": "Eissa outlines Egypt’s privatization program to boost economic returns",
-    "url": "https://www.zawya.com/en/economy/north-africa/eissa-outlines-egypts-privatization-program-to-boost-economic-returns-eejhkaf0",
-    "image_url": null,
-    "published_at": "Wed, 20 May 2026 03:37:00 GMT",
-    "source": "Zawya",
-    "country": "EG",
-    "market": "EGX",
-    "content": "The government is currently preparing for the initial public offerings (IPOs) of eight state-owned companies on EGX ...",
-    "tickers": [
-      "EGX"
-    ]
-  },
-  {
     "title": "Egypt issues $1bln international bonds in first MENA offering since Iran conflict escalation",
     "url": "https://www.zawya.com/en/capital-markets/bonds/egypt-issues-1bln-international-bonds-in-first-mena-offering-since-iran-conflict-escalation-witahj5z",
     "image_url": null,
@@ -46,14 +46,14 @@
     "tickers": []
   },
   {
-    "title": "Egypt: EFG Holding's revenues climb 18% YoY in Q1 2026",
-    "url": "https://www.zawya.com/en/capital-markets/equities/egypt-efg-holdings-revenues-climb-18-yoy-in-q1-2026-b5fqb2cu",
+    "title": "Egypt: Arab Aluminum becomes profitable in Q1 2026",
+    "url": "https://www.zawya.com/en/capital-markets/equities/egypt-arab-aluminum-becomes-profitable-in-q1-2026-k42ypq95",
     "image_url": null,
-    "published_at": "Wed, 20 May 2026 03:32:00 GMT",
+    "published_at": "Wed, 20 May 2026 04:53:00 GMT",
     "source": "Zawya",
     "country": "EG",
     "market": "EGX",
-    "content": "EFG Holding reported an 18% year-on-year (YoY) increase in group revenues to EGP 6.6 billion in the first quarter (Q1) of 2026, supported by growth across its investment banking, non-bank financial ...",
+    "content": "Arab Aluminum Company has garnered EGP 2.243 million in net profits after tax in the first quarter (Q1) of 2026, versus net losses after tax valued at EGP 6.003 million in Q1 2025, according to the ...",
     "tickers": []
   },
   {
@@ -68,14 +68,14 @@
     "tickers": []
   },
   {
-    "title": "Egypt: Prices of several commodities, vegetables hike on May 20th",
-    "url": "https://www.zawya.com/en/economy/north-africa/egypt-prices-of-several-commodities-vegetables-hike-on-may-20th-vzgxe688",
+    "title": "Egypt: EFG Holding's revenues climb 18% YoY in Q1 2026",
+    "url": "https://www.zawya.com/en/capital-markets/equities/egypt-efg-holdings-revenues-climb-18-yoy-in-q1-2026-b5fqb2cu",
     "image_url": null,
-    "published_at": "Wed, 20 May 2026 04:58:00 GMT",
+    "published_at": "Wed, 20 May 2026 03:32:00 GMT",
     "source": "Zawya",
     "country": "EG",
     "market": "EGX",
-    "content": "Prices of basic commodities and vegetables in local markets varied on Wednesday, May 20 th, according to data issued by the Information and Decision Support Center (IDSC). The price of packaged rice ...",
+    "content": "EFG Holding reported an 18% year-on-year (YoY) increase in group revenues to EGP 6.6 billion in the first quarter (Q1) of 2026, supported by growth across its investment banking, non-bank financial ...",
     "tickers": []
   },
   {
@@ -87,6 +87,39 @@
     "country": "EG",
     "market": "EGX",
     "content": "The price of a kilogram of white poultry edged down by 0.1% to EGP 91.9, while the price of a kilogram of meat ...",
+    "tickers": []
+  },
+  {
+    "title": "Egypt: Prices of fertilizers, building materials varied on May 20th",
+    "url": "https://www.zawya.com/en/economy/north-africa/egypt-prices-of-fertilizers-building-materials-varied-on-may-20th-powwm2r7",
+    "image_url": null,
+    "published_at": "Wed, 20 May 2026 04:49:00 GMT",
+    "source": "Zawya",
+    "country": "EG",
+    "market": "EGX",
+    "content": "The Information and Decision Support Center (IDSC) disclosed the prices of fertilizers and building materials in local markets on Wednesday, May 20 th. A ton of ammonium sulfate declined by 0.2% to ...",
+    "tickers": []
+  },
+  {
+    "title": "Egypt: Prices of several commodities, vegetables hike on May 20th",
+    "url": "https://www.zawya.com/en/economy/north-africa/egypt-prices-of-several-commodities-vegetables-hike-on-may-20th-vzgxe688",
+    "image_url": null,
+    "published_at": "Wed, 20 May 2026 04:58:00 GMT",
+    "source": "Zawya",
+    "country": "EG",
+    "market": "EGX",
+    "content": "Prices of basic commodities and vegetables in local markets varied on Wednesday, May 20 th, according to data issued by the Information and Decision Support Center (IDSC). The price of packaged rice ...",
+    "tickers": []
+  },
+  {
+    "title": "%4.3 نموًا بمحفظة التمويلات المقدمة لعملاء بنك البركة مصر خلال الربع الأول من 2026",
+    "url": "https://arabfinance.com/ar/news/newdetails/محفظة-التمويلات-المقدمة-لعملاء-بنك-البركة-مصر",
+    "image_url": "https://arabfinance.com/Gallery/Thumbnail/hazem hegazy reupload_Thumb.jpg",
+    "published_at": "Tue, 12 May 2026 02:10:00 GMT",
+    "source": "Arab Finance",
+    "country": "EG",
+    "market": "EGX",
+    "content": "Copy to clipboard العلامات البورصة المصرية نتائج أعمال أرباح بنك البركة قطاع البنوك القوائم المالية للشركات أخبار مشابهة 2026 © جميع الحقوق محفوظة آراب فاينانس لتكنولوجيا المعلومات",
     "tickers": []
   },
   {
@@ -104,7 +137,7 @@
     "title": "Saudi non-oil trade surplus with GCC countries hits SAR 4.4bn in February",
     "url": "https://english.mubasher.info/news/4616933/Saudi-non-oil-trade-surplus-with-GCC-countries-hits-SAR-4-4bn-in-February/",
     "image_url": "https://static.mubasher.info/File.Story_Image/c568f217b51e76c07acaa25a1e6bd301/640.jpg",
-    "content": "<iframe height=\"0\" src=\"https://www.googletagmanager.com/ns.html?id=GTM-NM7L484\" style=\"display:none;visibility:hidden\" width=\"0\"></iframe> Saudi non-oil trade surplus with GCC countries hits SAR 4.4bn in February Photo Archive 21 May 2026 06:16 AM Riyadh – Mubasher: Saudi Arabia’s non-oil trade surplus with the GCC countries hit SAR 4.47 billion in February 2026, marking a 7% year-on-year (YoY) growth, according to the data released by the General Authority for Statistics (GASTAT). Total Saudi non-oil merchandise exports and re-exports to the GCC countries hiked by 29% YoY to SAR 12.40 billion in February. Non-oil merchandise exports include SAR 9.30 billion in re-exports and SAR 3.10 billion in domestic exports. The Kingdom’s merchandise imports from the GCC countries totaled SAR 7.90 billion during February, reflecting an annual leap of 46%. The UAE accounted for the largest share of Saudi foreign trade, with the Kingdom recording a non-oil trade surplus of SAR 3.70 billion with the Emirates. Sector Reports Global Economy Macroeconomics Source: Mubasher Trending {{details.article.title}} This news story is part of Mubasher Exclusive Services. If you would like to subscribe please click here or alternatively wait {{hours}} hr {{minutes}} min {{seconds}} sec to read it for free. Before it's here it's on Decypha - Learn More {{details.article.image.caption}} {{details.localizedPublishedDate}} {{details.localizedUpdatedDate}} {{stock.name}} {{stock.code}} {{stock.changePercent",
+    "content": "<iframe height=\"0\" src=\"https://www.googletagmanager.com/ns.html?id=GTM-NM7L484\" style=\"display:none;visibility:hidden\" width=\"0\"></iframe> Saudi non-oil trade surplus with GCC countries hits SAR 4.4bn in February Photo Archive 21 May 2026 06:16 AM Riyadh – Mubasher: Saudi Arabia’s non-oil trade surplus with the GCC countries hit SAR 4.47 billion in February 2026, marking a 7% year-on-year (YoY) growth, according to the data released by the General Authority for Statistics (GASTAT). Total Saudi non-oil merchandise exports and re-exports to the GCC countries hiked by 29% YoY to SAR 12.40 billion in February. Non-oil merchandise exports include SAR 9.30 billion in re-exports and SAR 3.10 billion in domestic exports. The Kingdom’s merchandise imports from the GCC countries totaled SAR 7.90 billion during February, reflecting an annual leap of 46%. The UAE accounted for the largest share of Saudi foreign trade, with the Kingdom recording a non-oil trade surplus of SAR 3.70 billion with the Emirates. Macroeconomics Global Economy Sector Reports Source: Mubasher Trending {{details.article.title}} This news story is part of Mubasher Exclusive Services. If you would like to subscribe please click here or alternatively wait {{hours}} hr {{minutes}} min {{seconds}} sec to read it for free. Before it's here it's on Decypha - Learn More {{details.article.image.caption}} {{details.localizedPublishedDate}} {{details.localizedUpdatedDate}} {{stock.name}} {{stock.code}} {{stock.changePercent",
     "published_at": "Thu May 21 06:16:35 UTC 2026",
     "source": "Mubasher",
     "country": "EG",
