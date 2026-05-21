@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Users, TrendingUp, TrendingDown, Sparkles, Info, Flame, Shield, Zap } from 'lucide-react';
 
@@ -49,24 +49,25 @@ export const US_STOCKS = {
 };
 
 // Egypt Stocks Mapping
-// Egypt Stocks Mapping
+// Note: CompaniesMarketCap does NOT support EG (.CA) stocks — all CMC URLs were 404.
+// Using Clearbit (logo.clearbit.com) + TradingView as fallbacks instead.
 export const EGYPT_STOCKS = {
-    'COMI': { name: 'CIB Egypt', initials: 'CIB', color: '#0055a5', tag: 'safe', logo: 'https://companiesmarketcap.com/img/company-logos/64/COMI.CA.png' },
-    'EAST': { name: 'Eastern Company', initials: 'EC', color: '#2e7d32', tag: 'safe', logo: 'https://companiesmarketcap.com/img/company-logos/64/EAST.CA.png' },
-    'HRHO': { name: 'EFG Hermes', initials: 'EFG', color: '#e53935', tag: 'trending', logo: 'https://companiesmarketcap.com/img/company-logos/64/HRHO.CA.png' },
-    'TMGH': { name: 'TMG Holding', initials: 'TMG', color: '#1e88e5', tag: 'trending', logo: 'https://companiesmarketcap.com/img/company-logos/64/TMGH.CA.png' },
-    'SWDY': { name: 'Elsewedy Electric', initials: 'SE', color: '#d32f2f', tag: 'volatile', logo: 'https://companiesmarketcap.com/img/company-logos/64/SWDY.CA.png' },
-    'ETEL': { name: 'Telecom Egypt', initials: 'TE', color: '#6a1b9a', tag: 'safe', logo: 'https://companiesmarketcap.com/img/company-logos/64/ETEL.CA.png' },
-    'ESRS': { name: 'Ezz Steel', initials: 'EZZ', color: '#455a64', tag: 'volatile', logo: 'https://companiesmarketcap.com/img/company-logos/64/ESRS.CA.png' },
-    'EKHO': { name: 'Egypt Kuwait Holding', initials: 'EK', color: '#5c6bc0', tag: 'trending', logo: 'https://companiesmarketcap.com/img/company-logos/64/EKHO.CA.png' },
-    'OCDI': { name: 'Orascom Dev', initials: 'ODH', color: '#00838f', tag: 'volatile', logo: 'https://logo.clearbit.com/orascomdh.com' },
-    'CLHO': { name: 'Cleopatra Hospitals', initials: 'CH', color: '#00acc1', tag: 'safe', logo: 'https://logo.clearbit.com/cleopatrahospitals.com' },
-    'SKPC': { name: 'Sidi Kerir Petro', initials: 'SK', color: '#f57c00', tag: 'volatile' },
-    'PHDC': { name: 'Palm Hills Dev', initials: 'PHD', color: '#43a047', tag: 'trending', logo: 'https://logo.clearbit.com/palmhillsdevelopments.com' },
-    'MNHD': { name: 'Madinet Nasr', initials: 'MN', color: '#1565c0', tag: 'trending', logo: 'https://logo.clearbit.com/mnhd.com' },
-    'ABUK': { name: 'Abu Qir Fertilizers', initials: 'AQ', color: '#558b2f', tag: 'safe' },
-    'ORWE': { name: 'Obour Land', initials: 'OL', color: '#f9a825', tag: 'safe', logo: 'https://logo.clearbit.com/obourland.com' },
-    'HELI': { name: 'Heliopolis Housing', initials: 'HH', color: '#6d4c41', tag: 'safe' },
+    'COMI': { name: 'CIB Egypt', initials: 'CIB', color: '#0055a5', tag: 'safe', website: 'cibeg.com' },
+    'EAST': { name: 'Eastern Company', initials: 'EC', color: '#2e7d32', tag: 'safe', website: 'easternco.com.eg' },
+    'HRHO': { name: 'EFG Hermes', initials: 'EFG', color: '#e53935', tag: 'trending', website: 'efghermesholding.com' },
+    'TMGH': { name: 'TMG Holding', initials: 'TMG', color: '#1e88e5', tag: 'trending', website: 'tmg.com.eg' },
+    'SWDY': { name: 'Elsewedy Electric', initials: 'SE', color: '#d32f2f', tag: 'volatile', website: 'elsewedy.com' },
+    'ETEL': { name: 'Telecom Egypt', initials: 'TE', color: '#6a1b9a', tag: 'safe', website: 'te.eg' },
+    'ESRS': { name: 'Ezz Steel', initials: 'EZZ', color: '#455a64', tag: 'volatile', website: 'ezzsteel.com' },
+    'EKHO': { name: 'Egypt Kuwait Holding', initials: 'EK', color: '#5c6bc0', tag: 'trending', website: 'ekh.com' },
+    'OCDI': { name: 'Orascom Dev', initials: 'ODH', color: '#00838f', tag: 'volatile', website: 'orascomdh.com' },
+    'CLHO': { name: 'Cleopatra Hospitals', initials: 'CH', color: '#00acc1', tag: 'safe', website: 'cleopatrahospitals.com' },
+    'SKPC': { name: 'Sidi Kerir Petro', initials: 'SK', color: '#f57c00', tag: 'volatile', website: 'sidpec.com' },
+    'PHDC': { name: 'Palm Hills Dev', initials: 'PHD', color: '#43a047', tag: 'trending', website: 'palmhillsdevelopments.com' },
+    'MNHD': { name: 'Madinet Nasr', initials: 'MN', color: '#1565c0', tag: 'trending', website: 'mnhd.com' },
+    'ABUK': { name: 'Abu Qir Fertilizers', initials: 'AQ', color: '#558b2f', tag: 'safe', website: 'abuqirfertilizers.com' },
+    'ORWE': { name: 'Obour Land', initials: 'OL', color: '#f9a825', tag: 'safe', website: 'obourland.com' },
+    'HELI': { name: 'Heliopolis Housing', initials: 'HH', color: '#6d4c41', tag: 'safe', website: 'heliopolishousing.com' },
 };
 
 // ========== NEW MARKETS ==========
@@ -314,82 +315,81 @@ export function getStockData(ticker) {
 
 
 
-// Stock Logo component with robust multi-source fallback
-function StockLogo({ ticker, size = 56, logoUrl = null }) {
-    // Resolve stock data to get metadata (color, initials, standard logo)
-    const cleanTicker = ticker?.split('.')[0] || ticker;
-    const mappedStock = getStockData(cleanTicker);
+/**
+ * StockLogo — Robust multi-source logo with automatic market detection.
+ *
+ * Source priority (tried in order, first success wins):
+ *  1. logoUrl prop  (explicit override)
+ *  2. Static mapping logo  (local PNG, Wikimedia SVG, Clearbit from mapping)
+ *  3. CompaniesMarketCap  — SA: ticker.SR.png (verified), US: ticker.png (verified)
+ *                          — EG: SKIPPED (CMC returns 404 for .CA stocks)
+ *  4. TradingView SVG  (broad global coverage)
+ *  5. Clearbit via mapped website domain
+ *  6. Initials fallback  (branded gradient, always works)
+ *
+ * The key fix: we ALWAYS start with a URL source when one exists — we never
+ * drop straight to initials just because the static mapping has no entry.
+ * Market is detected from the ticker format (numeric = SA, .CA suffix = EG,
+ * otherwise US/international).
+ */
+function StockLogoCore({ cleanTicker, suffix, mappedStock, logoUrl, size }) {
+    // ── Market detection ────────────────────────────────────────────────
+    const isSaudi = suffix === 'SR' || /^\d+$/.test(cleanTicker) || !!SAUDI_STOCKS[cleanTicker];
+    const isEgypt = suffix === 'CA' || !!EGYPT_STOCKS[cleanTicker];
 
-    // Determine the initial source: prop > mapped > null
-    const initialSrc = logoUrl || (mappedStock?.logo || null);
+    // ── Build ordered source list (deduped, no nulls) ───────────────────
+    const sources = useMemo(() => {
+        const list = [];
 
-    const [imgSrc, setImgSrc] = useState(initialSrc);
-    const [fallbackIndex, setFallbackIndex] = useState(0);
-    const [hasError, setHasError] = useState(false);
+        // 1. Explicit override
+        if (logoUrl) list.push(logoUrl);
 
-    // Reset state when ticker or url changes
-    useEffect(() => {
-        setImgSrc(logoUrl || (mappedStock?.logo || null));
-        setFallbackIndex(0);
-        setHasError(false);
-    }, [ticker, logoUrl, mappedStock?.logo]);
+        // 2. Static mapping logo (local PNG / Wikimedia SVG / Clearbit set in mapping)
+        if (mappedStock?.logo) list.push(mappedStock.logo);
 
-    // Handle Image Load Error - Try multiple fallback sources
-    const handleError = () => {
-        const fallbacks = [
-            // Fallback 0: Static mapping logo (local PNG / Wikimedia SVG / etc.)
-            // Only add if it wasn't already the source that just failed
-            (mappedStock?.logo && mappedStock.logo !== imgSrc) ? mappedStock.logo : null,
-            // Fallback 1: CompaniesMarketCap (High Quality)
-            `https://companiesmarketcap.com/img/company-logos/64/${cleanTicker.toUpperCase()}.png`,
-            // Fallback 2: TradingView (broad global coverage)
-            `https://s3-symbol-logo.tradingview.com/${cleanTicker.toLowerCase()}--big.svg`,
-            // Fallback 3: Clearbit via website domain
-            mappedStock?.website ? `https://logo.clearbit.com/${mappedStock.website}` : null,
-        ].filter(Boolean);
-
-        if (fallbackIndex < fallbacks.length) {
-            setImgSrc(fallbacks[fallbackIndex]);
-            setFallbackIndex(prev => prev + 1);
-        } else {
-            // All fallbacks exhausted, show initials
-            setHasError(true);
+        // 3. CompaniesMarketCap (SA requires .SR suffix; EG not supported)
+        if (isSaudi) {
+            list.push(`https://companiesmarketcap.com/img/company-logos/64/${cleanTicker}.SR.png`);
+        } else if (!isEgypt) {
+            list.push(`https://companiesmarketcap.com/img/company-logos/64/${cleanTicker}.png`);
         }
-    };
 
-    // Fallback constants - Use gradient colors for better visual appeal
+        // 4. TradingView SVG (good US/global coverage)
+        list.push(`https://s3-symbol-logo.tradingview.com/${cleanTicker.toLowerCase()}--big.svg`);
+
+        // 5. Clearbit via known website domain
+        if (mappedStock?.website) {
+            list.push(`https://logo.clearbit.com/${mappedStock.website}`);
+        }
+
+        // Deduplicate, preserving priority order
+        return [...new Set(list.filter(Boolean))];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // computed once on mount; parent uses key= to remount on ticker change
+
+    const [idx, setIdx] = useState(0);
+
+    // ── Shared visuals ──────────────────────────────────────────────────
     const color = mappedStock?.color || '#6366f1';
-    const secondaryColor = adjustColor(color, -20); // Slightly darker for gradient
+    const secondaryColor = adjustColor(color, -20);
     const initials = mappedStock?.initials || cleanTicker?.slice(0, 2).toUpperCase() || '??';
 
-    // RENDER: Fancy Initials (Fallback) - Much improved design
-    if (hasError || !imgSrc) {
+    // ── Initials (all sources exhausted) ────────────────────────────────
+    if (idx >= sources.length) {
         return (
             <div style={{
-                width: size,
-                height: size,
+                width: size, height: size,
                 borderRadius: size * 0.25,
                 background: `linear-gradient(145deg, ${color} 0%, ${secondaryColor} 100%)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: 800,
-                fontSize: size * 0.32,
-                letterSpacing: '-0.5px',
-                boxShadow: `0 4px 14px ${color}50`,
-                position: 'relative',
-                overflow: 'hidden',
-                border: `2px solid ${color}20`
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: 800, fontSize: size * 0.32,
+                letterSpacing: '-0.5px', boxShadow: `0 4px 14px ${color}50`,
+                position: 'relative', overflow: 'hidden', border: `2px solid ${color}20`
             }}>
-                {/* Glass shine effect */}
                 <div style={{
-                    position: 'absolute',
-                    top: '0', left: '-50%', right: '0',
-                    height: '50%',
+                    position: 'absolute', top: 0, left: '-50%', right: 0, height: '50%',
                     background: 'linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%)',
-                    borderRadius: '50%',
-                    transform: 'scale(2)'
+                    borderRadius: '50%', transform: 'scale(2)'
                 }} />
                 <span style={{ position: 'relative', zIndex: 1, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
                     {initials}
@@ -398,34 +398,45 @@ function StockLogo({ ticker, size = 56, logoUrl = null }) {
         );
     }
 
-    // RENDER: Image
+    // ── Image with inline error progression ─────────────────────────────
     return (
         <div style={{
-            width: size,
-            height: size,
+            width: size, height: size,
             borderRadius: size * 0.25,
             background: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            border: '1px solid #e2e8f0',
-            position: 'relative',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden', border: '1px solid #e2e8f0',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
         }}>
             <img
-                src={imgSrc}
-                alt={ticker}
-                style={{
-                    width: '85%',
-                    height: '85%',
-                    objectFit: 'contain'
-                }}
-                onError={handleError}
+                src={sources[idx]}
+                alt={cleanTicker}
+                style={{ width: '85%', height: '85%', objectFit: 'contain' }}
+                onError={() => setIdx(prev => prev + 1)}
                 loading="lazy"
                 referrerPolicy="no-referrer"
             />
         </div>
+    );
+}
+
+function StockLogo({ ticker, size = 56, logoUrl = null }) {
+    const fullTicker = ticker || '';
+    const parts = fullTicker.split('.');
+    const cleanTicker = parts[0].toUpperCase();
+    const suffix = (parts[1] || '').toUpperCase() || null;
+    const mappedStock = getStockData(cleanTicker);
+
+    // key= forces StockLogoCore to remount (and rebuild sources) when ticker/url changes.
+    return (
+        <StockLogoCore
+            key={`${cleanTicker}-${logoUrl || ''}`}
+            cleanTicker={cleanTicker}
+            suffix={suffix}
+            mappedStock={mappedStock}
+            logoUrl={logoUrl}
+            size={size}
+        />
     );
 }
 
