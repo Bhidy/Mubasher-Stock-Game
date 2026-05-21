@@ -67,8 +67,13 @@ jobs:
           git diff --staged --quiet && echo "No new articles" || (
             COUNT=$(git diff --staged --stat | grep -oP '\d+(?= insertion)' || echo 0)
             git commit -m "📰 News: $(date -u '+%H:%M UTC') — $COUNT new lines [skip ci]"
-            git pull --rebase origin main --quiet || true
-            git push --quiet
+            # Retry loop: handles concurrent push conflicts from parallel schedule jobs
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main --quiet && git push --quiet && break || (
+                echo "Push attempt $i failed, retrying in $((RANDOM % 10 + 5))s..."
+                sleep $((RANDOM % 10 + 5))
+              )
+            done
           )
 
   # ─────────────────────────────────────────────────────
@@ -113,8 +118,13 @@ jobs:
           git diff --staged --quiet && echo "No price changes" || (
             MARKETS=$(node -e "const d=require('./public/data/stocks.json'); console.log(Object.keys(d).filter(k=>k!=='Global').length)" 2>/dev/null || echo "?")
             git commit -m "📈 Prices: $(date -u '+%H:%M UTC') — ${MARKETS} markets [skip ci]"
-            git pull --rebase origin main --strategy-option=theirs --quiet || true
-            git push --quiet
+            # Retry loop: handles concurrent push conflicts from parallel schedule jobs
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main --strategy-option=theirs --quiet && git push --quiet && break || (
+                echo "Push attempt $i failed, retrying in $((RANDOM % 10 + 5))s..."
+                sleep $((RANDOM % 10 + 5))
+              )
+            done
           )
 
   # ─────────────────────────────────────────────────────
