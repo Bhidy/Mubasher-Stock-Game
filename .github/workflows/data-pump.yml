@@ -2,10 +2,12 @@ name: 🚀 Auto Pipeline — News + Deploy
 
 # ═══════════════════════════════════════════════════════
 # This pipeline is FULLY AUTOMATED and SELF-HEALING:
-# - Refreshes its own Cloudflare auth token before every deploy
-# - No manual tokens, no expiry issues, runs forever
+# - Uses a permanent Cloudflare API Token (never expires)
+#   stored as CLOUDFLARE_API_TOKEN secret (Pages:Edit scope)
+# - Prices refreshed every 30 min with auto-retry & data preservation
 # - News scraped every 10 minutes automatically
 # - Every code push auto-deploys to production
+# - Concurrent schedule jobs use retry loops to avoid push conflicts
 # ═══════════════════════════════════════════════════════
 
 on:
