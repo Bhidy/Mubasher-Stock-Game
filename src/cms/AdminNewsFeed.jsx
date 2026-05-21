@@ -44,37 +44,51 @@ const timeAgo = (dateString) => {
     return 'Just now';
 };
 
-// Clean content: Remove duplicate images and title from content
+// Normalize quotes/apostrophes for robust title matching across encodings
+const normalizeQuotes = (str) => str
+    .replace(/[‘’‚‛′‵]/g, "'")
+    .replace(/[“”„‟″‶]/g, '"');
+
+// Clean content: Remove junk, duplicate images, and title from content
 const cleanArticleContent = (content, title, thumbnailUrl) => {
     if (!content) return content;
 
     let cleaned = content;
 
-    // 1. Remove title if it appears at the start (common scraper artifact)
+    // 1. Strip tracking/junk tags that come from data-lake scrapes
+    cleaned = cleaned.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '');
+    cleaned = cleaned.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+    cleaned = cleaned.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    cleaned = cleaned.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, '');
+
+    // 2. Remove title where it appears in the first 800 chars (common scraper artifact)
     if (title) {
-        // Remove exact title match
-        cleaned = cleaned.replace(new RegExp(`^\\s*<[^>]*>\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*</[^>]*>`, 'i'), '');
-        cleaned = cleaned.replace(new RegExp(`^\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'i'), '');
+        const normTitle = normalizeQuotes(title).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const normCleaned = normalizeQuotes(cleaned);
+        // Find position of title in normalized content
+        const titlePos = normCleaned.search(new RegExp(normTitle, 'i'));
+        if (titlePos !== -1 && titlePos < 800) {
+            // Remove the tag-wrapped version first, then bare text version
+            cleaned = cleaned.replace(new RegExp(`<[^>]*>\\s*${normTitle}\\s*</[^>]*>`, 'i'), '');
+            const normCleanedAgain = normalizeQuotes(cleaned);
+            const barePos = normCleanedAgain.search(new RegExp(normTitle, 'i'));
+            if (barePos !== -1 && barePos < 800) {
+                cleaned = cleaned.slice(0, barePos) + cleaned.slice(barePos).replace(new RegExp(normTitle, 'i'), '');
+            }
+        }
     }
 
-    // 2. AGGRESSIVE IMAGE REMOVAL - Since we show hero image, remove ALL images from content
-    // This prevents any duplication issues
+    // 3. Remove first image (hero already shown above the content)
     let imageCount = 0;
     cleaned = cleaned.replace(/<img[^>]*>/gi, (match) => {
         imageCount++;
-        // Remove the first image always (it's the hero image duplicate)
-        // Keep subsequent images only if they're likely different content
-        if (imageCount <= 1) {
-            return ''; // Remove first image - hero already shows it
-        }
-        // Also check if it's similar to thumbnail
+        if (imageCount <= 1) return '';
         if (thumbnailUrl) {
             const srcMatch = match.match(/src=["']([^"']+)["']/i);
             if (srcMatch) {
                 const src = srcMatch[1].toLowerCase();
                 const thumbBase = thumbnailUrl.toLowerCase().split('?')[0].split('/').pop();
                 const srcBase = src.split('?')[0].split('/').pop();
-                // If the image filename/base is similar, remove it
                 if (srcBase === thumbBase || src.includes(thumbnailUrl.split('/').pop()?.split('?')[0] || '')) {
                     return '';
                 }
@@ -83,11 +97,9 @@ const cleanArticleContent = (content, title, thumbnailUrl) => {
         return match;
     });
 
-    // 3. Remove empty paragraphs
+    // 4. Remove empty paragraphs and excessive breaks
     cleaned = cleaned.replace(/<p>\s*<\/p>/gi, '');
     cleaned = cleaned.replace(/<p>\s*&nbsp;\s*<\/p>/gi, '');
-
-    // 4. Remove excessive line breaks
     cleaned = cleaned.replace(/(<br\s*\/?>\s*){3,}/gi, '<br/><br/>');
 
     return cleaned.trim();
@@ -102,45 +114,48 @@ const ArticleView = ({ article, onBack }) => {
     const [translatedContent, setTranslatedContent] = useState(null);
     const [translating, setTranslating] = useState(false);
 
-    // Fetch full article content
+    // Fetch full article content — mirrors mobile NewsArticle.jsx logic exactly
     useEffect(() => {
         if (!article) return;
 
-        // Reset state when article changes
         setFullContent(null);
         setIsTranslated(false);
         setTranslatedTitle(null);
         setTranslatedContent(null);
 
+        const heroUrl = article.thumbnail || article.imageUrl;
+
+        // Step 1: Use data-lake content immediately if it's rich enough (same as mobile: > 30 chars)
+        if (article.content && article.content.trim().length > 30) {
+            setFullContent(cleanArticleContent(article.content, article.title, heroUrl));
+        }
+
+        // Step 2: Only fetch from scraper if data-lake content is short (same as mobile: < 200 chars)
         if (article.link && article.link !== '#') {
-            // Show snippet immediately while full content loads
-            if (article.content) {
-                setFullContent(`<p>${article.content}</p>`);
-            }
-            setLoading(true);
-            fetch(`${CONTENT_API_URL}?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.content && !data.content.includes('Unable to load article')) {
-                        const cleaned = cleanArticleContent(data.content, article.title, article.thumbnail);
-                        if (cleaned && cleaned.trim().length > 100) {
-                            setFullContent(cleaned);
+            if (!article.content || article.content.trim().length < 200) {
+                setLoading(true);
+                fetch(`${CONTENT_API_URL}?url=${encodeURIComponent(article.link)}&title=${encodeURIComponent(article.title)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.content && !data.content.includes('Unable to load article') && data.content.trim().length > 100) {
+                            const cleaned = cleanArticleContent(data.content, article.title, heroUrl);
+                            if (cleaned && cleaned.trim().length > 100) {
+                                setFullContent(cleaned);
+                            }
                         }
-                        // else keep the snippet we already set
-                    }
-                })
-                .catch(e => console.error('Content fetch failed:', e))
-                .finally(() => setLoading(false));
+                    })
+                    .catch(e => console.error('Content fetch failed:', e))
+                    .finally(() => setLoading(false));
+            }
         } else {
-            // CMS article — use stored content directly
+            // CMS article (no external link) — use stored content directly
             const raw = article.content || article.summary || '';
             if (raw) {
-                const cleaned = cleanArticleContent(raw, article.title, article.thumbnail);
+                const cleaned = cleanArticleContent(raw, article.title, heroUrl);
                 setFullContent(cleaned || raw);
             }
         }
 
-        // Scroll to top
         window.scrollTo(0, 0);
     }, [article]);
 
