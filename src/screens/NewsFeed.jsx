@@ -354,7 +354,7 @@ export default function NewsFeed() {
                                             src={news.thumbnail ? `https://images.weserv.nl/?url=${encodeURIComponent(news.thumbnail)}&w=400&fit=cover` : ''}
                                             referrerPolicy="no-referrer"
                                             alt={news.title}
-                                            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 // Fallback to Publisher Logo if main image fails
                                                 e.target.onerror = null;

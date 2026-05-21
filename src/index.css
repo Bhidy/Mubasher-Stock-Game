@@ -105,12 +105,15 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Ensure all screen containers are scrollable */
+/* Ensure all screen containers are scrollable.
+   IMPORTANT: Do NOT add [class*="flex-col"] here — that selector matches
+   news cards and list items (which have overflow:hidden), causing Chrome
+   to treat them as scroll containers and swallow wheel/touch events so
+   the parent page can no longer scroll while the cursor is over them. */
 main,
-.screen-container,
-[class*="flex-col"] {
+.screen-container {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 }
 
 /* Mobile-specific adjustments */
@@ -200,12 +203,18 @@ main,
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Animate only box-shadow — NOT transform. Animating transform creates
+     a GPU compositing layer that can intercept scroll events while hovering,
+     preventing the page from scrolling when the cursor is over any card. */
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
+  /* Shadow deepens for hover feedback without lifting the card vertically.
+     translateY(-2px) was moving cards in the same axis as scroll gestures,
+     making the browser misroute scroll events on card hover. */
   box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
 }
 
 .card-gradient {

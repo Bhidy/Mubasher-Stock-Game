@@ -19,7 +19,11 @@ export default function InvestorAnalysis() {
     };
 
     return (
-        <div className="screen-container" style={{ paddingBottom: '6rem', background: '#f8fafc', minHeight: '100vh', overflowX: 'hidden' }}>
+        // overflowX:'hidden' removed — it was forcing overflow-y:'auto' on the same
+        // element (CSS spec behaviour), creating a nested scroll container trapped at
+        // viewport height and cutting off the content below Opportunity Scanner.
+        // The <main> element in Layout.jsx already clips horizontal overflow.
+        <div className="screen-container" style={{ paddingBottom: '6rem', background: '#f8fafc', minHeight: '100vh' }}>
 
             {/* Header Area */}
             <div style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem', position: 'relative', zIndex: 50 }}>
@@ -80,13 +84,15 @@ export default function InvestorAnalysis() {
             {/* --- DASHBOARD CONTENT --- */}
             <div style={{ padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-                {/* 1. Feature Slider (Technical Radar & AI Insight) */}
+                {/* 1. Feature Slider (Technical Radar & AI Insight)
+                    Wrapped in a clipping div so the negative-margin bleed is
+                    contained without polluting the page's scroll context. */}
+                <div style={{ overflowX: 'clip', marginRight: '-1.5rem' }}>
                 <div style={{
                     display: 'flex',
                     gap: '1rem',
                     overflowX: 'auto',
                     paddingBottom: '1rem',
-                    marginRight: '-1.5rem', // Bleed off screen
                     paddingRight: '1.5rem',
                     scrollSnapType: 'x mandatory',
                     scrollbarWidth: 'none'
@@ -172,6 +178,7 @@ export default function InvestorAnalysis() {
                         </button>
                     </div>
                 </div>
+                </div>{/* end clipping wrapper */}
 
                 {/* 2. Opportunity Scanner (List/Grid) */}
                 <div>
