@@ -994,6 +994,11 @@ export default function AdminNewsFeed() {
     useEffect(() => {
         let filtered = newsItems;
 
+        // Quality gate: for US market, require thumbnail (image) on every article
+        if (selectedMarket === 'US') {
+            filtered = filtered.filter(item => item.thumbnail);
+        }
+
         // Date filter
         filtered = filtered.filter(item => isWithinDateRange(item.time, dateFilter));
 

@@ -159,19 +159,27 @@ export default function NewsFeed() {
 
     }, [market, getPublishedNews]); // Re-run when market or CMS updates
 
-    // Calculate source counts based on CURRENT Date Filter
+    // Calculate source counts based on CURRENT Date Filter (+ quality gate for US)
     const sourceCounts = React.useMemo(() => {
-        const dateFiltered = newsItems.filter(item => isWithinDateRange(item.time, dateFilter));
+        const dateFiltered = newsItems.filter(item => {
+            if (market === 'US' && !item.thumbnail && item.link !== '#') return false;
+            return isWithinDateRange(item.time, dateFilter);
+        });
         const counts = { 'All': dateFiltered.length };
         dateFiltered.forEach(item => {
             const pub = item.publisher || 'Unknown';
             counts[pub] = (counts[pub] || 0) + 1;
         });
         return counts;
-    }, [newsItems, dateFilter]);
+    }, [newsItems, dateFilter, market]);
 
     useEffect(() => {
         let filtered = newsItems;
+
+        // Quality gate: for US market, only show articles that have a cover image
+        if (market === 'US') {
+            filtered = filtered.filter(item => item.thumbnail || item.link === '#'); // CMS articles exempt
+        }
 
         // 1. Date Filter
         filtered = filtered.filter(item => isWithinDateRange(item.time, dateFilter));
@@ -189,7 +197,10 @@ export default function NewsFeed() {
         // We only show sources that have at least 1 article in the selected date range
         // But wait, if we filter by source, we lose other sources.
         // The sources list should be based on date-filtered items ONLY, not double filtered.
-        const dateFilteredOnly = newsItems.filter(item => isWithinDateRange(item.time, dateFilter));
+        const dateFilteredOnly = newsItems.filter(item => {
+            if (market === 'US' && !item.thumbnail && item.link !== '#') return false;
+            return isWithinDateRange(item.time, dateFilter);
+        });
         const availableSources = ['All', ...new Set(dateFilteredOnly.map(item => item.publisher).filter(Boolean))];
 
         // SORT SOURCES: 'All' first, then by Count (High -> Low), then Alphabetical
